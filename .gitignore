@@ -1,6 +1,7 @@
 # Project Files
 external/*
 jobs/*
+notebooks/exploratory/
 
 data/raw/*
 !data/raw/.gitkeep
