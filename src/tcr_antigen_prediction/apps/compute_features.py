@@ -1,9 +1,13 @@
 import argparse
+import logging
 import time
 import os
 import numpy as np
 
+from tcr_antigen_prediction.apps._log import setup_logger
 from tcr_antigen_prediction.read_data_from_surface import read_data_from_surface, compute_shape_complementarity
+
+logger = logging.getLogger()
 
 np.random.seed(0)
 
@@ -12,6 +16,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--mode', choices=['ppi_search', 'site'], required=True,
                     help='mode to compute features')
 parser.add_argument('--output', '-o', required=True, help='output path')
+parser.add_argument('--log-level', choices=['debug', 'info', 'warning', 'error'], default='warning',
+                    help="Level to log messages at (Default: 'warning')")
 parser.add_argument('input', nargs=2, help='path to input ply files')
 
 config = {}
@@ -31,6 +37,7 @@ config["site"]["max_distance"] = 9.0
 
 if __name__ == '__main__':
     args = parser.parse_args()
+    setup_logger(logger, args.log_level)
 
     if not os.path.exists(args.output):
         os.mkdir(args.output)

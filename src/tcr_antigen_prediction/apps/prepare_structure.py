@@ -4,6 +4,7 @@ import os
 
 import pymesh
 
+from tcr_antigen_prediction.apps._log import setup_logger
 from tcr_antigen_prediction.protonate import reprotonate
 from tcr_antigen_prediction.structure import extractPDB
 from tcr_antigen_prediction.triangulate import (fix_mesh,
@@ -15,7 +16,7 @@ from tcr_antigen_prediction.triangulate import (fix_mesh,
                                                 computeAPBS,
                                                 save_ply)
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 parser = argparse.ArgumentParser(prog='PrepareStructure')
 
@@ -23,10 +24,12 @@ parser.add_argument('structure', help='Path to pdb structure.')
 parser.add_argument('--output', '-o', help='Path to output processed structure')
 parser.add_argument('--chains', default=None, nargs='+', help='Chains to use from protein.')
 parser.add_argument('--compute-interface', action='store_true')
+parser.add_argument('--log-level', choices=['debug', 'info', 'warning', 'error'], default='warning',
+                    help="Level to log messages at (Default: 'warning')")
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
     args = parser.parse_args()
+    setup_logger(logger, args.log_level)
 
     base_name = os.path.basename(args.structure).rsplit('.', 1)[0]
     output_name = os.path.join(args.output, base_name)

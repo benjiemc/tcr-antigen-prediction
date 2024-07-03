@@ -7,7 +7,7 @@ import requests
 
 from tcr_antigen_prediction.apps._log import setup_logger
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 parser = argparse.ArgumentParser()
 parser.add_argument('output', help='path to the downloaded data directory eg. some/path/stcrdab')
