@@ -1,3 +1,4 @@
+import os
 from subprocess import Popen, PIPE
 
 import numpy as np
@@ -373,14 +374,14 @@ def computeAPBS(vertices, pdb_file, tmp_file_base):
         "--whitespace",
         "--noopt",
         "--apbs-input",
-        pdb_file,
-        tmp_file_base,
+        os.path.basename(pdb_file),
+        os.path.basename(tmp_file_base),
     ]
-    p2 = Popen(args, stdout=PIPE, stderr=PIPE)
+    p2 = Popen(args, stdout=PIPE, stderr=PIPE, cwd=os.path.dirname(tmp_file_base))
     stdout, stderr = p2.communicate()
 
-    args = ['apbs', tmp_file_base + ".in"]
-    p2 = Popen(args, stdout=PIPE, stderr=PIPE)
+    args = ['apbs', os.path.basename(tmp_file_base + ".in")]
+    p2 = Popen(args, stdout=PIPE, stderr=PIPE, cwd=os.path.dirname(tmp_file_base))
     stdout, stderr = p2.communicate()
 
     vertfile = open(tmp_file_base + ".csv", "w")
@@ -390,11 +391,11 @@ def computeAPBS(vertices, pdb_file, tmp_file_base):
 
     args = [
         'multivalue',
-        tmp_file_base + ".csv",
-        tmp_file_base + ".dx",
-        tmp_file_base + "_out.csv",
+        os.path.basename(tmp_file_base) + ".csv",
+        os.path.basename(tmp_file_base) + ".dx",
+        os.path.basename(tmp_file_base) + "_out.csv",
     ]
-    p2 = Popen(args, stdout=PIPE, stderr=PIPE)
+    p2 = Popen(args, stdout=PIPE, stderr=PIPE, cwd=os.path.dirname(tmp_file_base))
     stdout, stderr = p2.communicate()
 
     # Read the charge file
