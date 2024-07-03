@@ -5,7 +5,8 @@ import os
 import numpy as np
 
 from tcr_antigen_prediction.apps._log import setup_logger
-from tcr_antigen_prediction.read_data_from_surface import read_data_from_surface, compute_shape_complementarity
+from tcr_antigen_prediction.io import read_data_from_surface
+from tcr_antigen_prediction.surface import compute_shape_complementarity
 
 logger = logging.getLogger()
 

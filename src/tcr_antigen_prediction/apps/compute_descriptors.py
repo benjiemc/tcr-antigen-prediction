@@ -5,7 +5,7 @@ import os
 import numpy as np
 
 from tcr_antigen_prediction.apps._log import setup_logger
-from tcr_antigen_prediction.masif_ppi_search import MaSIF_ppi_search
+from tcr_antigen_prediction.models import MaSIF_ppi_search
 
 logger = logging.getLogger()
 

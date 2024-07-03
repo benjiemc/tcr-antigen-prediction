@@ -5,7 +5,8 @@ import os
 import pymesh
 
 from tcr_antigen_prediction.apps._log import setup_logger
-from tcr_antigen_prediction.protonate import reprotonate
+from tcr_antigen_prediction.io import save_ply
+from tcr_antigen_prediction.protons import reprotonate
 from tcr_antigen_prediction.structure import extractPDB
 from tcr_antigen_prediction.triangulate import (fix_mesh,
                                                 computeMSMS,
@@ -13,8 +14,7 @@ from tcr_antigen_prediction.triangulate import (fix_mesh,
                                                 computeHydrophobicity,
                                                 assignChargesToNewMesh,
                                                 compute_normal,
-                                                computeAPBS,
-                                                save_ply)
+                                                computeAPBS)
 
 logger = logging.getLogger()
 

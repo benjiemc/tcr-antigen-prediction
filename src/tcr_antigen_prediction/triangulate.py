@@ -8,7 +8,7 @@ from Bio.PDB.vectors import Vector, calc_angle, calc_dihedral
 from numpy.matlib import repmat
 from sklearn.neighbors import KDTree
 
-from tcr_antigen_prediction.formats import output_pdb_as_xyzrn
+from tcr_antigen_prediction.io import output_pdb_as_xyzrn, read_msms
 from tcr_antigen_prediction.chemistry import (donorAtom,
                                               polarHydrogens,
                                               acceptorAngleAtom,
@@ -240,59 +240,6 @@ def computeMSMS(pdb_file,  protonate=True):
     return vertices, faces, normals, names, areas
 
 
-def read_msms(file_root):
-    '''read the surface from the msms output. MSMS outputs two files: {file_root}.vert and {file_root}.face'''
-    vertfile = open(file_root + ".vert")
-    meshdata = (vertfile.read().rstrip()).split("\n")
-    vertfile.close()
-
-    # Read number of vertices.
-    count = {}
-    header = meshdata[2].split()
-    count["vertices"] = int(header[0])
-
-    # Data Structures
-    vertices = np.zeros((count["vertices"], 3))
-    normalv = np.zeros((count["vertices"], 3))
-    atom_id = [""] * count["vertices"]
-    res_id = [""] * count["vertices"]
-    for i in range(3, len(meshdata)):
-        fields = meshdata[i].split()
-        vi = i - 3
-        vertices[vi][0] = float(fields[0])
-        vertices[vi][1] = float(fields[1])
-        vertices[vi][2] = float(fields[2])
-        normalv[vi][0] = float(fields[3])
-        normalv[vi][1] = float(fields[4])
-        normalv[vi][2] = float(fields[5])
-        atom_id[vi] = fields[7]
-        res_id[vi] = fields[9]
-        count["vertices"] -= 1
-
-    # Read faces.
-    facefile = open(file_root + ".face")
-    meshdata = (facefile.read().rstrip()).split("\n")
-    facefile.close()
-
-    # Read number of vertices.
-    header = meshdata[2].split()
-    count["faces"] = int(header[0])
-    faces = np.zeros((count["faces"], 3), dtype=int)
-
-    for i in range(3, len(meshdata)):
-        fi = i - 3
-        fields = meshdata[i].split()
-        faces[fi][0] = int(fields[0]) - 1
-        faces[fi][1] = int(fields[1]) - 1
-        faces[fi][2] = int(fields[2]) - 1
-        count["faces"] -= 1
-
-    assert count["vertices"] == 0
-    assert count["faces"] == 0
-
-    return vertices, faces, normalv, res_id
-
-
 # Kyte Doolittle scale
 kd_scale = {}
 kd_scale["ILE"] = 4.5
@@ -469,51 +416,3 @@ def crossp(x, y):
     z[1, :] = np.multiply(x[2, :], y[0, :]) - np.multiply(x[0, :], y[2, :])
     z[2, :] = np.multiply(x[0, :], y[1, :]) - np.multiply(x[1, :], y[0, :])
     return z
-
-
-def save_ply(filename,
-             vertices,
-             faces=[],
-             normals=None,
-             charges=None,
-             vertex_cb=None,
-             hbond=None,
-             hphob=None,
-             iface=None,
-             normalize_charges=False):
-    """ Save vertices, mesh in ply format.
-        vertices: coordinates of vertices
-        faces: mesh
-    """
-    mesh = pymesh.form_mesh(vertices, faces)
-    if normals is not None:
-        n1 = normals[:, 0]
-        n2 = normals[:, 1]
-        n3 = normals[:, 2]
-        mesh.add_attribute("vertex_nx")
-        mesh.set_attribute("vertex_nx", n1)
-        mesh.add_attribute("vertex_ny")
-        mesh.set_attribute("vertex_ny", n2)
-        mesh.add_attribute("vertex_nz")
-        mesh.set_attribute("vertex_nz", n3)
-    if charges is not None:
-        mesh.add_attribute("charge")
-        if normalize_charges:
-            charges = charges / 10
-        mesh.set_attribute("charge", charges)
-    if hbond is not None:
-        mesh.add_attribute("hbond")
-        mesh.set_attribute("hbond", hbond)
-    if vertex_cb is not None:
-        mesh.add_attribute("vertex_cb")
-        mesh.set_attribute("vertex_cb", vertex_cb)
-    if hphob is not None:
-        mesh.add_attribute("vertex_hphob")
-        mesh.set_attribute("vertex_hphob", hphob)
-    if iface is not None:
-        mesh.add_attribute("vertex_iface")
-        mesh.set_attribute("vertex_iface", iface)
-
-    pymesh.save_mesh(
-        filename, mesh, *mesh.get_attribute_names(), use_float=True, ascii=True
-    )
