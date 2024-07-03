@@ -1,5 +1,6 @@
 from Bio.PDB import PDBParser
-from chemistry import radii, polarHydrogens
+
+from tcr_antigen_prediction.chemistry import radii, polarHydrogens
 
 
 def output_pdb_as_xyzrn(pdb_filename, xyzrn_filename):

@@ -8,8 +8,12 @@ from Bio.PDB.vectors import Vector, calc_angle, calc_dihedral
 from numpy.matlib import repmat
 from sklearn.neighbors import KDTree
 
-from formats import output_pdb_as_xyzrn
-from chemistry import (donorAtom, polarHydrogens, acceptorAngleAtom, acceptorPlaneAtom, hbond_std_dev)
+from tcr_antigen_prediction.formats import output_pdb_as_xyzrn
+from tcr_antigen_prediction.chemistry import (donorAtom,
+                                              polarHydrogens,
+                                              acceptorAngleAtom,
+                                              acceptorPlaneAtom,
+                                              hbond_std_dev)
 
 EPSILON = 1.0e-6
 
