@@ -1,7 +1,10 @@
+import pymesh
+import numpy as np
 from Bio.PDB import PDBParser
 
 from tcr_antigen_prediction.chemistry import radii, polarHydrogens
 from tcr_antigen_prediction.geometry import compute_polar_coordinates
+from tcr_antigen_prediction.surface import compute_ddc, normalize_electrostatics
 
 
 def output_pdb_as_xyzrn(pdb_filename, xyzrn_filename):

@@ -9,6 +9,6 @@ setup(
     package_dir={"": "src"},
     install_requires=[],
     extras_require={
-        'develop': [],
+        'develop': ['flake8'],
     },
 )

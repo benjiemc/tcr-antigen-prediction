@@ -18,4 +18,3 @@ def reprotonate(path: str, out_path: str):
 
     with open(out_path, "w") as outfile:
         outfile.write(stdout.decode('utf-8'))
-
