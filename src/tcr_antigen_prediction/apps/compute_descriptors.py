@@ -36,7 +36,7 @@ params = {
 
 
 def mask_input_feat(input_feat, mask):
-    # Apply mask to input_feat
+    '''Apply mask to input_feat'''
     mymask = np.where(np.array(mask) == 0.0)[0]
     return np.delete(input_feat, mymask, axis=2)
 
@@ -47,11 +47,14 @@ def construct_batch(c_idx, rho_wrt_center, theta_wrt_center, input_feat, mask, f
     batch_input_feat = input_feat[c_idx]
     batch_mask = mask[c_idx]
     batch_mask = np.expand_dims(batch_mask, 2)
+
     # Flip features and theta (except hydrophobicity)
     if flip:
         batch_input_feat = -batch_input_feat
         batch_theta_coords = 2 * np.pi - batch_theta_coords
+
         assert len(batch_input_feat.shape) == 3
+
         # Hydrophobicity is not flipped. -- Fix this.
         if batch_input_feat.shape[2] == 5 or batch_input_feat.shape[2] == 3:
             batch_input_feat[:, :, -1] = -batch_input_feat[:, :, -1]
@@ -59,18 +62,17 @@ def construct_batch(c_idx, rho_wrt_center, theta_wrt_center, input_feat, mask, f
     return batch_rho_coords, batch_theta_coords, batch_input_feat, batch_mask
 
 
-def compute_descriptors(
-    learning_obj,
-    idx,
-    rho_wrt_center,
-    theta_wrt_center,
-    input_feat,
-    mask,
-    batch_size=100,
-    flip=False,
-):
+def compute_descriptors(learning_obj,
+                        idx,
+                        rho_wrt_center,
+                        theta_wrt_center,
+                        input_feat,
+                        mask,
+                        batch_size=100,
+                        flip=False):
     all_descs = []
     num_batches = int(np.ceil(float(len(idx)) / float(batch_size)))
+
     # Compute all desc for positive shapes.
     for kk in range(num_batches):
         c_idx = idx[np.arange(kk * batch_size, min((kk + 1) * batch_size, len(idx)))]

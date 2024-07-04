@@ -21,19 +21,20 @@ parser.add_argument('--log-level', choices=['debug', 'info', 'warning', 'error']
                     help="Level to log messages at (Default: 'warning')")
 parser.add_argument('input', nargs=2, help='path to input ply files')
 
-config = {}
-
-config['ppi_search'] = {}
-config['ppi_search']['max_shape_size'] = 200
-config['ppi_search']['max_distance'] = 12.0
-# Parameters for shape complementarity calculations.
-config['ppi_search']['sc_radius'] = 12.0
-config['ppi_search']['sc_interaction_cutoff'] = 1.5
-config['ppi_search']['sc_w'] = 0.25
-
-config['site'] = {}
-config['site']['max_shape_size'] = 100
-config['site']['max_distance'] = 9.0
+config = {
+    'ppi_search': {
+        'max_shape_size': 200,
+        'max_distance': 12.0,
+        # Parameters for shape complementarity calculations.
+        'sc_radius': 12.0,
+        'sc_interaction_cutoff': 1.5,
+        'sc_w': 0.25,
+    },
+    'site': {
+        'max_shape_size': 100,
+        'max_distance': 9.0,
+    }
+}
 
 
 def main() -> None:
@@ -49,7 +50,6 @@ def main() -> None:
 
     pids = [f'p{num}' for num in range(1, len(args.input) + 1)]
 
-    # Compute shape complementarity between the two proteins.
     rho = {}
     neigh_indices = {}
     mask = {}
@@ -69,6 +69,7 @@ def main() -> None:
                                               max_distance=config[args.mode]['max_distance'],
                                               max_shape_size=config[args.mode]['max_shape_size'])
 
+    # Compute shape complementarity between the two proteins.
     if len(pids) > 1 and args.mode == 'masif_ppi_search':
         p1_sc_labels, p2_sc_labels = compute_shape_complementarity(
             args.input[0], args.input[1],
@@ -79,10 +80,10 @@ def main() -> None:
             sc_interaction_cutoff=config[args.mode]['sc_interaction_count'],
             sc_radius=config[args.mode]['sc_radius'],
         )
+
         np.save(os.path.join(args.output, 'p1_sc_labels'), p1_sc_labels)
         np.save(os.path.join(args.output, 'p2_sc_labels'), p2_sc_labels)
 
-    # Save data only if everything went well.
     for pid in pids:
         np.save(os.path.join(args.output, pid + '_rho_wrt_center'), rho[pid])
         np.save(os.path.join(args.output, pid + '_theta_wrt_center'), theta[pid])
@@ -91,7 +92,6 @@ def main() -> None:
         np.save(os.path.join(args.output, pid + '_list_indices'), neigh_indices[pid])
         np.save(os.path.join(args.output, pid + '_iface_labels'), iface_labels[pid])
 
-        # Save x, y, z
         np.save(os.path.join(args.output, pid + '_X.npy'), verts[pid][:, 0])
         np.save(os.path.join(args.output, pid + '_Y.npy'), verts[pid][:, 1])
         np.save(os.path.join(args.output, pid + '_Z.npy'), verts[pid][:, 2])

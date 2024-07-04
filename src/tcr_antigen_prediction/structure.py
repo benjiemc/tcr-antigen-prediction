@@ -13,17 +13,18 @@ class NotDisordered(Select):
 
 
 def find_modified_amino_acids(path):
-    '''
-    Contributed by github user jomimc - find modified amino acids in the PDB (e.g. MSE)
-    '''
+    '''Contributed by github user jomimc - find modified amino acids in the PDB (e.g. MSE)'''
     res_set = set()
+
     for line in open(path, 'r'):
         if line[:6] == 'SEQRES':
             for res in line.split()[4:]:
                 res_set.add(res)
+
     for res in list(res_set):
         if res in PROTEIN_LETTERS:
             res_set.remove(res)
+
     return res_set
 
 
@@ -35,23 +36,27 @@ def extract_pdb(infilename, outfilename, chain_ids=None):
 
     # Select residues to extract and build new structure
     struct_builder = StructureBuilder.StructureBuilder()
+
     struct_builder.init_structure('output')
     struct_builder.init_seg(' ')
     struct_builder.init_model(0)
+
     output_structure = struct_builder.get_structure()
 
-    # Load a list of non-standard amino acid names -- these are
-    # typically listed under HETATM, so they would be typically
-    # ignored by the orginal algorithm
+    # Load a list of non-standard amino acid names -- these are typically listed under HETATM, so they would be
+    # typically ignored by the orginal algorithm
     modified_amino_acids = find_modified_amino_acids(infilename)
 
     for chain in model:
         if chain_ids is None or chain.get_id() in chain_ids:
             struct_builder.init_chain(chain.get_id())
+
             for residue in chain:
                 het = residue.get_id()
+
                 if het[0] == ' ':
                     output_structure[0][chain.get_id()].add(residue)
+
                 elif het[0][-3:] in modified_amino_acids:
                     output_structure[0][chain.get_id()].add(residue)
 

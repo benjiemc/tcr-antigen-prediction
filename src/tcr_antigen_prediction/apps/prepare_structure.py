@@ -48,12 +48,14 @@ def main() -> None:
 
     logger.info('Computing charges')
     vertex_hbond = compute_charges(output_name + '_protonated.pdb', vertices, names)
+
     logger.info('Computing hydrophobicity')
     vertex_hphobicity = compute_hydrophobicity(names)
 
     logger.info('Creating mesh')
     mesh = pymesh.form_mesh(vertices, faces)
-    logger.info('Regularizing mesh')
+
+    logger.debug('Regularizing mesh')
     regular_mesh = fix_mesh(mesh)
 
     logger.info('Computing normals')
@@ -63,6 +65,7 @@ def main() -> None:
     vertex_hphobicity = assign_charges_to_new_mesh(regular_mesh.vertices, vertices, vertex_hphobicity)
     vertex_charges = compute_apbs(regular_mesh.vertices, output_name + '_protonated.pdb', output_name + '_protonated')
 
+    # TODO decide if this is needed
     # interface = compute_interface(base_name + '_protonated.pdb',
     # ) if args.compute_interface else None
 
