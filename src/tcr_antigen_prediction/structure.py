@@ -1,4 +1,6 @@
 '''Functions and classes for interacting with PDB structures.'''
+from subprocess import Popen, PIPE
+
 from Bio.PDB import PDBParser, PDBIO, Selection, StructureBuilder, Select
 from Bio.SeqUtils import IUPACData
 PROTEIN_LETTERS = [x.upper() for x in IUPACData.protein_letters_3to1.keys()]
@@ -57,3 +59,22 @@ def extract_pdb(infilename, outfilename, chain_ids=None):
     pdbio = PDBIO()
     pdbio.set_structure(output_structure)
     pdbio.save(outfilename, select=NotDisordered())
+
+
+def reprotonate(path: str, out_path: str):
+    '''Remove hydrogens (if any) and re-protonate a structure.'''
+    # Remove hydrogens
+    args = ['reduce', '-Trim', path]
+    p2 = Popen(args, stdout=PIPE, stderr=PIPE)
+    stdout, _ = p2.communicate()
+
+    with open(out_path, 'w') as outfile:
+        outfile.write(stdout.decode('utf-8').rstrip())
+
+    # Re-add hydrogens
+    args = ['reduce', '-HIS', out_path]
+    p2 = Popen(args, stdout=PIPE, stderr=PIPE)
+    stdout, _ = p2.communicate()
+
+    with open(out_path, 'w') as outfile:
+        outfile.write(stdout.decode('utf-8'))

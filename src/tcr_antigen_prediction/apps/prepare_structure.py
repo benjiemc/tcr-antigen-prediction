@@ -7,8 +7,7 @@ import pymesh
 
 from tcr_antigen_prediction.apps._log import setup_logger
 from tcr_antigen_prediction.io import save_ply
-from tcr_antigen_prediction.protons import reprotonate
-from tcr_antigen_prediction.structure import extract_pdb
+from tcr_antigen_prediction.structure import extract_pdb, reprotonate
 from tcr_antigen_prediction.triangulate import (fix_mesh,
                                                 compute_msms,
                                                 compute_charges,
