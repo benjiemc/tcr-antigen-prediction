@@ -16,3 +16,6 @@ data/processed/*
 **/*.egg-info/*
 **/*.pyc
 **/.ipynb_checkpoints/*
+
+# Developement Environment Files
+.vscode/*
