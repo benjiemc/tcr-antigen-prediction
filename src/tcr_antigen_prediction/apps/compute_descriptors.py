@@ -122,7 +122,7 @@ def main() -> None:
         os.mkdir(args.output)
 
     for _, ppi_pair_id in enumerate([item for item in os.listdir(args.input)
-                                         if os.path.isdir(os.path.join(args.input, item))]):
+                                     if os.path.isdir(os.path.join(args.input, item))]):
         in_ppi_pair_dir = os.path.join(args.input, ppi_pair_id)
         out_desc_dir = os.path.join(args.output, ppi_pair_id)
 
@@ -160,6 +160,7 @@ def main() -> None:
 
             np.save(os.path.join(out_desc_dir, f'{pid}_desc_straight.npy'), desc_str)
             np.save(os.path.join(out_desc_dir, f'{pid}_desc_flipped.npy'), desc_flip)
+
 
 if __name__ == '__main__':
     main()
