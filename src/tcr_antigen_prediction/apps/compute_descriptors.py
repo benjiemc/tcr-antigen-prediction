@@ -120,7 +120,8 @@ if __name__ == '__main__':
     if not os.path.exists(args.output):
         os.mkdir(args.output)
 
-    for count, ppi_pair_id in enumerate(os.listdir(args.input)):
+    for count, ppi_pair_id in enumerate([item for item in os.listdir(args.input)
+                                         if os.path.isdir(os.path.join(args.input, item))]):
         in_ppi_pair_dir = os.path.join(args.input, ppi_pair_id)
         out_desc_dir = os.path.join(args.output, ppi_pair_id)
 
