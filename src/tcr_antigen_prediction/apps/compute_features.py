@@ -1,7 +1,6 @@
 '''Command line application to compute the features required for the MaSIF model from PLY files.'''
 import argparse
 import logging
-import time
 import os
 import numpy as np
 
@@ -71,7 +70,6 @@ def main() -> None:
                                               max_shape_size=config[args.mode]['max_shape_size'])
 
     if len(pids) > 1 and args.mode == 'masif_ppi_search':
-        start_time = time.time()
         p1_sc_labels, p2_sc_labels = compute_shape_complementarity(
             args.input[0], args.input[1],
             neigh_indices['p1'], neigh_indices['p2'],
@@ -83,8 +81,6 @@ def main() -> None:
         )
         np.save(os.path.join(args.output, 'p1_sc_labels'), p1_sc_labels)
         np.save(os.path.join(args.output, 'p2_sc_labels'), p2_sc_labels)
-        end_time = time.time()
-        logger.info('Computing shape complementarity took %.2f', end_time - start_time)
 
     # Save data only if everything went well.
     for pid in pids:
