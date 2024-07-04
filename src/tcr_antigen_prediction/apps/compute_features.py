@@ -46,7 +46,7 @@ def main() -> None:
 
     np.random.seed(0)
 
-    print('Reading data from input ply surface files.')
+    logger.info('Reading data from input ply surface files.')
 
     pids = [f'p{num}' for num in range(1, len(args.input) + 1)]
 
@@ -84,7 +84,7 @@ def main() -> None:
         np.save(os.path.join(args.output, 'p1_sc_labels'), p1_sc_labels)
         np.save(os.path.join(args.output, 'p2_sc_labels'), p2_sc_labels)
         end_time = time.time()
-        print(f'Computing shape complementarity took {end_time - start_time: .2f}')
+        logger.info('Computing shape complementarity took %.2f', end_time - start_time)
 
     # Save data only if everything went well.
     for pid in pids:

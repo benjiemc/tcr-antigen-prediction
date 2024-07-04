@@ -187,8 +187,6 @@ def compute_theta_all(d_mat, vertices, faces, normals, idx, radius):
     mymds = MDS(n_components=2, n_init=1, max_iter=50, dissimilarity='precomputed', n_jobs=10)
     all_theta = []
     for i in range(d_mat.shape[0]):
-        if i % 100 == 0:
-            print(i)
         # Get the pairs of geodesic distances.
         neigh = d_mat[i].nonzero()
         ii = np.where(d_mat[i][neigh] < radius)[1]

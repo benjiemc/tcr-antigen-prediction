@@ -1,6 +1,10 @@
 '''Models used in package.'''
+import logging
+
 import tensorflow as tf
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 
 class MasifPPISearch:
@@ -146,7 +150,7 @@ class MasifPPISearch:
                 # print self.var_grad
                 for k in range(len(self.var_grad)):
                     if self.var_grad[k] is None:
-                        print(tf.trainable_variables()[k])
+                        logger.debug(tf.trainable_variables()[k])
                 self.norm_grad = self.frobenius_norm(
                     tf.concat([tf.reshape(g, [-1]) for g in self.var_grad], 0)
                 )
@@ -167,13 +171,13 @@ class MasifPPISearch:
         for variable in tf.trainable_variables():
             # shape is an array of tf.Dimension
             shape = variable.get_shape()
-            print(variable)
+            logger.debug(variable)
             variable_parameters = 1
             for dim in shape:
                 variable_parameters *= dim.value
-            print(variable_parameters)
+            logger.debug(variable_parameters)
             total_parameters += variable_parameters
-        print(f'Total number parameters: {total_parameters}')
+        logger.info('Total number parameters: %d', total_parameters)
 
     def frobenius_norm(self, tensor):
         square_tensor = tf.square(tensor)
@@ -209,7 +213,7 @@ class MasifPPISearch:
 
         coords = np.concatenate((grid_rho_[None, :], grid_theta_[None, :]), axis=0)
         coords = coords.T  # every row contains the coordinates of a grid intersection
-        print(coords.shape)
+        logger.debug(coords.shape)
         return coords
 
     def inference(

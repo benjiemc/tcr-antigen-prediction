@@ -1,5 +1,6 @@
 '''Functions for creating meshes and adding features to those meshes from PDB structures.'''
 import os
+import logging
 from subprocess import Popen, PIPE
 
 import numpy as np
@@ -15,6 +16,8 @@ from tcr_antigen_prediction.chemistry import (DONOR_ATOM,
                                               ACCEPTOR_ANGLE_ATOM,
                                               ACCEPTOR_PLANE_ATOM,
                                               HBOND_STD_DEV)
+
+logger = logging.getLogger(__name__)
 
 EPSILON = 1.0e-6
 
@@ -289,7 +292,7 @@ def fix_mesh(mesh, resolution=1.0, detail='normal'):
     mesh, _ = pymesh.remove_duplicated_vertices(mesh, 0.001)
 
     count = 0
-    print('Removing degenerated triangles')
+    logger.info('Removing degenerated triangles')
     mesh, _ = pymesh.remove_degenerated_triangles(mesh, 100)
     mesh, _ = pymesh.split_long_edges(mesh, target_len)
     num_vertices = mesh.num_vertices
