@@ -3,7 +3,7 @@ import pymesh
 import numpy as np
 from Bio.PDB import PDBParser
 
-from tcr_antigen_prediction.chemistry import radii, polarHydrogens
+from tcr_antigen_prediction.chemistry import RADII, polarHydrogens
 from tcr_antigen_prediction.geometry import compute_polar_coordinates
 from tcr_antigen_prediction.surface import compute_ddc, normalize_electrostatics
 
@@ -29,7 +29,7 @@ def output_pdb_as_xyzrn(pdb_filename, xyzrn_filename):
 
             color = 'Green'
             coords = None
-            if atomtype in radii and resname in polarHydrogens:
+            if atomtype in RADII and resname in polarHydrogens:
                 if atomtype == 'O':
                     color = 'Red'
                 if atomtype == 'N':
@@ -44,7 +44,7 @@ def output_pdb_as_xyzrn(pdb_filename, xyzrn_filename):
                 full_id = f'{chain}_{residue.get_id()[1]: d}_{insertion}_{resname}_{name}_{color}'
 
             if coords is not None:
-                outfile.write(coords + ' ' + radii[atomtype] + ' 1 ' + full_id + '\n')
+                outfile.write(coords + ' ' + RADII[atomtype] + ' 1 ' + full_id + '\n')
 
 
 def read_data_from_surface(ply_fn, max_distance, max_shape_size):

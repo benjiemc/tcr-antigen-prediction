@@ -10,11 +10,11 @@ from numpy.matlib import repmat
 from sklearn.neighbors import KDTree
 
 from tcr_antigen_prediction.io import output_pdb_as_xyzrn, read_msms
-from tcr_antigen_prediction.chemistry import (donorAtom,
-                                              polarHydrogens,
-                                              acceptorAngleAtom,
-                                              acceptorPlaneAtom,
-                                              hbond_std_dev)
+from tcr_antigen_prediction.chemistry import (DONOR_ATOM,
+                                              POLAR_HYDROGENS,
+                                              ACCEPTOR_ANGLE_ATOM,
+                                              ACCEPTOR_PLANE_ATOM,
+                                              HBOND_STD_DEV)
 
 EPSILON = 1.0e-6
 
@@ -60,7 +60,7 @@ def compute_charges(pdb_filename, vertices, names):
 def compute_charge_helper(atom_name, res, v):
     # Check if it is a polar hydrogen.
     if is_polar_hydrogen(atom_name, res):
-        donor_atom_name = donorAtom[atom_name]
+        donor_atom_name = DONOR_ATOM[atom_name]
         a = res[donor_atom_name].get_coord()  # N/O
         b = res[atom_name].get_coord()  # H
         # Donor-H is always 180.0 degrees, = pi
@@ -72,7 +72,7 @@ def compute_charge_helper(atom_name, res, v):
         acceptor_atom = res[atom_name]
         b = acceptor_atom.get_coord()
         # try:
-        a = res[acceptorAngleAtom[atom_name]].get_coord()
+        a = res[ACCEPTOR_ANGLE_ATOM[atom_name]].get_coord()
         # except:
         # return 0.0
         # 120 degress for acceptor
@@ -81,9 +81,9 @@ def compute_charge_helper(atom_name, res, v):
         #       ~125.0
         angle_penalty = compute_angle_penalty(angle_deviation)
         plane_penalty = 1.0
-        if atom_name in acceptorPlaneAtom:
+        if atom_name in ACCEPTOR_PLANE_ATOM:
             # try:
-            d = res[acceptorPlaneAtom[atom_name]].get_coord()
+            d = res[ACCEPTOR_PLANE_ATOM[atom_name]].get_coord()
             # except:
             # return 0.0
             plane_deviation = compute_plane_deviation(d, a, b, v)
@@ -108,12 +108,12 @@ def compute_plane_deviation(a, b, c, d):
 
 # angle_deviation from ideal value. TODO: do a more data-based solution
 def compute_angle_penalty(angle_deviation):
-    # Standard deviation: hbond_std_dev
-    return max(0.0, 1.0 - (angle_deviation / (hbond_std_dev)) ** 2)
+    # Standard deviation: HBOND_STD_DEV
+    return max(0.0, 1.0 - (angle_deviation / (HBOND_STD_DEV)) ** 2)
 
 
 def is_polar_hydrogen(atom_name, res):
-    if atom_name in polarHydrogens[res.get_resname()]:
+    if atom_name in POLAR_HYDROGENS[res.get_resname()]:
         return True
     else:
         return False
