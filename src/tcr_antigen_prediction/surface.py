@@ -22,17 +22,17 @@ def extract_patch_and_coord(vix, shape, coord, max_distance, max_vertices, patch
     #    print('j = {} {}'.format(len(j), old_j))
     d = d[j]
     patch = {}
-    patch["X"] = shape["X"][0][j]
-    patch["Y"] = shape["Y"][0][j]
-    patch["Z"] = shape["Z"][0][j]
-    patch["charge"] = shape["charge"][0][j]
-    patch["hbond"] = shape["hbond"][0][j]
-    patch["normal"] = shape["normal"][:, j]
-    patch["shape_index"] = shape["shape_index"][0][j]
-    if "hphob" in shape:
-        patch["hphob"] = shape["hphob"][0][j]
+    patch['X'] = shape['X'][0][j]
+    patch['Y'] = shape['Y'][0][j]
+    patch['Z'] = shape['Z'][0][j]
+    patch['charge'] = shape['charge'][0][j]
+    patch['hbond'] = shape['hbond'][0][j]
+    patch['normal'] = shape['normal'][:, j]
+    patch['shape_index'] = shape['shape_index'][0][j]
+    if 'hphob' in shape:
+        patch['hphob'] = shape['hphob'][0][j]
 
-    patch["center"] = np.argmin(d)
+    patch['center'] = np.argmin(d)
 
     j_theta = j + coord.shape[1] // 2
     theta = np.squeeze(np.asarray(coord[np.int(vix), j_theta].todense()))
@@ -52,7 +52,7 @@ def compute_shape_complementarity(ply_fn1, ply_fn2,
                                   sc_w,
                                   sc_interaction_cutoff,
                                   sc_radius):
-    """
+    '''
         compute_shape_complementarity: compute the shape complementarity between all pairs of patches.
         ply_fnX: path to the ply file of the surface of protein X=1 and X=2
         neighX, rhoX, maskX: (N,max_vertices_per_patch) matrices with the indices of the neighbors, the distances to the
@@ -60,23 +60,23 @@ def compute_shape_complementarity(ply_fn1, ply_fn2,
 
         Returns: vX_sc (2,N,10) matrix with the shape complementarity (shape complementarity 25 and 50)
         of each vertex to its nearest neighbor in the other protein, in 10 rings.
-    """
+    '''
     # Mesh 1
     mesh1 = pymesh.load_mesh(ply_fn1)
 
     # Normals:
-    nx = mesh1.get_attribute("vertex_nx")
-    ny = mesh1.get_attribute("vertex_ny")
-    nz = mesh1.get_attribute("vertex_nz")
+    nx = mesh1.get_attribute('vertex_nx')
+    ny = mesh1.get_attribute('vertex_ny')
+    nz = mesh1.get_attribute('vertex_nz')
     n1 = np.stack([nx, ny, nz], axis=1)
 
     # Mesh 2
     mesh2 = pymesh.load_mesh(ply_fn2)
 
     # Normals:
-    nx = mesh2.get_attribute("vertex_nx")
-    ny = mesh2.get_attribute("vertex_ny")
-    nz = mesh2.get_attribute("vertex_nz")
+    nx = mesh2.get_attribute('vertex_nx')
+    ny = mesh2.get_attribute('vertex_ny')
+    nz = mesh2.get_attribute('vertex_nz')
     n2 = np.stack([nx, ny, nz], axis=1)
 
     w = sc_w
@@ -168,9 +168,9 @@ def compute_shape_complementarity(ply_fn1, ply_fn2,
 
 
 def normalize_electrostatics(in_elec):
-    """
+    '''
         Normalize electrostatics to a value between -1 and 1
-    """
+    '''
     elec = np.copy(in_elec)
     upper_threshold = 3
     lower_threshold = -3
@@ -183,9 +183,9 @@ def normalize_electrostatics(in_elec):
 
 
 def mean_normal_center_patch(d, n, r):
-    """
+    '''
         Function to compute the mean normal of vertices within r radius of the center of the patch.
-    """
+    '''
     c_normal = [n[i] for i in range(len(d)) if d[i] <= r]
     mean_normal = np.mean(c_normal, axis=0, keepdims=True).T
     mean_normal = mean_normal / np.linalg.norm(mean_normal)
@@ -193,14 +193,14 @@ def mean_normal_center_patch(d, n, r):
 
 
 def compute_ddc(patch_v, patch_n, patch_cp, patch_rho):
-    """
+    '''
         Compute the distance dependent curvature, Yin et al PNAS 2009
             patch_v: the patch vertices
             patch_n: the patch normals
             patch_cp: the index of the central point of the patch
             patch_rho: the geodesic distance to all members.
         Returns a vector with the ddc for each point in the patch.
-    """
+    '''
     n = patch_n
     r = patch_v
     i = patch_cp
