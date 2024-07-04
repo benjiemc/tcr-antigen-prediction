@@ -9,6 +9,6 @@ setup(
     package_dir={"": "src"},
     install_requires=[],
     extras_require={
-        'develop': ['flake8'],
+        'develop': ['flake8', 'pylint'],
     },
 )

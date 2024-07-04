@@ -8,3 +8,4 @@ data/raw/stcrdab:
 
 lint:
 	@flake8 src/
+	@pylint src
