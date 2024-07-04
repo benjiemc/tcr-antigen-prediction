@@ -8,62 +8,62 @@ from tcr_antigen_prediction.surface import compute_ddc, normalize_electrostatics
 
 
 def output_pdb_as_xyzrn(pdb_filename, xyzrn_filename):
-    """
+    '''
         pdb_filename: input pdb filename
         xyzrn_filename: output in xyzrn format.
-    """
+    '''
     parser = PDBParser()
     struct = parser.get_structure(pdb_filename, pdb_filename)
-    with open(xyzrn_filename, "w") as outfile:
+    with open(xyzrn_filename, 'w') as outfile:
         for atom in struct.get_atoms():
             name = atom.get_name()
             residue = atom.get_parent()
             # Ignore hetatms.
-            if residue.get_id()[0] != " ":
+            if residue.get_id()[0] != ' ':
                 continue
 
             resname = residue.get_resname()
             chain = residue.get_parent().get_id()
             atomtype = name[0]
 
-            color = "Green"
+            color = 'Green'
             coords = None
             if atomtype in radii and resname in polarHydrogens:
-                if atomtype == "O":
-                    color = "Red"
-                if atomtype == "N":
-                    color = "Blue"
-                if atomtype == "H":
+                if atomtype == 'O':
+                    color = 'Red'
+                if atomtype == 'N':
+                    color = 'Blue'
+                if atomtype == 'H':
                     if name in polarHydrogens[resname]:
-                        color = "Blue"  # Polar hydrogens
-                coords = "{:.06f} {:.06f} {:.06f}".format(
+                        color = 'Blue'  # Polar hydrogens
+                coords = '{:.06f} {:.06f} {:.06f}'.format(
                     atom.get_coord()[0], atom.get_coord()[1], atom.get_coord()[2]
                 )
-                insertion = "x"
-                if residue.get_id()[2] != " ":
+                insertion = 'x'
+                if residue.get_id()[2] != ' ':
                     insertion = residue.get_id()[2]
-                full_id = "{}_{:d}_{}_{}_{}_{}".format(
+                full_id = '{}_{:d}_{}_{}_{}_{}'.format(
                     chain, residue.get_id()[1], insertion, resname, name, color
                 )
             if coords is not None:
-                outfile.write(coords + " " + radii[atomtype] + " 1 " + full_id + "\n")
+                outfile.write(coords + ' ' + radii[atomtype] + ' 1 ' + full_id + '\n')
 
 
 def read_data_from_surface(ply_fn, max_distance, max_shape_size):
-    """
+    '''
     # Read data from a ply file -- decompose into patches.
     # Returns:
     # list_desc: List of features per patch
     # list_coords: list of angular and polar coordinates.
     # list_indices: list of indices of neighbors in the patch.
     # list_sc_labels: list of shape complementarity labels (computed here).
-    """
+    '''
     mesh = pymesh.load_mesh(ply_fn)
 
     # Normals:
-    n1 = mesh.get_attribute("vertex_nx")
-    n2 = mesh.get_attribute("vertex_ny")
-    n3 = mesh.get_attribute("vertex_nz")
+    n1 = mesh.get_attribute('vertex_nx')
+    n2 = mesh.get_attribute('vertex_ny')
+    n3 = mesh.get_attribute('vertex_nz')
     normals = np.stack([n1, n2, n3], axis=1)
 
     # Compute the angular and radial coordinates.
@@ -72,10 +72,10 @@ def read_data_from_surface(ply_fn, max_distance, max_shape_size):
                                                                 max_vertices=max_shape_size)
 
     # Compute the principal curvature components for the shape index.
-    mesh.add_attribute("vertex_mean_curvature")
-    H = mesh.get_attribute("vertex_mean_curvature")
-    mesh.add_attribute("vertex_gaussian_curvature")
-    K = mesh.get_attribute("vertex_gaussian_curvature")
+    mesh.add_attribute('vertex_mean_curvature')
+    H = mesh.get_attribute('vertex_mean_curvature')
+    mesh.add_attribute('vertex_gaussian_curvature')
+    K = mesh.get_attribute('vertex_gaussian_curvature')
     elem = np.square(H) - K
     # In some cases this equation is less than zero, likely due to the method that computes the mean and gaussian
     # curvature. set to an epsilon.
@@ -87,19 +87,19 @@ def read_data_from_surface(ply_fn, max_distance, max_shape_size):
     si = np.arctan(si)*(2/np.pi)
 
     # Normalize the charge.
-    charge = mesh.get_attribute("vertex_charge")
+    charge = mesh.get_attribute('vertex_charge')
     charge = normalize_electrostatics(charge)
 
     # Hbond features
-    hbond = mesh.get_attribute("vertex_hbond")
+    hbond = mesh.get_attribute('vertex_hbond')
 
     # Hydropathy features
     # Normalize hydropathy by dividing by 4.5
-    hphob = mesh.get_attribute("vertex_hphob")/4.5
+    hphob = mesh.get_attribute('vertex_hphob')/4.5
 
     # Iface labels (for ground truth only)
-    if "vertex_iface" in mesh.get_attribute_names():
-        iface_labels = mesh.get_attribute("vertex_iface")
+    if 'vertex_iface' in mesh.get_attribute_names():
+        iface_labels = mesh.get_attribute('vertex_iface')
     else:
         iface_labels = np.zeros_like(hphob)
 
@@ -132,20 +132,20 @@ def read_data_from_surface(ply_fn, max_distance, max_shape_size):
 
 def read_msms(file_root):
     '''read the surface from the msms output. MSMS outputs two files: {file_root}.vert and {file_root}.face'''
-    vertfile = open(file_root + ".vert")
-    meshdata = (vertfile.read().rstrip()).split("\n")
+    vertfile = open(file_root + '.vert')
+    meshdata = (vertfile.read().rstrip()).split('\n')
     vertfile.close()
 
     # Read number of vertices.
     count = {}
     header = meshdata[2].split()
-    count["vertices"] = int(header[0])
+    count['vertices'] = int(header[0])
 
     # Data Structures
-    vertices = np.zeros((count["vertices"], 3))
-    normalv = np.zeros((count["vertices"], 3))
-    atom_id = [""] * count["vertices"]
-    res_id = [""] * count["vertices"]
+    vertices = np.zeros((count['vertices'], 3))
+    normalv = np.zeros((count['vertices'], 3))
+    atom_id = [''] * count['vertices']
+    res_id = [''] * count['vertices']
     for i in range(3, len(meshdata)):
         fields = meshdata[i].split()
         vi = i - 3
@@ -157,17 +157,17 @@ def read_msms(file_root):
         normalv[vi][2] = float(fields[5])
         atom_id[vi] = fields[7]
         res_id[vi] = fields[9]
-        count["vertices"] -= 1
+        count['vertices'] -= 1
 
     # Read faces.
-    facefile = open(file_root + ".face")
-    meshdata = (facefile.read().rstrip()).split("\n")
+    facefile = open(file_root + '.face')
+    meshdata = (facefile.read().rstrip()).split('\n')
     facefile.close()
 
     # Read number of vertices.
     header = meshdata[2].split()
-    count["faces"] = int(header[0])
-    faces = np.zeros((count["faces"], 3), dtype=int)
+    count['faces'] = int(header[0])
+    faces = np.zeros((count['faces'], 3), dtype=int)
 
     for i in range(3, len(meshdata)):
         fi = i - 3
@@ -175,17 +175,17 @@ def read_msms(file_root):
         faces[fi][0] = int(fields[0]) - 1
         faces[fi][1] = int(fields[1]) - 1
         faces[fi][2] = int(fields[2]) - 1
-        count["faces"] -= 1
+        count['faces'] -= 1
 
-    assert count["vertices"] == 0
-    assert count["faces"] == 0
+    assert count['vertices'] == 0
+    assert count['faces'] == 0
 
     return vertices, faces, normalv, res_id
 
 
 def save_ply(filename,
              vertices,
-             faces=[],
+             faces=None,
              normals=None,
              charges=None,
              vertex_cb=None,
@@ -193,38 +193,41 @@ def save_ply(filename,
              hphob=None,
              iface=None,
              normalize_charges=False):
-    """ Save vertices, mesh in ply format.
+    ''' Save vertices, mesh in ply format.
         vertices: coordinates of vertices
         faces: mesh
-    """
+    '''
+    if faces is None:
+        faces = []
+
     mesh = pymesh.form_mesh(vertices, faces)
     if normals is not None:
         n1 = normals[:, 0]
         n2 = normals[:, 1]
         n3 = normals[:, 2]
-        mesh.add_attribute("vertex_nx")
-        mesh.set_attribute("vertex_nx", n1)
-        mesh.add_attribute("vertex_ny")
-        mesh.set_attribute("vertex_ny", n2)
-        mesh.add_attribute("vertex_nz")
-        mesh.set_attribute("vertex_nz", n3)
+        mesh.add_attribute('vertex_nx')
+        mesh.set_attribute('vertex_nx', n1)
+        mesh.add_attribute('vertex_ny')
+        mesh.set_attribute('vertex_ny', n2)
+        mesh.add_attribute('vertex_nz')
+        mesh.set_attribute('vertex_nz', n3)
     if charges is not None:
-        mesh.add_attribute("charge")
+        mesh.add_attribute('charge')
         if normalize_charges:
             charges = charges / 10
-        mesh.set_attribute("charge", charges)
+        mesh.set_attribute('charge', charges)
     if hbond is not None:
-        mesh.add_attribute("hbond")
-        mesh.set_attribute("hbond", hbond)
+        mesh.add_attribute('hbond')
+        mesh.set_attribute('hbond', hbond)
     if vertex_cb is not None:
-        mesh.add_attribute("vertex_cb")
-        mesh.set_attribute("vertex_cb", vertex_cb)
+        mesh.add_attribute('vertex_cb')
+        mesh.set_attribute('vertex_cb', vertex_cb)
     if hphob is not None:
-        mesh.add_attribute("vertex_hphob")
-        mesh.set_attribute("vertex_hphob", hphob)
+        mesh.add_attribute('vertex_hphob')
+        mesh.set_attribute('vertex_hphob', hphob)
     if iface is not None:
-        mesh.add_attribute("vertex_iface")
-        mesh.set_attribute("vertex_iface", iface)
+        mesh.add_attribute('vertex_iface')
+        mesh.set_attribute('vertex_iface', iface)
 
     pymesh.save_mesh(
         filename, mesh, *mesh.get_attribute_names(), use_float=True, ascii=True

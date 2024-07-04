@@ -1,5 +1,3 @@
-import time
-
 import networkx as nx
 import numpy as np
 import scipy
@@ -7,14 +5,14 @@ from sklearn.manifold import MDS
 
 
 def compute_polar_coordinates(mesh, do_fast=True, radius=12, max_vertices=200):
-    """
+    '''
     compute_polar_coordinates: compute the polar coordinates for every patch in the mesh.
     Returns:
         rho: radial coordinates for each patch. padded to zero.
         theta: angle values for each patch. padded to zero.
         neigh_indices: indices of members of each patch.
         mask: the mask for rho and theta
-    """
+    '''
 
     # Vertices, faces and normals
     vertices = mesh.vertices
@@ -42,7 +40,7 @@ def compute_polar_coordinates(mesh, do_fast=True, radius=12, max_vertices=200):
     wedges = np.stack([rowi, rowj, edgew]).T
 
     G.add_weighted_edges_from(wedges)
-    start = time.clock()
+
     if do_fast:
         dists = nx.all_pairs_dijkstra_path_length(G, cutoff=radius)
     else:
@@ -50,8 +48,7 @@ def compute_polar_coordinates(mesh, do_fast=True, radius=12, max_vertices=200):
     d2 = {}
     for key_tuple in dists:
         d2[key_tuple[0]] = key_tuple[1]
-    end = time.clock()
-    print('Dijkstra took {:.2f}s'.format((end-start)))
+
     D = dict_to_sparse(d2)
 
     # Compute the faces per vertex.
@@ -65,16 +62,12 @@ def compute_polar_coordinates(mesh, do_fast=True, radius=12, max_vertices=200):
     i = np.arange(D.shape[0])
     # Set diagonal elements to a very small value greater than zero..
     D[i, i] = 1e-8
-    # Call MDS for all points.
-    mds_start_t = time.clock()
 
+    # Call MDS for all points.
     if do_fast:
         theta = compute_theta_all_fast(D, vertices, faces, normals, idx, radius)
     else:
         theta = compute_theta_all(D, vertices, faces, normals, idx, radius)
-
-    mds_end_t = time.clock()
-    print('MDS took {:.2f}s'.format((mds_end_t-mds_start_t)))
 
     n = len(d2)
     theta_out = np.zeros((n, max_vertices))
@@ -103,7 +96,7 @@ def call_mds(mds_obj, pair_dist):
 
 
 def compute_thetas(plane, vix, verts, faces, normal, neighbors, idx):
-    """
+    '''
     compute_thetas: compute the angles of each vertex with respect to some
     random direction. Ensure that theta runs clockwise with respect to the
     normals.
@@ -115,7 +108,7 @@ def compute_thetas(plane, vix, verts, faces, normal, neighbors, idx):
         idx: a list of faces indexed per vertex.
     Returns:
         thetas: theta values for the patch.
-    """
+    '''
     plane_center_ix = np.where(neighbors == vix)[0][0]
     thetas = np.zeros(len(verts))
     # Center the plane so that the origin is at (0,0).
@@ -212,16 +205,14 @@ def compute_theta_all(D, vertices, faces, normals, idx, radius):
 
 
 def compute_theta_all_fast(D, vertices, faces, normals, idx, radius):
-    """
+    '''
         compute_theta_all_fast: compute the theta coordinate using an approximation.
         The approximation consists of taking only the inner radius/2 for the multidimensional
         scaling. Then, for points farther than radius/2, the shortest line to the center is used.
         This speeds up the method by a factor of about 100.
-    """
+    '''
     mymds = MDS(n_components=2, n_init=1, eps=0.1, max_iter=50, dissimilarity='precomputed', n_jobs=1)
     all_theta = []
-    start_loop = time.clock()
-    only_mds = 0.0
 
     for i in range(D.shape[0]):
         # Get the pairs of geodesic distances.
@@ -233,10 +224,7 @@ def compute_theta_all_fast(D, vertices, faces, normals, idx, radius):
         pair_dist_i = pair_dist_i.todense()
 
         # Plane_i: the 2D plane for all neighbors of i
-        tic = time.clock()
         plane_i = call_mds(mymds, pair_dist_i)
-        toc = time.clock()
-        only_mds += (toc - tic)
 
         # Compute the angles on the plane.
         theta = compute_thetas(plane_i, i, vertices, faces, normals, neigh_i, idx)
@@ -254,14 +242,11 @@ def compute_theta_all_fast(D, vertices, faces, normals, idx, radius):
 
         all_theta.append(theta)
 
-    end_loop = time.clock()
-    print('Only MDS time: {:.2f}s'.format(only_mds))
-    print('Full loop time: {:.2f}s'.format(end_loop-start_loop))
     return all_theta
 
 
 def dict_to_sparse(mydict):
-    """create a sparse matrix from a dictionary"""
+    '''create a sparse matrix from a dictionary'''
 
     # Create the appropriate format for the COO format.
     data = []

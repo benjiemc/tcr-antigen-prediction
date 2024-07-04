@@ -4,9 +4,9 @@ import numpy as np
 
 class MaSIF_ppi_search:
 
-    """
+    '''
     The neural network model to classify two patches into binders or not binders.
-    """
+    '''
 
     def count_number_parameters(self):
         total_parameters = 0
@@ -19,7 +19,7 @@ class MaSIF_ppi_search:
                 variable_parameters *= dim.value
             print(variable_parameters)
             total_parameters += variable_parameters
-        print("Total number parameters: %d" % total_parameters)
+        print('Total number parameters: %d' % total_parameters)
 
     def frobenius_norm(self, tensor):
         square_tensor = tf.square(tensor)
@@ -176,12 +176,13 @@ class MaSIF_ppi_search:
         max_rho,
         n_thetas=16,
         n_rhos=5,
-        n_gamma=1.0,
         learning_rate=1e-3,
         n_rotations=16,
-        idx_gpu="/device:GPU:0",
-        feat_mask=[1.0, 1.0, 1.0, 1.0, 1.0],
+        idx_gpu='/device:GPU:0',
+        feat_mask=None,
     ):
+        if feat_mask is None:
+            feat_mask = [1.0, 1.0, 1.0, 1.0, 1.0]
 
         # order of the spectral filters
         self.max_rho = max_rho
@@ -202,10 +203,10 @@ class MaSIF_ppi_search:
 
                 initial_coords = self.compute_initial_coordinates()
                 mu_rho_initial = np.expand_dims(initial_coords[:, 0], 0).astype(
-                    "float32"
+                    'float32'
                 )
                 mu_theta_initial = np.expand_dims(initial_coords[:, 1], 0).astype(
-                    "float32"
+                    'float32'
                 )
                 self.mu_rho = []
                 self.mu_theta = []
@@ -213,21 +214,21 @@ class MaSIF_ppi_search:
                 self.sigma_theta = []
                 for i in range(self.n_feat):
                     self.mu_rho.append(
-                        tf.Variable(mu_rho_initial, name="mu_rho_{}".format(i))
+                        tf.Variable(mu_rho_initial, name='mu_rho_{}'.format(i))
                     )  # 1, n_gauss
                     self.mu_theta.append(
-                        tf.Variable(mu_theta_initial, name="mu_theta_{}".format(i))
+                        tf.Variable(mu_theta_initial, name='mu_theta_{}'.format(i))
                     )  # 1, n_gauss
                     self.sigma_rho.append(
                         tf.Variable(
                             np.ones_like(mu_rho_initial) * self.sigma_rho_init,
-                            name="sigma_rho_{}".format(i),
+                            name='sigma_rho_{}'.format(i),
                         )
                     )  # 1, n_gauss
                     self.sigma_theta.append(
                         tf.Variable(
                             (np.ones_like(mu_theta_initial) * self.sigma_theta_init),
-                            name="sigma_theta_{}".format(i),
+                            name='sigma_theta_{}'.format(i),
                         )
                     )  # 1, n_gauss
 
@@ -254,7 +255,7 @@ class MaSIF_ppi_search:
                     b_conv.append(
                         tf.Variable(
                             tf.zeros([self.n_thetas * self.n_rhos]),
-                            name="b_conv_{}".format(i),
+                            name='b_conv_{}'.format(i),
                         )
                     )
                 # Run the inference layer per feature.
@@ -262,7 +263,7 @@ class MaSIF_ppi_search:
                     my_input_feat = tf.expand_dims(self.input_feat[:, :, i], 2)
 
                     W_conv = tf.get_variable(
-                        "W_conv_{}".format(i),
+                        'W_conv_{}'.format(i),
                         shape=[
                             self.n_thetas * self.n_rhos,
                             self.n_thetas * self.n_rhos,

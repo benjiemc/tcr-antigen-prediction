@@ -20,17 +20,17 @@ parser.add_argument('input')
 np.random.seed(0)
 
 params = {
-    "max_shape_size": 200,
-    "max_distance": 12.0,
-    "feat_mask": [1.0] * 5,
-    "max_sc_filt": 1.0,
-    "min_sc_filt": 0.5,
-    "pos_surf_accept_probability": 1.0,
-    "pos_interface_cutoff": 1.0,
-    "range_val_samples": 0.9,
-    "sc_radius": 12.0,
-    "sc_interaction_cutoff": 1.5,
-    "sc_w": 0.25,
+    'max_shape_size': 200,
+    'max_distance': 12.0,
+    'feat_mask': [1.0] * 5,
+    'max_sc_filt': 1.0,
+    'min_sc_filt': 0.5,
+    'pos_surf_accept_probability': 1.0,
+    'pos_interface_cutoff': 1.0,
+    'range_val_samples': 0.9,
+    'sc_radius': 12.0,
+    'sc_interaction_cutoff': 1.5,
+    'sc_w': 0.25,
 }
 
 
@@ -103,24 +103,24 @@ def compute_descriptors(
     return all_descs
 
 
-if __name__ == '__main__':
+def main() -> None:
     args = parser.parse_args()
     setup_logger(logger, args.log_level)
 
     learning_obj = MaSIF_ppi_search(
-        params["max_distance"],
+        params['max_distance'],
         n_thetas=16,
         n_rhos=5,
         n_rotations=16,
-        idx_gpu="/gpu:0",
-        feat_mask=params["feat_mask"],
+        idx_gpu='/gpu:0',
+        feat_mask=params['feat_mask'],
     )
     learning_obj.saver.restore(learning_obj.session, args.model)
 
     if not os.path.exists(args.output):
         os.mkdir(args.output)
 
-    for count, ppi_pair_id in enumerate([item for item in os.listdir(args.input)
+    for _, ppi_pair_id in enumerate([item for item in os.listdir(args.input)
                                          if os.path.isdir(os.path.join(args.input, item))]):
         in_ppi_pair_dir = os.path.join(args.input, ppi_pair_id)
         out_desc_dir = os.path.join(args.output, ppi_pair_id)
@@ -130,12 +130,12 @@ if __name__ == '__main__':
 
         for pid in 'p1', 'p2':
             rho_wrt_center = np.load(os.path.join(in_ppi_pair_dir, pid + '_rho_wrt_center.npy'))
-            theta_wrt_center = np.load(os.path.join(in_ppi_pair_dir, pid + "_theta_wrt_center.npy"))
+            theta_wrt_center = np.load(os.path.join(in_ppi_pair_dir, pid + '_theta_wrt_center.npy'))
 
-            input_feat = np.load(os.path.join(in_ppi_pair_dir, pid + "_input_feat.npy"))
-            input_feat = mask_input_feat(input_feat, params["feat_mask"])
+            input_feat = np.load(os.path.join(in_ppi_pair_dir, pid + '_input_feat.npy'))
+            input_feat = mask_input_feat(input_feat, params['feat_mask'])
 
-            mask = np.load(os.path.join(in_ppi_pair_dir, pid + "_mask.npy"))
+            mask = np.load(os.path.join(in_ppi_pair_dir, pid + '_mask.npy'))
 
             idx = np.array(range(len(rho_wrt_center)))
 
@@ -157,5 +157,8 @@ if __name__ == '__main__':
                                             batch_size=1000,
                                             flip=True)
 
-            np.save(os.path.join(out_desc_dir, f"{pid}_desc_straight.npy"), desc_str)
-            np.save(os.path.join(out_desc_dir, f"{pid}_desc_flipped.npy"), desc_flip)
+            np.save(os.path.join(out_desc_dir, f'{pid}_desc_straight.npy'), desc_str)
+            np.save(os.path.join(out_desc_dir, f'{pid}_desc_flipped.npy'), desc_flip)
+
+if __name__ == '__main__':
+    main()

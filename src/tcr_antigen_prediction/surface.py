@@ -8,7 +8,7 @@ from scipy.spatial import cKDTree  # pylint: disable = no-name-in-module
 # If patch_indices = True, then store the indices of all neighbors.
 def extract_patch_and_coord(vix, shape, coord, max_distance, max_vertices, patch_indices=False):
     # Member vertices are nonzero elements
-    i, j = coord[np.int(vix), : coord.shape[1] // 2].nonzero()
+    _, j = coord[np.int(vix), : coord.shape[1] // 2].nonzero()
 
     # D = np.squeeze(np.asarray(coord[np.int(vix),j].todense()))
     D = np.squeeze(np.asarray(coord[np.int(vix), : coord.shape[1] // 2].todense()))

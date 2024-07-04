@@ -23,35 +23,28 @@ parser.add_argument('input', nargs=2, help='path to input ply files')
 
 config = {}
 
-config["ppi_search"] = {}
-config["ppi_search"]["max_shape_size"] = 200
-config["ppi_search"]["max_distance"] = 12.0
+config['ppi_search'] = {}
+config['ppi_search']['max_shape_size'] = 200
+config['ppi_search']['max_distance'] = 12.0
 # Parameters for shape complementarity calculations.
-config["ppi_search"]["sc_radius"] = 12.0
-config["ppi_search"]["sc_interaction_cutoff"] = 1.5
-config["ppi_search"]["sc_w"] = 0.25
+config['ppi_search']['sc_radius'] = 12.0
+config['ppi_search']['sc_interaction_cutoff'] = 1.5
+config['ppi_search']['sc_w'] = 0.25
 
-config["site"] = {}
-config["site"]["max_shape_size"] = 100
-config["site"]["max_distance"] = 9.0
+config['site'] = {}
+config['site']['max_shape_size'] = 100
+config['site']['max_distance'] = 9.0
 
 
-if __name__ == '__main__':
+def main() -> None:
     args = parser.parse_args()
     setup_logger(logger, args.log_level)
 
     if not os.path.exists(args.output):
         os.mkdir(args.output)
 
-    total_shapes = 0
-    total_ppi_pairs = 0
     np.random.seed(0)
 
-    all_list_desc = []
-    all_list_coords = []
-    all_list_shape_idx = []
-    all_list_names = []
-    idx_positives = []
     print('Reading data from input ply surface files.')
 
     pids = [f'p{num}' for num in range(1, len(args.input) + 1)]
@@ -79,7 +72,7 @@ if __name__ == '__main__':
     if len(pids) > 1 and args.mode == 'masif_ppi_search':
         start_time = time.time()
         p1_sc_labels, p2_sc_labels = compute_shape_complementarity(
-            ply_file['p1'], ply_file['p2'],
+            args.input[0], args.input[1],
             neigh_indices['p1'], neigh_indices['p2'],
             rho['p1'], rho['p2'],
             mask['p1'], mask['p2'],
@@ -90,7 +83,7 @@ if __name__ == '__main__':
         np.save(os.path.join(args.output, 'p1_sc_labels'), p1_sc_labels)
         np.save(os.path.join(args.output, 'p2_sc_labels'), p2_sc_labels)
         end_time = time.time()
-        print("Computing shape complementarity took {:.2f}".format(end_time - start_time))
+        print('Computing shape complementarity took {:.2f}'.format(end_time - start_time))
 
     # Save data only if everything went well.
     for pid in pids:
@@ -105,3 +98,7 @@ if __name__ == '__main__':
         np.save(os.path.join(args.output, pid + '_X.npy'), verts[pid][:, 0])
         np.save(os.path.join(args.output, pid + '_Y.npy'), verts[pid][:, 1])
         np.save(os.path.join(args.output, pid + '_Z.npy'), verts[pid][:, 2])
+
+
+if __name__ == '__main__':
+    main()

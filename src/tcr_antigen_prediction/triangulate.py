@@ -24,28 +24,28 @@ def computeCharges(pdb_filename, vertices, names):
     residues = {}
     for res in struct.get_residues():
         chain_id = res.get_parent().get_id()
-        if chain_id == "":
-            chain_id = " "
+        if chain_id == '':
+            chain_id = ' '
         residues[(chain_id, res.get_id())] = res
 
-    atoms = Selection.unfold_entities(struct, "A")
+    atoms = Selection.unfold_entities(struct, 'A')
     satisfied_CO, satisfied_HN = computeSatisfied_CO_HN(atoms)
 
     charge = np.array([0.0] * len(vertices))
     # Go over every vertex
     for ix, name in enumerate(names):
-        fields = name.split("_")
+        fields = name.split('_')
         chain_id = fields[0]
-        if chain_id == "":
-            chain_id = " "
-        if fields[2] == "x":
-            fields[2] = " "
-        res_id = (" ", int(fields[1]), fields[2])
+        if chain_id == '':
+            chain_id = ' '
+        if fields[2] == 'x':
+            fields[2] = ' '
+        res_id = (' ', int(fields[1]), fields[2])
         atom_name = fields[4]
         # Ignore atom if it is BB and it is already satisfied.
-        if atom_name == "H" and res_id in satisfied_HN:
+        if atom_name == 'H' and res_id in satisfied_HN:
             continue
-        if atom_name == "O" and res_id in satisfied_CO:
+        if atom_name == 'O' and res_id in satisfied_CO:
             continue
         # Compute the charge of the vertex
         charge[ix] = computeChargeHelper(
@@ -119,13 +119,13 @@ def isPolarHydrogen(atom_name, res):
 
 
 def isAcceptorAtom(atom_name, res):
-    if atom_name.startswith("O"):
+    if atom_name.startswith('O'):
         return True
     else:
-        if res.get_resname() == "HIS":
-            if atom_name == "ND1" and "HD1" not in res:
+        if res.get_resname() == 'HIS':
+            if atom_name == 'ND1' and 'HD1' not in res:
                 return True
-            if atom_name == "NE2" and "HE2" not in res:
+            if atom_name == 'NE2' and 'HE2' not in res:
                 return True
     return False
 
@@ -137,17 +137,17 @@ def computeSatisfied_CO_HN(atoms):
     satisfied_HN = set()
     for atom1 in atoms:
         res1 = atom1.get_parent()
-        if atom1.get_id() == "O":
-            neigh_atoms = ns.search(atom1.get_coord(), 2.5, level="A")
+        if atom1.get_id() == 'O':
+            neigh_atoms = ns.search(atom1.get_coord(), 2.5, level='A')
             for atom2 in neigh_atoms:
-                if atom2.get_id() == "H":
+                if atom2.get_id() == 'H':
                     res2 = atom2.get_parent()
                     # Ensure they belong to different residues.
                     if res2.get_id() != res1.get_id():
                         # Compute the angle N-H:O, ideal value is 180 (but in
                         # helices it is typically 160) 180 +-30 = pi
                         angle_N_H_O_dev = computeAngleDeviation(
-                            res2["N"].get_coord(),
+                            res2['N'].get_coord(),
                             atom2.get_coord(),
                             atom1.get_coord(),
                             np.pi,
@@ -156,7 +156,7 @@ def computeSatisfied_CO_HN(atoms):
                         angle_H_O_C_dev = computeAngleDeviation(
                             atom2.get_coord(),
                             atom1.get_coord(),
-                            res1["C"].get_coord(),
+                            res1['C'].get_coord(),
                             8 * np.pi / 9,
                         )
                         # Allowed deviations: 30 degrees (pi/6) and 20 degrees
@@ -202,29 +202,29 @@ def assignChargesToNewMesh(new_vertices, old_vertices, old_charges):
 
 def computeMSMS(pdb_file,  protonate=True):
     file_base = pdb_file.rsplit('.', 1)[0]
-    out_xyzrn = file_base + ".xyzrn"
+    out_xyzrn = file_base + '.xyzrn'
 
     if protonate:
         output_pdb_as_xyzrn(pdb_file, out_xyzrn)
 
     # Now run MSMS on xyzrn file
     args = ['msms',
-            "-density",
-            "3.0",
-            "-hdensity",
-            "3.0",
-            "-probe",
-            "1.5",
-            "-if", out_xyzrn,
-            "-of", file_base,
-            "-af", file_base]
+            '-density',
+            '3.0',
+            '-hdensity',
+            '3.0',
+            '-probe',
+            '1.5',
+            '-if', out_xyzrn,
+            '-of', file_base,
+            '-af', file_base]
 
     p2 = Popen(args, stdout=PIPE, stderr=PIPE)
-    stdout, stderr = p2.communicate()
+    _, _ = p2.communicate()
 
     vertices, faces, normals, names = read_msms(file_base)
     areas = {}
-    ses_file = open(file_base + ".area")
+    ses_file = open(file_base + '.area')
     next(ses_file)  # ignore header line
 
     for line in ses_file:
@@ -242,45 +242,45 @@ def computeMSMS(pdb_file,  protonate=True):
 
 # Kyte Doolittle scale
 kd_scale = {}
-kd_scale["ILE"] = 4.5
-kd_scale["VAL"] = 4.2
-kd_scale["LEU"] = 3.8
-kd_scale["PHE"] = 2.8
-kd_scale["CYS"] = 2.5
-kd_scale["MET"] = 1.9
-kd_scale["ALA"] = 1.8
-kd_scale["GLY"] = -0.4
-kd_scale["THR"] = -0.7
-kd_scale["SER"] = -0.8
-kd_scale["TRP"] = -0.9
-kd_scale["TYR"] = -1.3
-kd_scale["PRO"] = -1.6
-kd_scale["HIS"] = -3.2
-kd_scale["GLU"] = -3.5
-kd_scale["GLN"] = -3.5
-kd_scale["ASP"] = -3.5
-kd_scale["ASN"] = -3.5
-kd_scale["LYS"] = -3.9
-kd_scale["ARG"] = -4.5
+kd_scale['ILE'] = 4.5
+kd_scale['VAL'] = 4.2
+kd_scale['LEU'] = 3.8
+kd_scale['PHE'] = 2.8
+kd_scale['CYS'] = 2.5
+kd_scale['MET'] = 1.9
+kd_scale['ALA'] = 1.8
+kd_scale['GLY'] = -0.4
+kd_scale['THR'] = -0.7
+kd_scale['SER'] = -0.8
+kd_scale['TRP'] = -0.9
+kd_scale['TYR'] = -1.3
+kd_scale['PRO'] = -1.6
+kd_scale['HIS'] = -3.2
+kd_scale['GLU'] = -3.5
+kd_scale['GLN'] = -3.5
+kd_scale['ASP'] = -3.5
+kd_scale['ASN'] = -3.5
+kd_scale['LYS'] = -3.9
+kd_scale['ARG'] = -4.5
 
 
 def computeHydrophobicity(names):
     '''For each vertex in names, compute'''
     hp = np.zeros(len(names))
     for ix, name in enumerate(names):
-        aa = name.split("_")[3]
+        aa = name.split('_')[3]
         hp[ix] = kd_scale[aa]
     return hp
 
 
-def fix_mesh(mesh, resolution=1.0, detail="normal"):
+def fix_mesh(mesh, resolution=1.0, detail='normal'):
     bbox_min, bbox_max = mesh.bbox
     diag_len = np.linalg.norm(bbox_max - bbox_min)
-    if detail == "normal":
+    if detail == 'normal':
         target_len = diag_len * 5e-3
-    elif detail == "high":
+    elif detail == 'high':
         target_len = diag_len * 2.5e-3
-    elif detail == "low":
+    elif detail == 'low':
         target_len = diag_len * 1e-2
 
     target_len = resolution
@@ -288,14 +288,14 @@ def fix_mesh(mesh, resolution=1.0, detail="normal"):
     mesh, _ = pymesh.remove_duplicated_vertices(mesh, 0.001)
 
     count = 0
-    print("Removing degenerated triangles")
-    mesh, __ = pymesh.remove_degenerated_triangles(mesh, 100)
-    mesh, __ = pymesh.split_long_edges(mesh, target_len)
+    print('Removing degenerated triangles')
+    mesh, _ = pymesh.remove_degenerated_triangles(mesh, 100)
+    mesh, _ = pymesh.split_long_edges(mesh, target_len)
     num_vertices = mesh.num_vertices
     while True:
-        mesh, __ = pymesh.collapse_short_edges(mesh, 1e-6)
-        mesh, __ = pymesh.collapse_short_edges(mesh, target_len, preserve_feature=True)
-        mesh, __ = pymesh.remove_obtuse_triangles(mesh, 150.0, 100)
+        mesh, _ = pymesh.collapse_short_edges(mesh, 1e-6)
+        mesh, _ = pymesh.collapse_short_edges(mesh, target_len, preserve_feature=True)
+        mesh, _ = pymesh.remove_obtuse_triangles(mesh, 150.0, 100)
         if mesh.num_vertices == num_vertices:
             break
 
@@ -305,61 +305,61 @@ def fix_mesh(mesh, resolution=1.0, detail="normal"):
             break
 
     mesh = pymesh.resolve_self_intersection(mesh)
-    mesh, __ = pymesh.remove_duplicated_faces(mesh)
+    mesh, _ = pymesh.remove_duplicated_faces(mesh)
     mesh = pymesh.compute_outer_hull(mesh)
-    mesh, __ = pymesh.remove_duplicated_faces(mesh)
-    mesh, __ = pymesh.remove_obtuse_triangles(mesh, 179.0, 5)
-    mesh, __ = pymesh.remove_isolated_vertices(mesh)
+    mesh, _ = pymesh.remove_duplicated_faces(mesh)
+    mesh, _ = pymesh.remove_obtuse_triangles(mesh, 179.0, 5)
+    mesh, _ = pymesh.remove_isolated_vertices(mesh)
     mesh, _ = pymesh.remove_duplicated_vertices(mesh, 0.001)
 
     return mesh
 
 
 def computeAPBS(vertices, pdb_file, tmp_file_base):
-    """
+    '''
         Calls APBS, pdb2pqr, and multivalue and returns the charges per vertex
-    """
+    '''
     args = [
         'pdb2pqr',
-        "--ff=parse",
-        "--whitespace",
-        "--noopt",
-        "--apbs-input",
+        '--ff=parse',
+        '--whitespace',
+        '--noopt',
+        '--apbs-input',
         os.path.basename(pdb_file),
         os.path.basename(tmp_file_base),
     ]
     p2 = Popen(args, stdout=PIPE, stderr=PIPE, cwd=os.path.dirname(tmp_file_base))
-    stdout, stderr = p2.communicate()
+    _, _ = p2.communicate()
 
-    args = ['apbs', os.path.basename(tmp_file_base + ".in")]
+    args = ['apbs', os.path.basename(tmp_file_base + '.in')]
     p2 = Popen(args, stdout=PIPE, stderr=PIPE, cwd=os.path.dirname(tmp_file_base))
-    stdout, stderr = p2.communicate()
+    _, _ = p2.communicate()
 
-    vertfile = open(tmp_file_base + ".csv", "w")
+    vertfile = open(tmp_file_base + '.csv', 'w')
     for vert in vertices:
-        vertfile.write("{},{},{}\n".format(vert[0], vert[1], vert[2]))
+        vertfile.write('{},{},{}\n'.format(vert[0], vert[1], vert[2]))
     vertfile.close()
 
     args = [
         'multivalue',
-        os.path.basename(tmp_file_base) + ".csv",
-        os.path.basename(tmp_file_base) + ".dx",
-        os.path.basename(tmp_file_base) + "_out.csv",
+        os.path.basename(tmp_file_base) + '.csv',
+        os.path.basename(tmp_file_base) + '.dx',
+        os.path.basename(tmp_file_base) + '_out.csv',
     ]
     p2 = Popen(args, stdout=PIPE, stderr=PIPE, cwd=os.path.dirname(tmp_file_base))
-    stdout, stderr = p2.communicate()
+    _, _ = p2.communicate()
 
     # Read the charge file
-    chargefile = open(tmp_file_base + "_out.csv")
+    chargefile = open(tmp_file_base + '_out.csv')
     charges = np.array([0.0] * len(vertices))
     for ix, line in enumerate(chargefile.readlines()):
-        charges[ix] = float(line.split(",")[3])
+        charges[ix] = float(line.split(',')[3])
 
     return charges
 
 
 def compute_normal(vertex, face):
-    """
+    '''
     compute_normal - compute the normal of a triangulation
     vertex: 3xn matrix of vertices
     face: 3xm matrix of face indices.
@@ -371,7 +371,7 @@ def compute_normal(vertex, face):
 
     Copyright (c) 2004 Gabriel Peyr
     Converted to Python by Pablo Gainza LPDI EPFL 2017
-    """
+    '''
 
     vertex = vertex.T
     face = face.T
