@@ -27,7 +27,8 @@ parser.add_argument('--compute-interface', action='store_true')
 parser.add_argument('--log-level', choices=['debug', 'info', 'warning', 'error'], default='warning',
                     help="Level to log messages at (Default: 'warning')")
 
-if __name__ == '__main__':
+
+def main() -> None:
     args = parser.parse_args()
     setup_logger(logger, args.log_level)
 
@@ -43,7 +44,7 @@ if __name__ == '__main__':
     reprotonate(output_name + '.pdb',  output_name + '_protonated.pdb')
 
     logger.info('Creating surface')
-    vertices, faces, normals, names, areas = compute_msms(output_name + '_protonated.pdb')
+    vertices, faces, _, names, _ = compute_msms(output_name + '_protonated.pdb')
 
     logger.info('Computing charges')
     vertex_hbond = compute_charges(output_name + '_protonated.pdb', vertices, names)
@@ -74,3 +75,7 @@ if __name__ == '__main__':
              normalize_charges=True,
              hbond=vertex_hbond,
              hphob=vertex_hphobicity)
+
+
+if __name__ == '__main__':
+    main()
