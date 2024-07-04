@@ -1,7 +1,7 @@
 import pymesh
 import numpy as np
 
-from scipy.spatial import cKDTree
+from scipy.spatial import cKDTree  # pylint: disable = no-name-in-module
 
 
 # From a full shape in a full protein, extract a patch around a vertex.

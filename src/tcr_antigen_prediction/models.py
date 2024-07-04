@@ -155,7 +155,7 @@ class MaSIF_ppi_search:
         neg_distances = tf.reduce_sum(
             tf.square(self.global_desc_neg - self.global_desc_neg_2), 1
         )
-        self.score = tf.concat([pos_distances, neg_distances], axis=0)
+        self.score = tf.concat([pos_distances, neg_distances], 0)
         pos_distances = tf.nn.relu(
             tf.reduce_sum(tf.square(self.global_desc_binder - self.global_desc_pos), 1)
             - pos_thresh
@@ -195,7 +195,7 @@ class MaSIF_ppi_search:
         self.n_rotations = n_rotations
         self.n_feat = int(sum(feat_mask))
 
-        with tf.Graph().as_default() as g:
+        with tf.Graph().as_default() as g:  # pylint: disable = not-context-manager
             self.graph = g
             tf.set_random_seed(0)
             with tf.device(idx_gpu):
@@ -318,7 +318,7 @@ class MaSIF_ppi_search:
 
                 # Create a session for running Ops on the Graph.
                 config = tf.ConfigProto(allow_soft_placement=True)
-                config.gpu_options.allow_growth = True
+                config.gpu_options.allow_growth = True  # pylint: disable = no-member
                 self.session = tf.Session(config=config)
                 self.saver = tf.train.Saver()
 
