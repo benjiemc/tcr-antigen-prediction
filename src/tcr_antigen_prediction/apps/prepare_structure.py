@@ -1,3 +1,4 @@
+'''Generate mesh and compute properties from PDB files.'''
 import argparse
 import logging
 import os
@@ -7,14 +8,14 @@ import pymesh
 from tcr_antigen_prediction.apps._log import setup_logger
 from tcr_antigen_prediction.io import save_ply
 from tcr_antigen_prediction.protons import reprotonate
-from tcr_antigen_prediction.structure import extractPDB
+from tcr_antigen_prediction.structure import extract_pdb
 from tcr_antigen_prediction.triangulate import (fix_mesh,
-                                                computeMSMS,
-                                                computeCharges,
-                                                computeHydrophobicity,
-                                                assignChargesToNewMesh,
+                                                compute_msms,
+                                                compute_charges,
+                                                compute_hydrophobicity,
+                                                assign_charges_to_new_mesh,
                                                 compute_normal,
-                                                computeAPBS)
+                                                compute_apbs)
 
 logger = logging.getLogger()
 
@@ -37,18 +38,18 @@ if __name__ == '__main__':
     if args.chains:
         logger.info('Extracting chains')
         output_name += f"_{''.join(args.chains)}"
-        extractPDB(args.structure, output_name + '.pdb', args.chains)
+        extract_pdb(args.structure, output_name + '.pdb', args.chains)
 
     logger.info('Re-protonating structure')
     reprotonate(output_name + '.pdb',  output_name + '_protonated.pdb')
 
     logger.info('Creating surface')
-    vertices, faces, normals, names, areas = computeMSMS(output_name + '_protonated.pdb')
+    vertices, faces, normals, names, areas = compute_msms(output_name + '_protonated.pdb')
 
     logger.info('Computing charges')
-    vertex_hbond = computeCharges(output_name + '_protonated.pdb', vertices, names)
+    vertex_hbond = compute_charges(output_name + '_protonated.pdb', vertices, names)
     logger.info('Computing hydrophobicity')
-    vertex_hphobicity = computeHydrophobicity(names)
+    vertex_hphobicity = compute_hydrophobicity(names)
 
     logger.info('Creating mesh')
     mesh = pymesh.form_mesh(vertices, faces)
@@ -58,9 +59,9 @@ if __name__ == '__main__':
     logger.info('Computing normals')
     vertex_normal = compute_normal(regular_mesh.vertices, regular_mesh.faces)
 
-    vertex_hbond = assignChargesToNewMesh(regular_mesh.vertices, vertices, vertex_hbond)
-    vertex_hphobicity = assignChargesToNewMesh(regular_mesh.vertices, vertices, vertex_hphobicity)
-    vertex_charges = computeAPBS(regular_mesh.vertices, output_name + '_protonated.pdb', output_name + '_protonated')
+    vertex_hbond = assign_charges_to_new_mesh(regular_mesh.vertices, vertices, vertex_hbond)
+    vertex_hphobicity = assign_charges_to_new_mesh(regular_mesh.vertices, vertices, vertex_hphobicity)
+    vertex_charges = compute_apbs(regular_mesh.vertices, output_name + '_protonated.pdb', output_name + '_protonated')
 
     # interface = compute_interface(base_name + '_protonated.pdb',
     # ) if args.compute_interface else None

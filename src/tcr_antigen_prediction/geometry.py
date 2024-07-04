@@ -1,3 +1,4 @@
+'''Functions for calculating geometric properties.'''
 import networkx as nx
 import numpy as np
 import scipy
@@ -23,9 +24,9 @@ def compute_polar_coordinates(mesh, do_fast=True, radius=12, max_vertices=200):
     normals = np.vstack([norm1, norm2, norm3]).T
 
     # Graph
-    G = nx.Graph()
+    graph = nx.Graph()
     n = len(mesh.vertices)
-    G.add_nodes_from(np.arange(n))
+    graph.add_nodes_from(np.arange(n))
 
     # Get edges
     f = np.array(mesh.faces, dtype=int)
@@ -39,17 +40,17 @@ def compute_polar_coordinates(mesh, do_fast=True, radius=12, max_vertices=200):
     edgew = scipy.linalg.norm(edgew, axis=1)
     wedges = np.stack([rowi, rowj, edgew]).T
 
-    G.add_weighted_edges_from(wedges)
+    graph.add_weighted_edges_from(wedges)
 
     if do_fast:
-        dists = nx.all_pairs_dijkstra_path_length(G, cutoff=radius)
+        dists = nx.all_pairs_dijkstra_path_length(graph, cutoff=radius)
     else:
-        dists = nx.all_pairs_dijkstra_path_length(G, cutoff=radius*2)
+        dists = nx.all_pairs_dijkstra_path_length(graph, cutoff=radius*2)
     d2 = {}
     for key_tuple in dists:
         d2[key_tuple[0]] = key_tuple[1]
 
-    D = dict_to_sparse(d2)
+    d_mat = dict_to_sparse(d2)
 
     # Compute the faces per vertex.
     idx = {}
@@ -59,15 +60,15 @@ def compute_polar_coordinates(mesh, do_fast=True, radius=12, max_vertices=200):
                 idx[face[i]] = []
             idx[face[i]].append(ix)
 
-    i = np.arange(D.shape[0])
+    i = np.arange(d_mat.shape[0])
     # Set diagonal elements to a very small value greater than zero..
-    D[i, i] = 1e-8
+    d_mat[i, i] = 1e-8
 
     # Call MDS for all points.
     if do_fast:
-        theta = compute_theta_all_fast(D, vertices, faces, normals, idx, radius)
+        theta = compute_theta_all_fast(d_mat, vertices, faces, normals, idx, radius)
     else:
-        theta = compute_theta_all(D, vertices, faces, normals, idx, radius)
+        theta = compute_theta_all(d_mat, vertices, faces, normals, idx, radius)
 
     n = len(d2)
     theta_out = np.zeros((n, max_vertices))
@@ -82,7 +83,7 @@ def compute_polar_coordinates(mesh, do_fast=True, radius=12, max_vertices=200):
         sorted_dists_i = sorted(dists_i.items(), key=lambda kv: kv[1])
         neigh = [int(x[0]) for x in sorted_dists_i[0:max_vertices]]
         neigh_indices.append(neigh)
-        rho_out[i, :len(neigh)] = np.squeeze(np.asarray(D[i, neigh].todense()))
+        rho_out[i, :len(neigh)] = np.squeeze(np.asarray(d_mat[i, neigh].todense()))
         theta_out[i, :len(neigh)] = np.squeeze(theta[i][neigh])
         mask_out[i, :len(neigh)] = 1
     # have the angles between 0 and 2*pi
@@ -182,17 +183,17 @@ def compute_thetas(plane, vix, verts, faces, normal, neighbors, idx):
     return thetas
 
 
-def compute_theta_all(D, vertices, faces, normals, idx, radius):
+def compute_theta_all(d_mat, vertices, faces, normals, idx, radius):
     mymds = MDS(n_components=2, n_init=1, max_iter=50, dissimilarity='precomputed', n_jobs=10)
     all_theta = []
-    for i in range(D.shape[0]):
+    for i in range(d_mat.shape[0]):
         if i % 100 == 0:
             print(i)
         # Get the pairs of geodesic distances.
-        neigh = D[i].nonzero()
-        ii = np.where(D[i][neigh] < radius)[1]
+        neigh = d_mat[i].nonzero()
+        ii = np.where(d_mat[i][neigh] < radius)[1]
         neigh_i = neigh[1][ii]
-        pair_dist_i = D[neigh_i, :][:, neigh_i]
+        pair_dist_i = d_mat[neigh_i, :][:, neigh_i]
         pair_dist_i = pair_dist_i.todense()
 
         # Plane_i: the 2D plane for all neighbors of i
@@ -204,7 +205,7 @@ def compute_theta_all(D, vertices, faces, normals, idx, radius):
     return all_theta
 
 
-def compute_theta_all_fast(D, vertices, faces, normals, idx, radius):
+def compute_theta_all_fast(d_mat, vertices, faces, normals, idx, radius):
     '''
         compute_theta_all_fast: compute the theta coordinate using an approximation.
         The approximation consists of taking only the inner radius/2 for the multidimensional
@@ -214,13 +215,13 @@ def compute_theta_all_fast(D, vertices, faces, normals, idx, radius):
     mymds = MDS(n_components=2, n_init=1, eps=0.1, max_iter=50, dissimilarity='precomputed', n_jobs=1)
     all_theta = []
 
-    for i in range(D.shape[0]):
+    for i in range(d_mat.shape[0]):
         # Get the pairs of geodesic distances.
-        neigh = D[i].nonzero()
+        neigh = d_mat[i].nonzero()
         # We will run MDS on only a subset of the points.
-        ii = np.where(D[i][neigh] < radius/2)[1]
+        ii = np.where(d_mat[i][neigh] < radius/2)[1]
         neigh_i = neigh[1][ii]
-        pair_dist_i = D[neigh_i, :][:, neigh_i]
+        pair_dist_i = d_mat[neigh_i, :][:, neigh_i]
         pair_dist_i = pair_dist_i.todense()
 
         # Plane_i: the 2D plane for all neighbors of i
@@ -230,9 +231,9 @@ def compute_theta_all_fast(D, vertices, faces, normals, idx, radius):
         theta = compute_thetas(plane_i, i, vertices, faces, normals, neigh_i, idx)
 
         # We now must assign angles to all points kk that are between radius/2 and radius from the center.
-        kk = np.where(D[i][neigh] >= radius/2)[1]
+        kk = np.where(d_mat[i][neigh] >= radius/2)[1]
         neigh_k = neigh[1][kk]
-        dist_kk = D[neigh_k, :][:, neigh_i]
+        dist_kk = d_mat[neigh_k, :][:, neigh_i]
         dist_kk = dist_kk.todense()
         dist_kk[dist_kk == 0] = float('inf')
         closest = np.argmin(dist_kk, axis=1)

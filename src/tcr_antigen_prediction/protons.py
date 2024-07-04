@@ -1,3 +1,4 @@
+'''Functions for adding and removing protons from PDB structures.'''
 from subprocess import Popen, PIPE
 
 

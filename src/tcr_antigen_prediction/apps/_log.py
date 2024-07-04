@@ -1,3 +1,4 @@
+'''Helper functions and config for command line application logging.'''
 import logging
 
 LOG_MAP = {

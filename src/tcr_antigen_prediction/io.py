@@ -1,3 +1,4 @@
+'''Functions for inputting and outputing various file formats.'''
 import pymesh
 import numpy as np
 from Bio.PDB import PDBParser
@@ -36,15 +37,12 @@ def output_pdb_as_xyzrn(pdb_filename, xyzrn_filename):
                 if atomtype == 'H':
                     if name in polarHydrogens[resname]:
                         color = 'Blue'  # Polar hydrogens
-                coords = '{:.06f} {:.06f} {:.06f}'.format(
-                    atom.get_coord()[0], atom.get_coord()[1], atom.get_coord()[2]
-                )
+                coords = f'{atom.get_coord()[0]: .06f} {atom.get_coord()[1]: .06f} {atom.get_coord()[2]: .06f}'
                 insertion = 'x'
                 if residue.get_id()[2] != ' ':
                     insertion = residue.get_id()[2]
-                full_id = '{}_{:d}_{}_{}_{}_{}'.format(
-                    chain, residue.get_id()[1], insertion, resname, name, color
-                )
+                full_id = f'{chain}_{residue.get_id()[1]: d}_{insertion}_{resname}_{name}_{color}'
+
             if coords is not None:
                 outfile.write(coords + ' ' + radii[atomtype] + ' 1 ' + full_id + '\n')
 
@@ -73,15 +71,15 @@ def read_data_from_surface(ply_fn, max_distance, max_shape_size):
 
     # Compute the principal curvature components for the shape index.
     mesh.add_attribute('vertex_mean_curvature')
-    H = mesh.get_attribute('vertex_mean_curvature')
+    h_mat = mesh.get_attribute('vertex_mean_curvature')
     mesh.add_attribute('vertex_gaussian_curvature')
-    K = mesh.get_attribute('vertex_gaussian_curvature')
-    elem = np.square(H) - K
+    k_mat = mesh.get_attribute('vertex_gaussian_curvature')
+    elem = np.square(h_mat) - k_mat
     # In some cases this equation is less than zero, likely due to the method that computes the mean and gaussian
     # curvature. set to an epsilon.
     elem[elem < 0] = 1e-8
-    k1 = H + np.sqrt(elem)
-    k2 = H - np.sqrt(elem)
+    k1 = h_mat + np.sqrt(elem)
+    k2 = h_mat - np.sqrt(elem)
     # Compute the shape index
     si = (k1+k2)/(k1-k2)
     si = np.arctan(si)*(2/np.pi)

@@ -1,3 +1,4 @@
+'''Functions for creating meshes and adding features to those meshes from PDB structures.'''
 import os
 from subprocess import Popen, PIPE
 
@@ -18,7 +19,7 @@ from tcr_antigen_prediction.chemistry import (donorAtom,
 EPSILON = 1.0e-6
 
 
-def computeCharges(pdb_filename, vertices, names):
+def compute_charges(pdb_filename, vertices, names):
     parser = PDBParser(QUIET=True)
     struct = parser.get_structure(pdb_filename, pdb_filename)
     residues = {}
@@ -29,7 +30,7 @@ def computeCharges(pdb_filename, vertices, names):
         residues[(chain_id, res.get_id())] = res
 
     atoms = Selection.unfold_entities(struct, 'A')
-    satisfied_CO, satisfied_HN = computeSatisfied_CO_HN(atoms)
+    satisfied_co, satisfied_hn = compute_statisfied_co_hn(atoms)
 
     charge = np.array([0.0] * len(vertices))
     # Go over every vertex
@@ -43,12 +44,12 @@ def computeCharges(pdb_filename, vertices, names):
         res_id = (' ', int(fields[1]), fields[2])
         atom_name = fields[4]
         # Ignore atom if it is BB and it is already satisfied.
-        if atom_name == 'H' and res_id in satisfied_HN:
+        if atom_name == 'H' and res_id in satisfied_hn:
             continue
-        if atom_name == 'O' and res_id in satisfied_CO:
+        if atom_name == 'O' and res_id in satisfied_co:
             continue
         # Compute the charge of the vertex
-        charge[ix] = computeChargeHelper(
+        charge[ix] = compute_charge_helper(
             atom_name, residues[(chain_id, res_id)], vertices[ix]
         )
 
@@ -56,18 +57,18 @@ def computeCharges(pdb_filename, vertices, names):
 
 
 # Compute the charge of a vertex in a residue.
-def computeChargeHelper(atom_name, res, v):
+def compute_charge_helper(atom_name, res, v):
     # Check if it is a polar hydrogen.
-    if isPolarHydrogen(atom_name, res):
+    if is_polar_hydrogen(atom_name, res):
         donor_atom_name = donorAtom[atom_name]
         a = res[donor_atom_name].get_coord()  # N/O
         b = res[atom_name].get_coord()  # H
         # Donor-H is always 180.0 degrees, = pi
-        angle_deviation = computeAngleDeviation(a, b, v, np.pi)
-        angle_penalty = computeAnglePenalty(angle_deviation)
+        angle_deviation = compute_angle_deviation(a, b, v, np.pi)
+        angle_penalty = compute_angle_penalty(angle_deviation)
         return 1.0 * angle_penalty
     # Check if it is an acceptor oxygen or nitrogen
-    elif isAcceptorAtom(atom_name, res):
+    elif is_acceptor_atom(atom_name, res):
         acceptor_atom = res[atom_name]
         b = acceptor_atom.get_coord()
         # try:
@@ -75,30 +76,30 @@ def computeChargeHelper(atom_name, res, v):
         # except:
         # return 0.0
         # 120 degress for acceptor
-        angle_deviation = computeAngleDeviation(a, b, v, 2 * np.pi / 3)
+        angle_deviation = compute_angle_deviation(a, b, v, 2 * np.pi / 3)
         # TODO: This should not be 120 for all atoms, i.e. for HIS it should be
         #       ~125.0
-        angle_penalty = computeAnglePenalty(angle_deviation)
+        angle_penalty = compute_angle_penalty(angle_deviation)
         plane_penalty = 1.0
         if atom_name in acceptorPlaneAtom:
             # try:
             d = res[acceptorPlaneAtom[atom_name]].get_coord()
             # except:
             # return 0.0
-            plane_deviation = computePlaneDeviation(d, a, b, v)
-            plane_penalty = computeAnglePenalty(plane_deviation)
+            plane_deviation = compute_plane_deviation(d, a, b, v)
+            plane_penalty = compute_angle_penalty(plane_deviation)
         return -1.0 * angle_penalty * plane_penalty
         # Compute the
     return 0.0
 
 
 # Compute the absolute value of the deviation from theta
-def computeAngleDeviation(a, b, c, theta):
+def compute_angle_deviation(a, b, c, theta):
     return abs(calc_angle(Vector(a), Vector(b), Vector(c)) - theta)
 
 
 # Compute the angle deviation from a plane
-def computePlaneDeviation(a, b, c, d):
+def compute_plane_deviation(a, b, c, d):
     dih = calc_dihedral(Vector(a), Vector(b), Vector(c), Vector(d))
     dev1 = abs(dih)
     dev2 = np.pi - abs(dih)
@@ -106,19 +107,19 @@ def computePlaneDeviation(a, b, c, d):
 
 
 # angle_deviation from ideal value. TODO: do a more data-based solution
-def computeAnglePenalty(angle_deviation):
+def compute_angle_penalty(angle_deviation):
     # Standard deviation: hbond_std_dev
     return max(0.0, 1.0 - (angle_deviation / (hbond_std_dev)) ** 2)
 
 
-def isPolarHydrogen(atom_name, res):
+def is_polar_hydrogen(atom_name, res):
     if atom_name in polarHydrogens[res.get_resname()]:
         return True
     else:
         return False
 
 
-def isAcceptorAtom(atom_name, res):
+def is_acceptor_atom(atom_name, res):
     if atom_name.startswith('O'):
         return True
     else:
@@ -131,10 +132,10 @@ def isAcceptorAtom(atom_name, res):
 
 
 # Compute the list of backbone C=O:H-N that are satisfied. These will be ignored.
-def computeSatisfied_CO_HN(atoms):
+def compute_statisfied_co_hn(atoms):
     ns = NeighborSearch(atoms)
-    satisfied_CO = set()
-    satisfied_HN = set()
+    satisfied_co = set()
+    satisfied_hn = set()
     for atom1 in atoms:
         res1 = atom1.get_parent()
         if atom1.get_id() == 'O':
@@ -146,14 +147,14 @@ def computeSatisfied_CO_HN(atoms):
                     if res2.get_id() != res1.get_id():
                         # Compute the angle N-H:O, ideal value is 180 (but in
                         # helices it is typically 160) 180 +-30 = pi
-                        angle_N_H_O_dev = computeAngleDeviation(
+                        angle_n_h_o_dev = compute_angle_deviation(
                             res2['N'].get_coord(),
                             atom2.get_coord(),
                             atom1.get_coord(),
                             np.pi,
                         )
                         # Compute angle H:O=C, ideal value is ~160 +- 20 = 8*pi/9
-                        angle_H_O_C_dev = computeAngleDeviation(
+                        angle_h_o_c_dev = compute_angle_deviation(
                             atom2.get_coord(),
                             atom1.get_coord(),
                             res1['C'].get_coord(),
@@ -161,13 +162,13 @@ def computeSatisfied_CO_HN(atoms):
                         )
                         # Allowed deviations: 30 degrees (pi/6) and 20 degrees
                         #       (pi/9)
-                        if angle_N_H_O_dev - np.pi / 6 < 0 and angle_H_O_C_dev - np.pi / 9 < 0.0:
-                            satisfied_CO.add(res1.get_id())
-                            satisfied_HN.add(res2.get_id())
-    return satisfied_CO, satisfied_HN
+                        if angle_n_h_o_dev - np.pi / 6 < 0 and angle_h_o_c_dev - np.pi / 9 < 0.0:
+                            satisfied_co.add(res1.get_id())
+                            satisfied_hn.add(res2.get_id())
+    return satisfied_co, satisfied_hn
 
 
-def assignChargesToNewMesh(new_vertices, old_vertices, old_charges):
+def assign_charges_to_new_mesh(new_vertices, old_vertices, old_charges):
     '''
     Compute the charge of a new mesh, based on the charge of an old mesh.
     Use the top vertex in distance, for now (later this should be smoothed over 3
@@ -200,7 +201,7 @@ def assignChargesToNewMesh(new_vertices, old_vertices, old_charges):
     return new_charges
 
 
-def computeMSMS(pdb_file,  protonate=True):
+def compute_msms(pdb_file,  protonate=True):
     file_base = pdb_file.rsplit('.', 1)[0]
     out_xyzrn = file_base + '.xyzrn'
 
@@ -264,7 +265,7 @@ kd_scale['LYS'] = -3.9
 kd_scale['ARG'] = -4.5
 
 
-def computeHydrophobicity(names):
+def compute_hydrophobicity(names):
     '''For each vertex in names, compute'''
     hp = np.zeros(len(names))
     for ix, name in enumerate(names):
@@ -315,7 +316,7 @@ def fix_mesh(mesh, resolution=1.0, detail='normal'):
     return mesh
 
 
-def computeAPBS(vertices, pdb_file, tmp_file_base):
+def compute_apbs(vertices, pdb_file, tmp_file_base):
     '''
         Calls APBS, pdb2pqr, and multivalue and returns the charges per vertex
     '''
@@ -337,7 +338,7 @@ def computeAPBS(vertices, pdb_file, tmp_file_base):
 
     vertfile = open(tmp_file_base + '.csv', 'w')
     for vert in vertices:
-        vertfile.write('{},{},{}\n'.format(vert[0], vert[1], vert[2]))
+        vertfile.write(f'{vert[0]},{vert[1]},{vert[2]}\n')
     vertfile.close()
 
     args = [

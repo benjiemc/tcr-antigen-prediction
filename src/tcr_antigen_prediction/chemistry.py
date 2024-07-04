@@ -1,4 +1,4 @@
-
+'''Chemistry constants'''
 import numpy as np
 
 # radii for atoms in explicit case.

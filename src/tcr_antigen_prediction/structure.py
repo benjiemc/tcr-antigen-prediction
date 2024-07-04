@@ -1,3 +1,4 @@
+'''Functions and classes for interacting with PDB structures.'''
 from Bio.PDB import PDBParser, PDBIO, Selection, StructureBuilder, Select
 from Bio.SeqUtils import IUPACData
 PROTEIN_LETTERS = [x.upper() for x in IUPACData.protein_letters_3to1.keys()]
@@ -24,18 +25,18 @@ def find_modified_amino_acids(path):
     return res_set
 
 
-def extractPDB(infilename, outfilename, chain_ids=None):
+def extract_pdb(infilename, outfilename, chain_ids=None):
     # extract the chain_ids from infilename and save in outfilename.
     parser = PDBParser(QUIET=True)
     struct = parser.get_structure(infilename, infilename)
     model = Selection.unfold_entities(struct, 'M')[0]
 
     # Select residues to extract and build new structure
-    structBuild = StructureBuilder.StructureBuilder()
-    structBuild.init_structure('output')
-    structBuild.init_seg(' ')
-    structBuild.init_model(0)
-    outputStruct = structBuild.get_structure()
+    struct_builder = StructureBuilder.StructureBuilder()
+    struct_builder.init_structure('output')
+    struct_builder.init_seg(' ')
+    struct_builder.init_model(0)
+    output_structure = struct_builder.get_structure()
 
     # Load a list of non-standard amino acid names -- these are
     # typically listed under HETATM, so they would be typically
@@ -44,15 +45,15 @@ def extractPDB(infilename, outfilename, chain_ids=None):
 
     for chain in model:
         if chain_ids is None or chain.get_id() in chain_ids:
-            structBuild.init_chain(chain.get_id())
+            struct_builder.init_chain(chain.get_id())
             for residue in chain:
                 het = residue.get_id()
                 if het[0] == ' ':
-                    outputStruct[0][chain.get_id()].add(residue)
+                    output_structure[0][chain.get_id()].add(residue)
                 elif het[0][-3:] in modified_amino_acids:
-                    outputStruct[0][chain.get_id()].add(residue)
+                    output_structure[0][chain.get_id()].add(residue)
 
     # Output the selected residues
     pdbio = PDBIO()
-    pdbio.set_structure(outputStruct)
+    pdbio.set_structure(output_structure)
     pdbio.save(outfilename, select=NotDisordered())

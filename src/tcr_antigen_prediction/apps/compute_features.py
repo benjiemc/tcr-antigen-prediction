@@ -1,3 +1,4 @@
+'''Command line application to compute the features required for the MaSIF model from PLY files.'''
 import argparse
 import logging
 import time
@@ -83,7 +84,7 @@ def main() -> None:
         np.save(os.path.join(args.output, 'p1_sc_labels'), p1_sc_labels)
         np.save(os.path.join(args.output, 'p2_sc_labels'), p2_sc_labels)
         end_time = time.time()
-        print('Computing shape complementarity took {:.2f}'.format(end_time - start_time))
+        print(f'Computing shape complementarity took {end_time - start_time: .2f}')
 
     # Save data only if everything went well.
     for pid in pids:

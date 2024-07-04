@@ -1,12 +1,166 @@
+'''Models used in package.'''
 import tensorflow as tf
 import numpy as np
 
 
-class MaSIF_ppi_search:
+class MasifPPISearch:
+    '''The neural network model to classify two patches into binders or not binders.'''
+    def __init__(
+        self,
+        max_rho,
+        n_thetas=16,
+        n_rhos=5,
+        learning_rate=1e-3,
+        n_rotations=16,
+        idx_gpu='/device:GPU:0',
+        feat_mask=None,
+    ):
+        if feat_mask is None:
+            feat_mask = [1.0, 1.0, 1.0, 1.0, 1.0]
 
-    '''
-    The neural network model to classify two patches into binders or not binders.
-    '''
+        # order of the spectral filters
+        self.max_rho = max_rho
+        self.n_thetas = n_thetas
+        self.n_rhos = n_rhos
+
+        self.sigma_rho_init = (
+            max_rho / 8
+        )  # in MoNet was 0.005 with max radius=0.04 (i.e. 8 times smaller)
+        self.sigma_theta_init = 1.0  # 0.25
+        self.n_rotations = n_rotations
+        self.n_feat = int(sum(feat_mask))
+
+        with tf.Graph().as_default() as g:  # pylint: disable = not-context-manager
+            self.graph = g
+            tf.set_random_seed(0)
+            with tf.device(idx_gpu):
+
+                initial_coords = self.compute_initial_coordinates()
+                mu_rho_initial = np.expand_dims(initial_coords[:, 0], 0).astype(
+                    'float32'
+                )
+                mu_theta_initial = np.expand_dims(initial_coords[:, 1], 0).astype(
+                    'float32'
+                )
+                self.mu_rho = []
+                self.mu_theta = []
+                self.sigma_rho = []
+                self.sigma_theta = []
+                for i in range(self.n_feat):
+                    self.mu_rho.append(
+                        tf.Variable(mu_rho_initial, name=f'mu_rho_{i}')
+                    )  # 1, n_gauss
+                    self.mu_theta.append(
+                        tf.Variable(mu_theta_initial, name=f'mu_theta_{i}')
+                    )  # 1, n_gauss
+                    self.sigma_rho.append(
+                        tf.Variable(
+                            np.ones_like(mu_rho_initial) * self.sigma_rho_init,
+                            name=f'sigma_rho_{i}',
+                        )
+                    )  # 1, n_gauss
+                    self.sigma_theta.append(
+                        tf.Variable(
+                            (np.ones_like(mu_theta_initial) * self.sigma_theta_init),
+                            name=f'sigma_theta_{i}',
+                        )
+                    )  # 1, n_gauss
+
+                self.keep_prob = tf.placeholder(tf.float32)
+                # **Features for binder should be flipped before feeding to the NN.
+                self.rho_coords = tf.placeholder(
+                    tf.float32, shape=[None, None, 1]
+                )  # batch_size, n_vertices, 1
+                self.theta_coords = tf.placeholder(
+                    tf.float32, shape=[None, None, 1]
+                )  # batch_size, n_vertices, 1
+                self.input_feat = tf.placeholder(
+                    tf.float32, shape=[None, None, self.n_feat]
+                )  # batch_size, n_vertices, n_feat
+                self.mask = tf.placeholder(
+                    tf.float32, shape=[None, None, 1]
+                )  # batch_size, n_vertices, 1
+
+                self.global_desc = []
+
+                # Initialize b_conv for each feature.
+                b_conv = []
+                for i in range(self.n_feat):
+                    b_conv.append(
+                        tf.Variable(
+                            tf.zeros([self.n_thetas * self.n_rhos]),
+                            name=f'b_conv_{i}',
+                        )
+                    )
+                # Run the inference layer per feature.
+                for i in range(self.n_feat):
+                    my_input_feat = tf.expand_dims(self.input_feat[:, :, i], 2)
+
+                    w_mat_conv = tf.get_variable(
+                        f'W_conv_{i}',
+                        shape=[
+                            self.n_thetas * self.n_rhos,
+                            self.n_thetas * self.n_rhos,
+                        ],
+                        initializer=tf.contrib.layers.xavier_initializer(),
+                    )
+
+                    desc = self.inference(
+                        my_input_feat,
+                        self.rho_coords,
+                        self.theta_coords,
+                        self.mask,
+                        w_mat_conv,
+                        b_conv[i],
+                        self.mu_rho[i],
+                        self.sigma_rho[i],
+                        self.mu_theta[i],
+                        self.sigma_theta[i],
+                    )  # batch_size, n_gauss*1
+
+                    self.global_desc.append(desc)
+
+                # global_desc is [n_feat, batch_size, self.n_thetas*self.n_rhos].
+                self.global_desc = tf.stack(self.global_desc, axis=1)  #
+                self.global_desc = tf.reshape(
+                    self.global_desc, [-1, self.n_thetas * self.n_rhos * self.n_feat]
+                )
+
+                # Refine global_desc with a FC layer.
+                self.global_desc = tf.contrib.layers.fully_connected(
+                    self.global_desc,
+                    self.n_thetas * self.n_rhos,
+                    activation_fn=tf.identity,
+                )  # batch_size, n_thetas
+
+                # compute data loss
+                self.n_patches = tf.shape(self.global_desc)[0] // 4
+                self.data_loss = self.compute_data_loss()
+
+                # definition of the solver
+                self.optimizer = tf.train.AdamOptimizer(
+                    learning_rate=learning_rate
+                ).minimize(self.data_loss)
+
+                self.var_grad = tf.gradients(self.data_loss, tf.trainable_variables())
+                # print self.var_grad
+                for k in range(len(self.var_grad)):
+                    if self.var_grad[k] is None:
+                        print(tf.trainable_variables()[k])
+                self.norm_grad = self.frobenius_norm(
+                    tf.concat([tf.reshape(g, [-1]) for g in self.var_grad], 0)
+                )
+
+                # Create a session for running Ops on the Graph.
+                config = tf.ConfigProto(allow_soft_placement=True)
+                config.gpu_options.allow_growth = True  # pylint: disable = no-member
+                self.session = tf.Session(config=config)
+                self.saver = tf.train.Saver()
+
+                # Run the Op to initialize the variables.
+                init = tf.global_variables_initializer()
+                self.session.run(init)
+                self.count_number_parameters()
 
     def count_number_parameters(self):
         total_parameters = 0
@@ -19,7 +173,7 @@ class MaSIF_ppi_search:
                 variable_parameters *= dim.value
             print(variable_parameters)
             total_parameters += variable_parameters
-        print('Total number parameters: %d' % total_parameters)
+        print(f'Total number parameters: {total_parameters}')
 
     def frobenius_norm(self, tensor):
         square_tensor = tf.square(tensor)
@@ -27,12 +181,12 @@ class MaSIF_ppi_search:
         frobenius_norm = tf.sqrt(tensor_sum)
         return frobenius_norm
 
-    def build_sparse_matrix_softmax(self, idx_non_zero_values, X, dense_shape_A):
-        A = tf.SparseTensorValue(idx_non_zero_values, tf.squeeze(X), dense_shape_A)
-        A = tf.sparse_reorder(A)  # n_edges x n_edges
-        A = tf.sparse_softmax(A)
+    def build_sparse_matrix_softmax(self, idx_non_zero_values, mat, dense_shape_out):
+        out_mat = tf.SparseTensorValue(idx_non_zero_values, tf.squeeze(mat), dense_shape_out)
+        out_mat = tf.sparse_reorder(out_mat)  # n_edges x n_edges
+        out_mat = tf.sparse_softmax(out_mat)
 
-        return A
+        return out_mat
 
     def compute_initial_coordinates(self):
         range_rho = [0.0, self.max_rho]
@@ -64,7 +218,7 @@ class MaSIF_ppi_search:
         rho_coords,
         theta_coords,
         mask,
-        W_conv,
+        w_mat_conv,
         b_conv,
         mu_rho,
         sigma_rho,
@@ -120,7 +274,7 @@ class MaSIF_ppi_search:
                 gauss_desc, [n_samples, self.n_thetas * self.n_rhos]
             )  # batch_size, 80
 
-            conv_feat = tf.matmul(gauss_desc, W_conv) + b_conv  # batch_size, 80
+            conv_feat = tf.matmul(gauss_desc, w_mat_conv) + b_conv  # batch_size, 80
             all_conv_feat.append(conv_feat)
         all_conv_feat = tf.stack(all_conv_feat)
         conv_feat = tf.reduce_max(all_conv_feat, 0)
@@ -170,160 +324,3 @@ class MaSIF_ppi_search:
         data_loss = pos_std + neg_std + pos_mean + neg_mean
 
         return data_loss
-
-    def __init__(
-        self,
-        max_rho,
-        n_thetas=16,
-        n_rhos=5,
-        learning_rate=1e-3,
-        n_rotations=16,
-        idx_gpu='/device:GPU:0',
-        feat_mask=None,
-    ):
-        if feat_mask is None:
-            feat_mask = [1.0, 1.0, 1.0, 1.0, 1.0]
-
-        # order of the spectral filters
-        self.max_rho = max_rho
-        self.n_thetas = n_thetas
-        self.n_rhos = n_rhos
-
-        self.sigma_rho_init = (
-            max_rho / 8
-        )  # in MoNet was 0.005 with max radius=0.04 (i.e. 8 times smaller)
-        self.sigma_theta_init = 1.0  # 0.25
-        self.n_rotations = n_rotations
-        self.n_feat = int(sum(feat_mask))
-
-        with tf.Graph().as_default() as g:  # pylint: disable = not-context-manager
-            self.graph = g
-            tf.set_random_seed(0)
-            with tf.device(idx_gpu):
-
-                initial_coords = self.compute_initial_coordinates()
-                mu_rho_initial = np.expand_dims(initial_coords[:, 0], 0).astype(
-                    'float32'
-                )
-                mu_theta_initial = np.expand_dims(initial_coords[:, 1], 0).astype(
-                    'float32'
-                )
-                self.mu_rho = []
-                self.mu_theta = []
-                self.sigma_rho = []
-                self.sigma_theta = []
-                for i in range(self.n_feat):
-                    self.mu_rho.append(
-                        tf.Variable(mu_rho_initial, name='mu_rho_{}'.format(i))
-                    )  # 1, n_gauss
-                    self.mu_theta.append(
-                        tf.Variable(mu_theta_initial, name='mu_theta_{}'.format(i))
-                    )  # 1, n_gauss
-                    self.sigma_rho.append(
-                        tf.Variable(
-                            np.ones_like(mu_rho_initial) * self.sigma_rho_init,
-                            name='sigma_rho_{}'.format(i),
-                        )
-                    )  # 1, n_gauss
-                    self.sigma_theta.append(
-                        tf.Variable(
-                            (np.ones_like(mu_theta_initial) * self.sigma_theta_init),
-                            name='sigma_theta_{}'.format(i),
-                        )
-                    )  # 1, n_gauss
-
-                self.keep_prob = tf.placeholder(tf.float32)
-                # **Features for binder should be flipped before feeding to the NN.
-                self.rho_coords = tf.placeholder(
-                    tf.float32, shape=[None, None, 1]
-                )  # batch_size, n_vertices, 1
-                self.theta_coords = tf.placeholder(
-                    tf.float32, shape=[None, None, 1]
-                )  # batch_size, n_vertices, 1
-                self.input_feat = tf.placeholder(
-                    tf.float32, shape=[None, None, self.n_feat]
-                )  # batch_size, n_vertices, n_feat
-                self.mask = tf.placeholder(
-                    tf.float32, shape=[None, None, 1]
-                )  # batch_size, n_vertices, 1
-
-                self.global_desc = []
-
-                # Initialize b_conv for each feature.
-                b_conv = []
-                for i in range(self.n_feat):
-                    b_conv.append(
-                        tf.Variable(
-                            tf.zeros([self.n_thetas * self.n_rhos]),
-                            name='b_conv_{}'.format(i),
-                        )
-                    )
-                # Run the inference layer per feature.
-                for i in range(self.n_feat):
-                    my_input_feat = tf.expand_dims(self.input_feat[:, :, i], 2)
-
-                    W_conv = tf.get_variable(
-                        'W_conv_{}'.format(i),
-                        shape=[
-                            self.n_thetas * self.n_rhos,
-                            self.n_thetas * self.n_rhos,
-                        ],
-                        initializer=tf.contrib.layers.xavier_initializer(),
-                    )
-
-                    desc = self.inference(
-                        my_input_feat,
-                        self.rho_coords,
-                        self.theta_coords,
-                        self.mask,
-                        W_conv,
-                        b_conv[i],
-                        self.mu_rho[i],
-                        self.sigma_rho[i],
-                        self.mu_theta[i],
-                        self.sigma_theta[i],
-                    )  # batch_size, n_gauss*1
-
-                    self.global_desc.append(desc)
-
-                # global_desc is [n_feat, batch_size, self.n_thetas*self.n_rhos].
-                self.global_desc = tf.stack(self.global_desc, axis=1)  #
-                self.global_desc = tf.reshape(
-                    self.global_desc, [-1, self.n_thetas * self.n_rhos * self.n_feat]
-                )
-
-                # Refine global_desc with a FC layer.
-                self.global_desc = tf.contrib.layers.fully_connected(
-                    self.global_desc,
-                    self.n_thetas * self.n_rhos,
-                    activation_fn=tf.identity,
-                )  # batch_size, n_thetas
-
-                # compute data loss
-                self.n_patches = tf.shape(self.global_desc)[0] // 4
-                self.data_loss = self.compute_data_loss()
-
-                # definition of the solver
-                self.optimizer = tf.train.AdamOptimizer(
-                    learning_rate=learning_rate
-                ).minimize(self.data_loss)
-
-                self.var_grad = tf.gradients(self.data_loss, tf.trainable_variables())
-                # print self.var_grad
-                for k in range(len(self.var_grad)):
-                    if self.var_grad[k] is None:
-                        print(tf.trainable_variables()[k])
-                self.norm_grad = self.frobenius_norm(
-                    tf.concat([tf.reshape(g, [-1]) for g in self.var_grad], 0)
-                )
-
-                # Create a session for running Ops on the Graph.
-                config = tf.ConfigProto(allow_soft_placement=True)
-                config.gpu_options.allow_growth = True  # pylint: disable = no-member
-                self.session = tf.Session(config=config)
-                self.saver = tf.train.Saver()
-
-                # Run the Op to initialize the variables.
-                init = tf.global_variables_initializer()
-                self.session.run(init)
-                self.count_number_parameters()

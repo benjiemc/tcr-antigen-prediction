@@ -1,3 +1,4 @@
+'''Command line application to compute numerical representations of binding proteins.'''
 import argparse
 import logging
 import os
@@ -5,7 +6,7 @@ import os
 import numpy as np
 
 from tcr_antigen_prediction.apps._log import setup_logger
-from tcr_antigen_prediction.models import MaSIF_ppi_search
+from tcr_antigen_prediction.models import MasifPPISearch
 
 logger = logging.getLogger()
 
@@ -107,7 +108,7 @@ def main() -> None:
     args = parser.parse_args()
     setup_logger(logger, args.log_level)
 
-    learning_obj = MaSIF_ppi_search(
+    learning_obj = MasifPPISearch(
         params['max_distance'],
         n_thetas=16,
         n_rhos=5,

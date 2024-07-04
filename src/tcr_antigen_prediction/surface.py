@@ -1,3 +1,4 @@
+'''Functions for creating surface representations and adding features to the surfaces.'''
 import pymesh
 import numpy as np
 
@@ -11,15 +12,15 @@ def extract_patch_and_coord(vix, shape, coord, max_distance, max_vertices, patch
     _, j = coord[np.int(vix), : coord.shape[1] // 2].nonzero()
 
     # D = np.squeeze(np.asarray(coord[np.int(vix),j].todense()))
-    D = np.squeeze(np.asarray(coord[np.int(vix), : coord.shape[1] // 2].todense()))
-    j = np.where((D < max_distance) & (D > 0))[0]
+    d = np.squeeze(np.asarray(coord[np.int(vix), : coord.shape[1] // 2].todense()))
+    j = np.where((d < max_distance) & (d > 0))[0]
     max_dist_tmp = max_distance
     # old_j = len(j)
     while len(j) > max_vertices:
         max_dist_tmp = max_dist_tmp * 0.95
-        j = np.where((D < max_dist_tmp) & (D > 0))[0]
+        j = np.where((d < max_dist_tmp) & (d > 0))[0]
     #    print('j = {} {}'.format(len(j), old_j))
-    D = D[j]
+    d = d[j]
     patch = {}
     patch["X"] = shape["X"][0][j]
     patch["Y"] = shape["Y"][0][j]
@@ -31,11 +32,11 @@ def extract_patch_and_coord(vix, shape, coord, max_distance, max_vertices, patch
     if "hphob" in shape:
         patch["hphob"] = shape["hphob"][0][j]
 
-    patch["center"] = np.argmin(D)
+    patch["center"] = np.argmin(d)
 
     j_theta = j + coord.shape[1] // 2
     theta = np.squeeze(np.asarray(coord[np.int(vix), j_theta].todense()))
-    coord = np.concatenate([D, theta], axis=0)
+    coord = np.concatenate([d, theta], axis=0)
 
     if patch_indices:
         return patch, coord, j
@@ -100,7 +101,7 @@ def compute_shape_complementarity(ply_fn1, ply_fn2,
     # Go through every interface vertex.
     for cv1_iiix in range(len(interface_vertices_v1)):
         cv1_ix = interface_vertices_v1[cv1_iiix]
-        assert (d[cv1_ix] < int_cutoff)
+        assert d[cv1_ix] < int_cutoff
         # First shape complementarity s1->s2 for the entire patch
         patch_idxs1 = np.where(mask1[cv1_ix] == 1)[0]
         neigh_cv1 = np.array(neigh1[cv1_ix])[patch_idxs1]
@@ -181,11 +182,11 @@ def normalize_electrostatics(in_elec):
     return elec
 
 
-def mean_normal_center_patch(D, n, r):
+def mean_normal_center_patch(d, n, r):
     """
         Function to compute the mean normal of vertices within r radius of the center of the patch.
     """
-    c_normal = [n[i] for i in range(len(D)) if D[i] <= r]
+    c_normal = [n[i] for i in range(len(d)) if d[i] <= r]
     mean_normal = np.mean(c_normal, axis=0, keepdims=True).T
     mean_normal = mean_normal / np.linalg.norm(mean_normal)
     return np.squeeze(mean_normal)
