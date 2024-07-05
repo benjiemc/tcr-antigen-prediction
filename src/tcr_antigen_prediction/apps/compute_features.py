@@ -70,14 +70,14 @@ def main() -> None:
                                               max_shape_size=config[args.mode]['max_shape_size'])
 
     # Compute shape complementarity between the two proteins.
-    if len(pids) > 1 and args.mode == 'masif_ppi_search':
+    if len(pids) > 1 and args.mode == 'ppi_search':
         p1_sc_labels, p2_sc_labels = compute_shape_complementarity(
             args.input[0], args.input[1],
             neigh_indices['p1'], neigh_indices['p2'],
             rho['p1'], rho['p2'],
             mask['p1'], mask['p2'],
             sc_w=config[args.mode]['sc_w'],
-            sc_interaction_cutoff=config[args.mode]['sc_interaction_count'],
+            sc_interaction_cutoff=config[args.mode]['sc_interaction_cutoff'],
             sc_radius=config[args.mode]['sc_radius'],
         )
 
