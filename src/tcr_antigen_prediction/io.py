@@ -52,7 +52,7 @@ def output_pdb_as_xyzrn(pdb_filename, xyzrn_filename):
                 if residue.get_id()[2] != ' ':
                     insertion = residue.get_id()[2]
 
-                full_id = f'{chain}_{residue.get_id()[1]: d}_{insertion}_{resname}_{name}_{color}'
+                full_id = f'{chain}_{residue.get_id()[1]}_{insertion}_{resname}_{name}_{color}'
 
             if coords is not None:
                 outfile.write(coords + ' ' + RADII[atomtype] + ' 1 ' + full_id + '\n')
