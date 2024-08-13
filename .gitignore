@@ -17,5 +17,9 @@ data/processed/*
 **/*.pyc
 **/.ipynb_checkpoints/*
 
+# Documentation Files
+public/*
+docs/source/*
+
 # Developement Environment Files
 .vscode/*

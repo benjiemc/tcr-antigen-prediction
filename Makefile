@@ -1,4 +1,5 @@
-.PHONY: all lint test
+.PHONY: all lint test docs
+
 
 all:
 	@echo TODO
@@ -12,3 +13,7 @@ lint:
 
 test:
 	@prysk tests/apps
+
+docs:
+	@sphinx-apidoc -f -e -o docs/source src/tcr_antigen_prediction
+	@sphinx-build -b html ./docs public
