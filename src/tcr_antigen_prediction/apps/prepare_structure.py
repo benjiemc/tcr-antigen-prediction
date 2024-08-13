@@ -5,7 +5,7 @@ import os
 
 import pymesh
 
-from tcr_antigen_prediction.apps._log import setup_logger
+from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
 from tcr_antigen_prediction.io import save_ply
 from tcr_antigen_prediction.structure import extract_pdb, reprotonate
 from tcr_antigen_prediction.triangulate import (fix_mesh,
@@ -24,8 +24,8 @@ parser.add_argument('structure', help='Path to pdb structure.')
 parser.add_argument('--output', '-o', help='Path to output processed structure')
 parser.add_argument('--chains', default=None, nargs='+', help='Chains to use from protein.')
 parser.add_argument('--compute-interface', action='store_true')
-parser.add_argument('--log-level', choices=['debug', 'info', 'warning', 'error'], default='warning',
-                    help="Level to log messages at (Default: 'warning')")
+
+add_logging_arguments(parser)
 
 
 def main() -> None:

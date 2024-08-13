@@ -5,7 +5,7 @@ import os
 
 import numpy as np
 
-from tcr_antigen_prediction.apps._log import setup_logger
+from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
 from tcr_antigen_prediction.models import MasifPPISearch
 
 logger = logging.getLogger()
@@ -14,9 +14,9 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('--model', required=True, help='path to trained model')
 parser.add_argument('--output', '-o', required=True, help='path to output')
-parser.add_argument('--log-level', choices=['debug', 'info', 'warning', 'error'], default='warning',
-                    help="Level to log messages at (Default: 'warning')")
 parser.add_argument('input')
+
+add_logging_arguments(parser)
 
 np.random.seed(0)
 

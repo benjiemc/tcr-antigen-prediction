@@ -5,7 +5,7 @@ import typing
 
 from Bio.PDB import PDBIO, PDBParser, Structure, Model, Chain, Select
 
-from tcr_antigen_prediction.apps._log import setup_logger
+from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
 from tcr_antigen_prediction.imgt_numbering import IMGT_MH1_ABD, IMGT_MH2_ABD, IMGT_VARIABLE_DOMAIN
 
 logger = logging.getLogger()
@@ -18,8 +18,8 @@ parser.add_argument('--tcr-chains', nargs='*', help='pdb chains for the tcr stru
 parser.add_argument('--mhc-chains', nargs='*', help='pdb chains for the mhc structure')
 parser.add_argument('--antigen-chain', nargs='?', help='pdb chain for the antigen')
 parser.add_argument('--remove-het-atoms', action='store_true', help='remove hetero atoms from structure')
-parser.add_argument('--log-level', choices=['debug', 'info', 'warning', 'error'], default='warning',
-                    help="Level to log messages at (Default: 'warning')")
+
+add_logging_arguments(parser)
 
 
 def crop_chain(chain: Chain.Chain, numbering: typing.Set[int]) -> Chain.Chain:

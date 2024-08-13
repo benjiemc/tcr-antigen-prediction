@@ -4,7 +4,7 @@ import logging
 import os
 import numpy as np
 
-from tcr_antigen_prediction.apps._log import setup_logger
+from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
 from tcr_antigen_prediction.io import read_data_from_surface
 from tcr_antigen_prediction.surface import compute_shape_complementarity
 
@@ -17,9 +17,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--mode', choices=['ppi_search', 'site'], required=True,
                     help='mode to compute features')
 parser.add_argument('--output', '-o', required=True, help='output path')
-parser.add_argument('--log-level', choices=['debug', 'info', 'warning', 'error'], default='warning',
-                    help="Level to log messages at (Default: 'warning')")
 parser.add_argument('input', nargs=2, help='path to input ply files')
+
+add_logging_arguments(parser)
 
 config = {
     'ppi_search': {
