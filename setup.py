@@ -7,7 +7,7 @@ setup(
     author_email='benjamin.mcmaster@rdm.ox.ac.uk',
     packages=find_packages(where='src', include=['tcr_antigen_prediction']),
     package_dir={"": "src"},
-    install_requires=[],
+    install_requires=['biopython'],
     extras_require={
         'develop': ['flake8', 'pylint'],
     },
