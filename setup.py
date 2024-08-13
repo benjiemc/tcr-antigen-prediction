@@ -9,6 +9,6 @@ setup(
     package_dir={"": "src"},
     install_requires=['biopython'],
     extras_require={
-        'develop': ['flake8', 'pylint'],
+        'develop': ['flake8', 'pylint', 'prysk'],
     },
 )

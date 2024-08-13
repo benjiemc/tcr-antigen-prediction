@@ -1,4 +1,4 @@
-.PHONY: all lint
+.PHONY: all lint test
 
 all:
 	@echo TODO
@@ -9,3 +9,6 @@ data/raw/stcrdab:
 lint:
 	@flake8 src/
 	@pylint src
+
+test:
+	@prysk tests/apps
