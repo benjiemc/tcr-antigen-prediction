@@ -16,7 +16,7 @@ def output_pdb_as_xyzrn(pdb_filename, xyzrn_filename):
         xyzrn_filename: output in xyzrn format.
 
     '''
-    parser = PDBParser()
+    parser = PDBParser(QUIET=True)
     struct = parser.get_structure(pdb_filename, pdb_filename)
 
     with open(xyzrn_filename, 'w') as outfile:
