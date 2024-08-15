@@ -16,6 +16,7 @@
 '''Functions for creating meshes and adding features to those meshes from PDB structures.'''
 import os
 import logging
+import tempfile
 from subprocess import Popen, PIPE
 
 import numpy as np
@@ -242,32 +243,33 @@ def assign_charges_to_new_mesh(new_vertices, old_vertices, old_charges):
 
 
 def compute_msms(pdb_file,  protonate=True):
-    file_base = pdb_file.rsplit('.', 1)[0]
-    out_xyzrn = file_base + '.xyzrn'
+    with tempfile.TemporaryDirectory() as temp_dir:
+        base_name = os.path.join(temp_dir, os.path.basename(pdb_file).rsplit('.', 1)[0])
+        out_xyzrn = base_name + '.xyzrn'
 
-    if protonate:
-        output_pdb_as_xyzrn(pdb_file, out_xyzrn)
+        if protonate:
+            output_pdb_as_xyzrn(pdb_file, out_xyzrn)
 
-    # Now run MSMS on xyzrn file
-    args = ['msms',
-            '-density', '3.0',
-            '-hdensity', '3.0',
-            '-probe', '1.5',
-            '-if', out_xyzrn,
-            '-of', file_base,
-            '-af', file_base]
+        # Now run MSMS on xyzrn file
+        args = ['msms',
+                '-density', '3.0',
+                '-hdensity', '3.0',
+                '-probe', '1.5',
+                '-if', out_xyzrn,
+                '-of', base_name,
+                '-af', base_name]
 
-    p2 = Popen(args, stdout=PIPE, stderr=PIPE)
-    _, _ = p2.communicate()
+        p2 = Popen(args, stdout=PIPE, stderr=PIPE)
+        _, _ = p2.communicate()
 
-    vertices, faces, normals, names = read_msms(file_base)
-    areas = {}
-    ses_file = open(file_base + '.area')
-    next(ses_file)  # ignore header line
+        vertices, faces, normals, names = read_msms(base_name)
+        areas = {}
+        with open(base_name + '.area') as ses_file:
+            next(ses_file)  # ignore header line
 
-    for line in ses_file:
-        fields = line.split()
-        areas[fields[3]] = fields[1]
+            for line in ses_file:
+                fields = line.split()
+                areas[fields[3]] = fields[1]
 
     return vertices, faces, normals, names, areas
 
