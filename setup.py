@@ -9,6 +9,6 @@ setup(
     package_dir={"": "src"},
     install_requires=['biopython'],
     extras_require={
-        'develop': ['flake8', 'myst-parser', 'pylint', 'prysk', 'sphinx', 'sphinx-rtd-theme'],
+        'develop': ['flake8', 'myst-parser', 'pylint', 'pytest', 'prysk', 'sphinx', 'sphinx-rtd-theme'],
     },
 )

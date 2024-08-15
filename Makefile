@@ -15,6 +15,7 @@ lint:
 	@pylint src
 
 test:
+	@pytest tests/
 	@prysk tests/apps
 
 docs:

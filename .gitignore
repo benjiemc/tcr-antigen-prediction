@@ -16,6 +16,7 @@ data/processed/*
 **/*.egg-info/*
 **/*.pyc
 **/.ipynb_checkpoints/*
+**/.pytest_cache/*
 
 # Documentation Files
 public/*
