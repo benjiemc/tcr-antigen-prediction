@@ -107,7 +107,7 @@ def get_sequence(structure: Structure.Structure, chain_id: str, residue_range: O
     Args:
         structure: Biopython structure.
         chain_id: ID of the chain to get the sequence from.
-        residue_range: Range of residues to include in the sequence (Optional). Default is too include them all.
+        residue_range: Range of residues to include in the sequence (Optional). Default is to include them all.
 
     Returns:
         Amino acid sequence as one-letter codes.
