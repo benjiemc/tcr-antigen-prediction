@@ -1,0 +1,234 @@
+'''Select TCR-pMHC structures from STCRDab.'''
+import argparse
+import logging
+import os
+import random
+
+import numpy as np
+import pandas as pd
+from Bio.PDB import PDBParser, PDBIO, Select
+
+from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
+from tcr_antigen_prediction.imgt_numbering import IMGT_CDR1, IMGT_CDR2, IMGT_CDR3
+from tcr_antigen_prediction.structure import get_sequence
+
+logger = logging.getLogger()
+
+parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+
+parser.add_argument('stcrdab', help='path to the STCRDab')
+
+parser.add_argument('--output', '-o', help='output path')
+parser.add_argument('--seed', default=None, type=int, help='random seed for data splitting')
+
+data_split_group = parser.add_argument_group('Data Splits')
+data_split_group.add_argument('--train-split', type=float, default=0.70,
+                              help='proportion of data to assign to training (Default: 0.15)')
+data_split_group.add_argument('--validation-split', type=float, default=0.15,
+                              help='proportion of data to assign to validation (Default: 0.15)')
+data_split_group.add_argument('--test-split', type=float, default=0.15,
+                              help='proportion of data to assign to testing (Default: 0.15)')
+
+structure_type_group = parser.add_argument_group('Structure Types')
+structure_type_group.add_argument('--tcr-types', nargs='+', default=['abTCR'],
+                                  help='TCR types allowed in dataset (abTCR and/or gdTCR) (Default: abTCR)')
+structure_type_group.add_argument('--mhc-types', nargs='+', default=['MH1'],
+                                  help='MHC types allowed in dataset (CD1, GA, GB, MH1, MH2, MR1) (Default: MH1)')
+structure_type_group.add_argument('--antigen-types', nargs='+', default=['peptide'],
+                                  help=('MHC types allowed in dataset (carbohydrate, Hapten, peptide, protein, etc) '
+                                        '(Default: peptide)'))
+
+quality_group = parser.add_argument_group('Quality Selection')
+quality_group.add_argument('--resolution-cutoff', type=float, default=3.50,
+                           help='maximum resolution allowed (Default: 3.50)')
+
+add_logging_arguments(parser)
+
+
+class SelectChains(Select):
+    '''Select chains to output.'''
+    def __init__(self, *chain_ids):
+        self.selected_chain_ids = chain_ids
+
+    def accept_chain(self, chain):
+        return chain.id in self.selected_chain_ids
+
+
+def add_cdr_sequences(pdb_id: str, alpha_chain_id: str, beta_chain_id: str, stcrdab_path: str) -> pd.Series:
+    '''Add CDR sequences from structures.'''
+    structure = PDBParser().get_structure(pdb_id,
+                                          os.path.join(stcrdab_path, 'imgt', pdb_id + '.pdb'))
+
+    sequences = {f'cdr_{chain_type[0]}{cdr_num}': get_sequence(structure, chain_id, numbering)
+                 for chain_type, chain_id in (('alpha_chain', alpha_chain_id), ('beta_chain', beta_chain_id))
+                 for cdr_num, numbering in ((1, IMGT_CDR1), (2, IMGT_CDR2), (3, IMGT_CDR3))}
+
+    return pd.Series(sequences).sort_index()
+
+
+def add_peptide_sequences(pdb_id: str, antigen_chain_id: str, stcrdab_path: str) -> str:
+    '''Add peptide sequences from structures.'''
+    structure = PDBParser().get_structure(pdb_id,
+                                          os.path.join(stcrdab_path, 'imgt', pdb_id + '.pdb'))
+
+    return get_sequence(structure, antigen_chain_id)
+
+
+def split_groups_multiple_proportions(idx_sizes, proportions):
+    total_sum = sum([size for _, size in idx_sizes])
+    target_sums = [total_sum * prop for prop in proportions]
+    # Shuffle numbers to introduce randomness
+    random.shuffle(idx_sizes)
+
+    groups = [[] for _ in range(len(proportions))]
+    sum_groups = [0] * len(proportions)
+
+    for idx, size in idx_sizes:
+        # Find the group with the smallest current sum and add the number
+        min_sum_index = min(range(len(proportions)), key=lambda i: sum_groups[i])
+
+        if sum_groups[min_sum_index] + size <= target_sums[min_sum_index]:
+            groups[min_sum_index].append(idx)
+            sum_groups[min_sum_index] += size
+
+        else:
+            # If adding the number exceeds the target sum, add to the next group
+            for i in range(len(proportions)):
+                if i != min_sum_index and sum_groups[i] + size <= target_sums[i]:
+                    groups[i].append(idx)
+                    sum_groups[i] += size
+                    break
+            else:  # If it doesn't fit anywhere, add it to the original trial
+                groups[min_sum_index].append(idx)
+                sum_groups[min_sum_index] += size
+
+    return groups
+
+
+def merge_groups(groups):
+    merged_groups = []
+
+    for group in groups:
+        merged = False
+
+        for i, merged_group in enumerate(merged_groups):
+            if len(group & merged_group) > 0:
+                merged_groups[i] = group | merged_group
+                merged = True
+                break
+
+        if not merged:
+            merged_groups.append(group)
+
+    return merged_groups
+
+
+def main():
+    args = parser.parse_args()
+    setup_logger(logger, args.log_level)
+
+    if args.seed:
+        random.seed(args.seed)
+
+    stcrdab_summary = pd.read_csv(os.path.join(args.stcrdab, 'db_summary.dat'), delimiter='\t')
+
+    logger.info('Selecting structures...')
+    selected_structures = stcrdab_summary
+    selected_structures = selected_structures.query('TCRtype in @args.tcr_types')
+    selected_structures = selected_structures.query('mhc_type in @args.mhc_types')
+    selected_structures = selected_structures.query('antigen_type in @args.antigen_types')
+
+    logger.info('Screening Quality...')
+    selected_structures['resolution'] = pd.to_numeric(selected_structures['resolution'], errors='coerce')
+    selected_structures = selected_structures.query('resolution <= @args.resolution_cutoff')
+
+    logger.info('Getting sequence information...')
+    cdr_sequences = selected_structures.apply(
+        lambda row: add_cdr_sequences(row.pdb, row.Achain, row.Bchain, args.stcrdab),
+        axis=1,
+    )
+
+    peptide_sequences = selected_structures.apply(
+        lambda row: add_peptide_sequences(row.pdb, row.antigen_chain, args.stcrdab),
+        axis=1,
+    )
+    peptide_sequences.name = 'peptide_sequence'
+
+    selected_structures = pd.concat([selected_structures,
+                                     cdr_sequences,
+                                     peptide_sequences.to_frame()], axis='columns')
+
+    selected_structures['collated_cdrs'] = (selected_structures['cdr_a1'] + '-'
+                                            + selected_structures['cdr_a2'] + '-'
+                                            + selected_structures['cdr_a3'] + '-'
+                                            + selected_structures['cdr_b1'] + '-'
+                                            + selected_structures['cdr_b2'] + '-'
+                                            + selected_structures['cdr_b3'])
+
+    logger.info('Splitting data accoding to partions (Train: %.2f, Validation %.2f, and Test %.2f)',
+                args.train_split, args.validation_split, args.test_split)
+
+    peptide_groups = selected_structures.groupby('peptide_sequence')
+
+    logger.debug('Merging peptide groups with common TCRs.')
+    merge_matrix = np.zeros((len(peptide_groups), len(peptide_groups)))
+    for i, (_, group_i) in enumerate(peptide_groups):
+        for j, (_, group_j) in enumerate(peptide_groups):
+            group_i_seqs = set(group_i['collated_cdrs'].tolist())
+            group_j_seqs = set(group_j['collated_cdrs'].tolist())
+
+            if len(group_i_seqs & group_j_seqs) > 0:
+                merge_matrix[i, j] = 1
+
+    group_indicies = np.arange(len(peptide_groups))
+    groups = [set(group_indicies[row > 0]) for row in merge_matrix]
+
+    separated_groups = merge_groups(groups)
+
+    separated_groups_data = [pd.concat([list(peptide_groups)[idx][1] for idx in group], axis=0)
+                             for group in separated_groups]
+
+    separated_idx_size = [(idx, len(df)) for idx, df in enumerate(separated_groups_data)]
+
+    train_idxs, val_idxs, test_idxs = split_groups_multiple_proportions(separated_idx_size,
+                                                                        (args.train_split,
+                                                                         args.validation_split,
+                                                                         args.test_split))
+
+    dataset = pd.DataFrame()
+    for split_name, idxs in (('train', train_idxs), ('validation', val_idxs), ('test', test_idxs)):
+        if len(idxs) == 0:
+            logger.warning('No data in %s split', split_name)
+            continue
+
+        split_data = pd.concat([df for idx, df in enumerate(separated_groups_data) if idx in idxs], axis=0)
+        split_data['split'] = split_name
+
+        dataset = pd.concat([dataset, split_data])
+
+    dataset = dataset.reset_index()
+
+    logger.info('Outputing structures...')
+    if not os.path.exists(args.output):
+        os.mkdir(args.output)
+
+    dataset[['pdb',
+             'Achain', 'Bchain',
+             'antigen_chain',
+             'mhc_chain1', 'mhc_chain2',
+             'mhc_type', 'peptide_sequence', 'collated_cdrs',
+             'split']].to_csv(os.path.join(args.output, 'stcrdab_split.csv'), index=False)
+
+    pdb_parser = PDBParser()
+    for _, row in dataset.iterrows():
+        structure = pdb_parser.get_structure(row.pdb, os.path.join(args.stcrdab, 'imgt', f'{row.pdb}.pdb'))
+        output_name = f'{row.pdb}_{row.Achain}{row.Bchain}{row.antigen_chain}{row.mhc_chain1}{row.mhc_chain2}.pdb'
+
+        io = PDBIO()
+        io.set_structure(structure)
+        io.save(os.path.join(args.output, output_name),
+                SelectChains(row.Achain, row.Bchain, row.antigen_chain, row.mhc_chain1, row.mhc_chain2))
+
+
+if __name__ == '__main__':
+    main()

@@ -15,8 +15,9 @@
 # limitations under the License.
 '''Functions and classes for interacting with PDB structures.'''
 from subprocess import Popen, PIPE
+from typing import Optional, Set
 
-from Bio.PDB import PDBParser, PDBIO, Selection, StructureBuilder, Select
+from Bio.PDB import PDBParser, PDBIO, Selection, StructureBuilder, Select, Structure
 from Bio.SeqUtils import IUPACData
 PROTEIN_LETTERS = [x.upper() for x in IUPACData.protein_letters_3to1.keys()]
 
@@ -98,3 +99,32 @@ def reprotonate(path: str, out_path: str):
 
     with open(out_path, 'w') as outfile:
         outfile.write(stdout.decode('utf-8'))
+
+
+def get_sequence(structure: Structure.Structure, chain_id: str, residue_range: Optional[Set[int]] = None) -> str:
+    '''Get the sequence of amino acids from a biopython strcture.
+
+    Args:
+        structure: Biopython structure.
+        chain_id: ID of the chain to get the sequence from.
+        residue_range: Range of residues to include in the sequence (Optional). Default is too include them all.
+
+    Returns:
+        Amino acid sequence as one-letter codes.
+
+    '''
+    chain = structure[0][chain_id]
+    sequence = []
+
+    for residue in chain:
+        if residue.id[0] != ' ':
+            continue
+
+        if residue_range is not None and residue.id[1] not in residue_range:
+            continue
+
+        sequence.append(residue.get_resname())
+
+    sequence = [IUPACData.protein_letters_3to1[res.title()] for res in sequence]
+
+    return ''.join(sequence)
