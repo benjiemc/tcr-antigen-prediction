@@ -358,38 +358,41 @@ def fix_mesh(mesh, resolution=1.0, detail='normal'):
     return mesh
 
 
-def compute_apbs(vertices, pdb_file, tmp_file_base):
+def compute_apbs(vertices, pdb_file):
     '''Calls APBS, pdb2pqr, and multivalue and returns the charges per vertex'''
+    base_name = os.path.basename(pdb_file).rsplit('.', 1)[0]
+    pdb_path = os.path.abspath(pdb_file)
 
-    args = ['pdb2pqr',
-            '--ff=parse',
-            '--whitespace',
-            '--noopt',
-            '--apbs-input',
-            os.path.basename(pdb_file),
-            os.path.basename(tmp_file_base)]
-    p2 = Popen(args, stdout=PIPE, stderr=PIPE, cwd=os.path.dirname(tmp_file_base))
-    _, _ = p2.communicate()
+    with tempfile.TemporaryDirectory() as temp_dir:
+        args = ['pdb2pqr',
+                '--ff=parse',
+                '--whitespace',
+                '--noopt',
+                '--apbs-input',
+                pdb_path,
+                base_name]
+        p2 = Popen(args, stdout=PIPE, stderr=PIPE, cwd=temp_dir)
+        _, _ = p2.communicate()
 
-    args = ['apbs', os.path.basename(tmp_file_base + '.in')]
-    p2 = Popen(args, stdout=PIPE, stderr=PIPE, cwd=os.path.dirname(tmp_file_base))
-    _, _ = p2.communicate()
+        args = ['apbs', base_name + '.in']
+        p2 = Popen(args, stdout=PIPE, stderr=PIPE, cwd=temp_dir)
+        _, _ = p2.communicate()
 
-    with open(tmp_file_base + '.csv', 'w') as vertfile:
-        for vert in vertices:
-            vertfile.write(f'{vert[0]},{vert[1]},{vert[2]}\n')
+        with open(os.path.join(temp_dir, base_name + '.csv'), 'w') as vertfile:
+            for vert in vertices:
+                vertfile.write(f'{vert[0]},{vert[1]},{vert[2]}\n')
 
-    args = ['multivalue',
-            os.path.basename(tmp_file_base) + '.csv',
-            os.path.basename(tmp_file_base) + '.dx',
-            os.path.basename(tmp_file_base) + '_out.csv']
-    p2 = Popen(args, stdout=PIPE, stderr=PIPE, cwd=os.path.dirname(tmp_file_base))
-    _, _ = p2.communicate()
+        args = ['multivalue',
+                base_name + '.csv',
+                base_name + '.dx',
+                base_name + '_out.csv']
+        p2 = Popen(args, stdout=PIPE, stderr=PIPE, cwd=temp_dir)
+        _, _ = p2.communicate()
 
-    with open(tmp_file_base + '_out.csv') as chargefile:
-        charges = np.array([0.0] * len(vertices))
-        for ix, line in enumerate(chargefile.readlines()):
-            charges[ix] = float(line.split(',')[3])
+        with open(os.path.join(temp_dir, base_name + '_out.csv')) as chargefile:
+            charges = np.array([0.0] * len(vertices))
+            for ix, line in enumerate(chargefile.readlines()):
+                charges[ix] = float(line.split(',')[3])
 
     return charges
 

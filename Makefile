@@ -89,7 +89,6 @@ data/interim/selected-stcrdab_ply: data/interim/selected-stcrdab_crop
 
 	done
 
-	@rm "$@/*.pdb" "$@/*_protonated*" "$@/io.mc"
 	@echo "All done."
 
 data/processed/selected-stcrdab_feats: data/interim/selected-stcrdab_ply
