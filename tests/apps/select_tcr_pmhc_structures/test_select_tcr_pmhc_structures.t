@@ -1,4 +1,4 @@
-Test app
+Test app (standard)
   $ python -m tcr_antigen_prediction.apps.select_tcr_pmhc_structures \
   > --log-level error \
   > --seed 123 \
@@ -8,8 +8,21 @@ Test app
   > -o output \
   > $TESTDIR/data/stcrdab-mock/
 
-  $ diff output/stcrdab_split.csv $TESTDIR/reference/stcrdab_split.csv
+  $ diff output/stcrdab_split.csv $TESTDIR/reference/standard/stcrdab_split.csv
 
-  $ diff output/3qiw_CDEAB.pdb $TESTDIR/reference/3qiw_CDEAB.pdb
-  $ diff output/7q9b_DECAB.pdb $TESTDIR/reference/7q9b_DECAB.pdb
-  $ diff output/7q9b_IJHFG.pdb $TESTDIR/reference/7q9b_IJHFG.pdb
+  $ diff output/3qiw_CDEAB.pdb $TESTDIR/reference/standard/3qiw_CDEAB.pdb
+  $ diff output/7q9b_DECAB.pdb $TESTDIR/reference/standard/7q9b_DECAB.pdb
+  $ diff output/7q9b_IJHFG.pdb $TESTDIR/reference/standard/7q9b_IJHFG.pdb
+
+Test excluding PDB IDs
+  $  python -m tcr_antigen_prediction.apps.select_tcr_pmhc_structures \
+  > --log-level error \
+  > --seed 123 \
+  > --tcr-types abTCR \
+  > --mhc-types MH1 MH2 \
+  > --antigen-types peptide \
+  > --pdb-ids-to-exclude 3qiw \
+  > -o output-exclude-pdb-ids \
+  > $TESTDIR/data/stcrdab-mock/
+
+  $ diff output-exclude-pdb-ids/stcrdab_split.csv $TESTDIR/reference/exclude-pdb-ids/stcrdab_split.csv

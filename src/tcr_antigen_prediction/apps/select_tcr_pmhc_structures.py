@@ -28,6 +28,8 @@ data_split_group.add_argument('--validation-split', type=float, default=0.15,
                               help='proportion of data to assign to validation (Default: 0.15)')
 data_split_group.add_argument('--test-split', type=float, default=0.15,
                               help='proportion of data to assign to testing (Default: 0.15)')
+data_split_group.add_argument('--pdb-ids-to-exclude', nargs='+', default=None,
+                              help='PDB IDs to exclude from the validation/testing data splits')
 
 structure_type_group = parser.add_argument_group('Structure Types')
 structure_type_group.add_argument('--tcr-types', nargs='+', default=['abTCR'],
@@ -74,16 +76,25 @@ def add_peptide_sequences(pdb_id: str, antigen_chain_id: str, stcrdab_path: str)
     return get_sequence(structure, antigen_chain_id)
 
 
-def split_groups_multiple_proportions(idx_sizes, proportions):
+def split_groups_multiple_proportions(idx_sizes, proportions, exclude_idxs=None, exclude_split=None):
     total_sum = sum([size for _, size in idx_sizes])
     target_sums = [total_sum * prop for prop in proportions]
-    # Shuffle numbers to introduce randomness
+
     random.shuffle(idx_sizes)
 
     groups = [[] for _ in range(len(proportions))]
     sum_groups = [0] * len(proportions)
 
+    if exclude_idxs is not None:  # add all excluded IDs to selected split
+        for idx, size in idx_sizes:
+            if idx in exclude_idxs and exclude_split is not None:
+                groups[exclude_split].append(idx)
+                sum_groups[exclude_split] += size
+
     for idx, size in idx_sizes:
+        if exclude_idxs and idx in exclude_idxs:
+            continue
+
         # Find the group with the smallest current sum and add the number
         min_sum_index = min(range(len(proportions)), key=lambda i: sum_groups[i])
 
@@ -188,12 +199,18 @@ def main():
     separated_groups_data = [pd.concat([list(peptide_groups)[idx][1] for idx in group], axis=0)
                              for group in separated_groups]
 
+    exclude_group_idxs = [
+        idx for idx, group in enumerate(separated_groups_data) if group['pdb'].isin(args.pdb_ids_to_exclude).any()
+    ] if args.pdb_ids_to_exclude is not None else None
+
     separated_idx_size = [(idx, len(df)) for idx, df in enumerate(separated_groups_data)]
 
     train_idxs, val_idxs, test_idxs = split_groups_multiple_proportions(separated_idx_size,
                                                                         (args.train_split,
                                                                          args.validation_split,
-                                                                         args.test_split))
+                                                                         args.test_split),
+                                                                        exclude_group_idxs,
+                                                                        exclude_split=0)  # training split
 
     dataset = pd.DataFrame()
     for split_name, idxs in (('train', train_idxs), ('validation', val_idxs), ('test', test_idxs)):

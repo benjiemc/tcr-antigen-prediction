@@ -8,8 +8,12 @@ data: data/processed/selected-stcrdab_feats
 data/raw/stcrdab:
 	@python -m tcr_antigen_prediction.apps.download_stcrdab $@
 
-data/interim/selected-stcrdab: data/raw/stcrdab
-	@python -m tcr_antigen_prediction.apps.select_tcr_pmhc_structures --seed 123 -o $@ $^
+data/interim/selected-stcrdab: data/raw/stcrdab data/external/masif_ppi_search_training_set.txt
+	@python -m tcr_antigen_prediction.apps.select_tcr_pmhc_structures \
+		--seed 123 \
+		--pdb-ids-to-exclude $$(cut -d _ -f 1 $(word 2,$^) | tr '[:upper:]' '[:lower:]' | sort | uniq | tr '\n' ' ') \
+		-o $@ \
+		$(word 1,$^)
 
 data/interim/selected-stcrdab_crop: data/interim/selected-stcrdab
 	@mkdir -p $@
@@ -120,6 +124,9 @@ data/processed/selected-stcrdab_feats: data/interim/selected-stcrdab_ply
 	done
 
 	@echo "All done."
+
+data/external/masif_ppi_search_training_set.txt:
+	@wget -O $@ https://raw.githubusercontent.com/LPDI-EPFL/masif/master/data/masif_ppi_search/lists/training.txt
 
 lint:
 	@FL_STATUS=0; PY_STATUS=0; \
