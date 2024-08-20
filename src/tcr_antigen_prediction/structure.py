@@ -128,3 +128,16 @@ def get_sequence(structure: Structure.Structure, chain_id: str, residue_range: O
     sequence = [IUPACData.protein_letters_3to1[res.title()] for res in sequence]
 
     return ''.join(sequence)
+
+
+def get_header(pdb_contents: str) -> str:
+    '''Get the header lines from the contents of a pdb file.'''
+    header = []
+    for line in pdb_contents.split('\n'):
+        record_type = line[0:6]
+        if record_type in ('ATOM  ', 'HETATM', 'MODEL '):
+            break
+
+        header.append(line)
+
+    return '\n'.join(header)

@@ -26,3 +26,16 @@ Test excluding PDB IDs
   > $TESTDIR/data/stcrdab-mock/
 
   $ diff output-exclude-pdb-ids/stcrdab_split.csv $TESTDIR/reference/exclude-pdb-ids/stcrdab_split.csv
+
+Test removing structures missing residues
+  $ python -m tcr_antigen_prediction.apps.select_tcr_pmhc_structures \
+  > --log-level error \
+  > --seed 123 \
+  > --tcr-types abTCR \
+  > --mhc-types MH1 MH2 \
+  > --antigen-types peptide \
+  > --remove-structures-missing-residues \
+  > -o output-no-missing-residues \
+  > $TESTDIR/data/stcrdab-mock/
+
+  $ diff output-no-missing-residues/stcrdab_split.csv $TESTDIR/reference/output-no-missing-residues/stcrdab_split.csv

@@ -10,7 +10,11 @@ from Bio.PDB import PDBParser, PDBIO, Select
 
 from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
 from tcr_antigen_prediction.imgt_numbering import IMGT_CDR1, IMGT_CDR2, IMGT_CDR3
-from tcr_antigen_prediction.structure import get_sequence
+from tcr_antigen_prediction.missing_residues import (get_missing_atoms,
+                                                     get_missing_residues,
+                                                     screen_tcr_variable_domain,
+                                                     screen_pmhc_abd)
+from tcr_antigen_prediction.structure import get_sequence, get_header
 
 logger = logging.getLogger()
 
@@ -43,6 +47,9 @@ structure_type_group.add_argument('--antigen-types', nargs='+', default=['peptid
 quality_group = parser.add_argument_group('Quality Selection')
 quality_group.add_argument('--resolution-cutoff', type=float, default=3.50,
                            help='maximum resolution allowed (Default: 3.50)')
+quality_group.add_argument('--remove-structures-missing-residues', action='store_true',
+                           help=('Remove TCR:pMHC structures with missing residues in the TCR variable region or '
+                                 'pMHC antigen binding domain (including peptide)'))
 
 add_logging_arguments(parser)
 
@@ -54,6 +61,51 @@ class SelectChains(Select):
 
     def accept_chain(self, chain):
         return chain.id in self.selected_chain_ids
+
+
+def screen_for_missing_residues(df: pd.DataFrame, stcrdab_path: str) -> pd.DataFrame:
+    '''Remove entries missing residues in the TCR variable region or pMHC antigen binding domain.'''
+    def check_structure(pdb_id,
+                        alpha_chain_id, beta_chain_id,
+                        antigen_chain_id,
+                        mhc_chain1_id, mhc_chain2_id,
+                        mhc_type):
+        raw_file_path = os.path.join(stcrdab_path, 'raw', pdb_id + '.pdb')
+        imgt_file_path = os.path.join(stcrdab_path, 'imgt', pdb_id + '.pdb')
+
+        with open(raw_file_path, 'r') as fh:
+            header = get_header(fh.read())
+
+        pdb_parser = PDBParser(QUIET=True)
+        raw_structure = pdb_parser.get_structure(pdb_id, raw_file_path)
+        structure = pdb_parser.get_structure(pdb_id + '_imgt_numbered', imgt_file_path)
+
+        missing_atoms = get_missing_atoms(header)
+        missing_residues = get_missing_residues(header)
+
+        return (screen_tcr_variable_domain(structure,
+                                           raw_structure,
+                                           (alpha_chain_id, beta_chain_id),
+                                           missing_residues,
+                                           missing_atoms)
+                and screen_pmhc_abd(structure,
+                                    raw_structure,
+                                    antigen_chain_id,
+                                    (mhc_chain1_id, mhc_chain2_id),
+                                    mhc_type,
+                                    missing_residues,
+                                    missing_atoms))
+
+    valid_structures = df.apply(
+        lambda row: check_structure(row.pdb,
+                                    row.Achain, row.Bchain,
+                                    row.antigen_chain,
+                                    row.mhc_chain1, row.mhc_chain2,
+                                    row.mhc_type),
+        axis=1,
+    )
+
+    return df[valid_structures].copy()
 
 
 def add_cdr_sequences(pdb_id: str, alpha_chain_id: str, beta_chain_id: str, stcrdab_path: str) -> pd.Series:
@@ -152,6 +204,10 @@ def main():
     logger.info('Screening Quality...')
     selected_structures['resolution'] = pd.to_numeric(selected_structures['resolution'], errors='coerce')
     selected_structures = selected_structures.query('resolution <= @args.resolution_cutoff')
+
+    if args.remove_structures_missing_residues:
+        logger.debug('Removing structures missing residues')
+        selected_structures = screen_for_missing_residues(selected_structures, args.stcrdab)
 
     logger.info('Getting sequence information...')
     cdr_sequences = selected_structures.apply(
