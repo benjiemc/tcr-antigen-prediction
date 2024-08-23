@@ -7,14 +7,16 @@ import random
 import numpy as np
 import pandas as pd
 from Bio.PDB import PDBParser, PDBIO, Select
+from sklearn.cluster import AgglomerativeClustering
 
 from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
+from tcr_antigen_prediction.comparisons import compute_structural_distances
 from tcr_antigen_prediction.imgt_numbering import IMGT_CDR1, IMGT_CDR2, IMGT_CDR3
 from tcr_antigen_prediction.missing_residues import (get_missing_atoms,
                                                      get_missing_residues,
                                                      screen_tcr_variable_domain,
                                                      screen_pmhc_abd)
-from tcr_antigen_prediction.structure import get_sequence, get_header
+from tcr_antigen_prediction.structure import get_sequence, get_header, extract_chains
 
 logger = logging.getLogger()
 
@@ -50,6 +52,8 @@ quality_group.add_argument('--resolution-cutoff', type=float, default=3.50,
 quality_group.add_argument('--remove-structures-missing-residues', action='store_true',
                            help=('Remove TCR:pMHC structures with missing residues in the TCR variable region or '
                                  'pMHC antigen binding domain (including peptide)'))
+quality_group.add_argument('--structural-similarity-cutoff', type=float, default=None,
+                           help='RMSD threshold for structures with the same CDR and peptide sequences (Default: None)')
 
 add_logging_arguments(parser)
 
@@ -126,6 +130,53 @@ def add_peptide_sequences(pdb_id: str, antigen_chain_id: str, stcrdab_path: str)
                                           os.path.join(stcrdab_path, 'imgt', pdb_id + '.pdb'))
 
     return get_sequence(structure, antigen_chain_id)
+
+
+def remove_similar_structures(df: pd.DataFrame, threshold: float, stcrdab_path: str) -> pd.DataFrame:
+    '''
+    Remove structures with the same CDR and peptide sequences within the RMSD threshold. The highest resolution
+    structure will be kept.
+    '''
+    output_dfs = []
+
+    for (cdr_sequence, peptide_sequence, mhc_type), group in df.groupby(['collated_cdrs',
+                                                                         'peptide_sequence',
+                                                                         'mhc_type']):
+        if len(group) == 1:
+            output_dfs.append(group)
+            continue
+
+        logger.debug('Screening TCR: %s, peptide: %s, MHC: %s', cdr_sequence, peptide_sequence, mhc_type)
+
+        group = group.sort_values(['resolution', 'Achain', 'Bchain', 'antigen_chain', 'mhc_chain1', 'mhc_chain2'])
+
+        pdb_parser = PDBParser(QUIET=True)
+
+        structures = []
+        chain_maps = []
+
+        for _, row in group.iterrows():
+            structure = pdb_parser.get_structure('', os.path.join(stcrdab_path, 'imgt', row.pdb + '.pdb'))
+            chain_map = {'alpha_chain': row.Achain,
+                         'beta_chain': row.Bchain,
+                         'antigen_chain': row.antigen_chain,
+                         'mhc_chain1': row.mhc_chain1,
+                         'mhc_chain2': row.mhc_chain2}
+
+            structure = extract_chains(structure, chain_map.values())
+
+            structures.append(structure)
+            chain_maps.append(chain_map)
+
+        distance_matrix = compute_structural_distances(structures, chain_maps, mhc_type)
+        clusters = AgglomerativeClustering(affinity='precomputed',
+                                           distance_threshold=threshold,
+                                           linkage='single',
+                                           n_clusters=None).fit(distance_matrix).labels_
+        clusters = pd.Series(clusters, index=group.index)
+        output_dfs.append(group[~clusters.duplicated()])
+
+    return pd.concat(output_dfs)
 
 
 def split_groups_multiple_proportions(idx_sizes, proportions, exclude_idxs=None, exclude_split=None):
@@ -231,6 +282,12 @@ def main():
                                             + selected_structures['cdr_b1'] + '-'
                                             + selected_structures['cdr_b2'] + '-'
                                             + selected_structures['cdr_b3'])
+
+    if args.structural_similarity_cutoff:
+        logger.info('Removing structures within %.2f Å RMSD', args.structural_similarity_cutoff)
+        selected_structures = remove_similar_structures(selected_structures,
+                                                        args.structural_similarity_cutoff,
+                                                        args.stcrdab)
 
     logger.info('Splitting data accoding to partions (Train: %.2f, Validation %.2f, and Test %.2f)',
                 args.train_split, args.validation_split, args.test_split)

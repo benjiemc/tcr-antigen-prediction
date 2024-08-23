@@ -15,9 +15,9 @@
 # limitations under the License.
 '''Functions and classes for interacting with PDB structures.'''
 from subprocess import Popen, PIPE
-from typing import Optional, Set
+from typing import Optional, Set, Iterable
 
-from Bio.PDB import PDBParser, PDBIO, Selection, StructureBuilder, Select, Structure
+from Bio.PDB import PDBParser, PDBIO, Selection, StructureBuilder, Select, Structure, Model
 from Bio.SeqUtils import IUPACData
 PROTEIN_LETTERS = [x.upper() for x in IUPACData.protein_letters_3to1.keys()]
 
@@ -141,3 +141,18 @@ def get_header(pdb_contents: str) -> str:
         header.append(line)
 
     return '\n'.join(header)
+
+
+def extract_chains(structure: Structure.Structure, chains: Iterable[str]) -> Structure.Structure:
+    '''Get only the selected chain from a PDB structure.'''
+    new_structure = Structure.Structure(structure.id)
+
+    for model in structure:
+        new_model = Model.Model(model.id)
+        for chain in model:
+            if chain.id in chains:
+                new_model.add(chain.copy())
+
+        new_structure.add(new_model)
+
+    return new_structure

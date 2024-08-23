@@ -7,7 +7,7 @@ setup(
     author_email='benjamin.mcmaster@rdm.ox.ac.uk',
     packages=find_packages(where='src', include=['tcr_antigen_prediction']),
     package_dir={"": "src"},
-    install_requires=['biopython'],
+    install_requires=['biopython', 'scikit-learn<=0.24.2'],
     extras_require={
         'develop': ['flake8', 'myst-parser', 'pylint', 'pytest', 'prysk', 'sphinx', 'sphinx-rtd-theme'],
     },

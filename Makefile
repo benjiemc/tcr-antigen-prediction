@@ -12,6 +12,7 @@ data/interim/selected-stcrdab: data/raw/stcrdab data/external/masif_ppi_search_t
 	@python -m tcr_antigen_prediction.apps.select_tcr_pmhc_structures \
 		--seed 123 \
 		--remove-structures-missing-residues \
+		--structural-similarity-cutoff 2.0 \
 		--pdb-ids-to-exclude $$(cut -d _ -f 1 $(word 2,$^) | tr '[:upper:]' '[:lower:]' | sort | uniq | tr '\n' ' ') \
 		-o $@ \
 		$(word 1,$^)

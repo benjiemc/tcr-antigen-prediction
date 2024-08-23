@@ -39,3 +39,16 @@ Test removing structures missing residues
   > $TESTDIR/data/stcrdab-mock/
 
   $ diff output-no-missing-residues/stcrdab_split.csv $TESTDIR/reference/output-no-missing-residues/stcrdab_split.csv
+
+Test structural similarity cutoff
+  $ python -m tcr_antigen_prediction.apps.select_tcr_pmhc_structures \
+  > --log-level error \
+  > --seed 123 \
+  > --tcr-types abTCR \
+  > --mhc-types MH1 MH2 \
+  > --antigen-types peptide \
+  > --structural-similarity-cutoff 2.0 \
+  > -o output-structural-similarity-cutoff \
+  > $TESTDIR/data/stcrdab-mock/
+
+  $ diff output-structural-similarity-cutoff/stcrdab_split.csv $TESTDIR/reference/structural-similarity-cutoff/stcrdab_split.csv
