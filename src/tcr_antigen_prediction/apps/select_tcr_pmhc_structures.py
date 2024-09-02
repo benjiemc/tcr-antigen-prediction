@@ -100,18 +100,24 @@ def screen_for_missing_residues(df: pd.DataFrame, stcrdab_path: str) -> pd.DataF
         missing_atoms = get_missing_atoms(header)
         missing_residues = get_missing_residues(header)
 
-        return (screen_tcr_variable_domain(structure,
-                                           raw_structure,
-                                           (alpha_chain_id, beta_chain_id),
-                                           missing_residues,
-                                           missing_atoms)
-                and screen_pmhc_abd(structure,
-                                    raw_structure,
-                                    antigen_chain_id,
-                                    mhc_chains,
-                                    mhc_type,
-                                    missing_residues,
-                                    missing_atoms))
+        try:
+            return (screen_tcr_variable_domain(structure,
+                                               raw_structure,
+                                               (alpha_chain_id, beta_chain_id),
+                                               missing_residues,
+                                               missing_atoms)
+                    and screen_pmhc_abd(structure,
+                                        raw_structure,
+                                        antigen_chain_id,
+                                        mhc_chains,
+                                        mhc_type,
+                                        missing_residues,
+                                        missing_atoms))
+        except KeyError:
+            logger.warning('Chain ID not found in raw structure of %s and chains %s',
+                           pdb_id,
+                           '-'.join([alpha_chain_id, beta_chain_id, antigen_chain_id, *mhc_chains]))
+            return False
 
     valid_structures = df.apply(
         lambda row: check_structure(row.pdb,
