@@ -264,6 +264,7 @@ def main():
     selected_structures = selected_structures.query('TCRtype in @args.tcr_types')
     selected_structures = selected_structures.query('mhc_type in @args.mhc_types')
     selected_structures = selected_structures.query('antigen_type in @args.antigen_types')
+    selected_structures = selected_structures.copy()
 
     logger.info('Screening Quality...')
     selected_structures['resolution'] = pd.to_numeric(selected_structures['resolution'], errors='coerce')
