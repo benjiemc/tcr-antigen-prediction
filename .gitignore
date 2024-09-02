@@ -17,6 +17,7 @@ data/processed/*
 **/*.pyc
 **/.ipynb_checkpoints/*
 **/.pytest_cache/*
+**/*.t.err
 
 # Documentation Files
 public/*
