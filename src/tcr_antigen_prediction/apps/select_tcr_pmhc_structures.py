@@ -74,6 +74,19 @@ def screen_for_missing_residues(df: pd.DataFrame, stcrdab_path: str) -> pd.DataF
                         antigen_chain_id,
                         mhc_chain1_id, mhc_chain2_id,
                         mhc_type):
+
+        if mhc_type == 'MH1':
+            mhc_chains = (mhc_chain1_id,)
+
+        elif mhc_type == 'MH2':
+            mhc_chains = (mhc_chain1_id, mhc_chain2_id)
+
+        else:
+            raise ValueError(f"Invalid MHC type {mhc_type}. MHC type must be 'MH1' or 'MH2'")
+
+        logger.debug('Checking %s, chains: %s, and MHC type %s',
+                     pdb_id, '-'.join([alpha_chain_id, beta_chain_id, antigen_chain_id, *mhc_chains]), mhc_type)
+
         raw_file_path = os.path.join(stcrdab_path, 'raw', pdb_id + '.pdb')
         imgt_file_path = os.path.join(stcrdab_path, 'imgt', pdb_id + '.pdb')
 
@@ -95,7 +108,7 @@ def screen_for_missing_residues(df: pd.DataFrame, stcrdab_path: str) -> pd.DataF
                 and screen_pmhc_abd(structure,
                                     raw_structure,
                                     antigen_chain_id,
-                                    (mhc_chain1_id, mhc_chain2_id),
+                                    mhc_chains,
                                     mhc_type,
                                     missing_residues,
                                     missing_atoms))
