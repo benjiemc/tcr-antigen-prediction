@@ -175,13 +175,21 @@ def remove_similar_structures(df: pd.DataFrame, threshold: float, stcrdab_path: 
         chain_maps = []
 
         for _, row in group.iterrows():
-            structure = pdb_parser.get_structure('', os.path.join(stcrdab_path, 'imgt', row.pdb + '.pdb'))
-            chain_map = {'alpha_chain': row.Achain,
-                         'beta_chain': row.Bchain,
-                         'antigen_chain': row.antigen_chain,
-                         'mhc_chain1': row.mhc_chain1,
-                         'mhc_chain2': row.mhc_chain2}
+            chain_map = {'alpha_chain': row.Achain, 'beta_chain': row.Bchain, 'antigen_chain': row.antigen_chain}
 
+            if mhc_type == 'MH1':
+                chain_map['mhc_chain1'] = row.mhc_chain1
+
+            elif mhc_type == 'MH2':
+                chain_map['mhc_chain1'] = row.mhc_chain1
+                chain_map['mhc_chain2'] = row.mhc_chain2
+
+            else:
+                raise ValueError(f"Invalid MHC type {mhc_type}. MHC type must be 'MH1' or 'MH2'")
+
+            logger.debug('Collecting PDB ID: %s and extracting chains %s', row.pdb, '-'.join(chain_map.values()))
+
+            structure = pdb_parser.get_structure('', os.path.join(stcrdab_path, 'imgt', row.pdb + '.pdb'))
             structure = extract_chains(structure, chain_map.values())
 
             structures.append(structure)
