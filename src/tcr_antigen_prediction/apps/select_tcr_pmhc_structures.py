@@ -364,6 +364,7 @@ def main():
 
         dataset = pd.concat([dataset, split_data])
 
+    dataset = dataset.fillna('')
     dataset = dataset.reset_index()
 
     logger.info('Outputing structures...')
