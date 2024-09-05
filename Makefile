@@ -66,7 +66,7 @@ data/interim/selected-stcrdab_crop: data/interim/selected-stcrdab
 
 	done
 
-data/interim/selected-stcrdab_ply: data/interim/selected-stcrdab_crop
+data/processed/selected-stcrdab_ply: data/interim/selected-stcrdab_crop
 	@mkdir -p $@
 	head -n1 "$^/stcrdab_split.csv" > "$@/stcrdab_split.csv"
 
@@ -97,7 +97,7 @@ data/interim/selected-stcrdab_ply: data/interim/selected-stcrdab_crop
 
 	@echo "All done."
 
-data/processed/selected-stcrdab_feats: data/interim/selected-stcrdab_ply
+data/processed/selected-stcrdab_feats: data/processed/selected-stcrdab_ply
 	mkdir -p $@
 	head -n1 "$^/stcrdab_split.csv" > "$@/stcrdab_split.csv"
 
