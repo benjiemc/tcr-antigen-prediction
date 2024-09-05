@@ -29,7 +29,7 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('--model', required=True, help='path to trained model')
 parser.add_argument('--output', '-o', required=True, help='path to output')
-parser.add_argument('input')
+parser.add_argument('input', nargs='+', help='path to input directories to compute descriptors')
 
 add_logging_arguments(parser)
 
@@ -138,22 +138,26 @@ def main() -> None:
     if not os.path.exists(args.output):
         os.mkdir(args.output)
 
-    for _, ppi_pair_id in enumerate([item for item in os.listdir(args.input)
-                                     if os.path.isdir(os.path.join(args.input, item))]):
-        in_ppi_pair_dir = os.path.join(args.input, ppi_pair_id)
-        out_desc_dir = os.path.join(args.output, ppi_pair_id)
+    num_pairs = len(args.input)
+
+    for num, ppi_pair_id in enumerate(args.input, 1):
+        ppi_pair_id_name = os.path.basename(ppi_pair_id)
+
+        logger.info('Working on: %s - %d of %d', ppi_pair_id_name, num, num_pairs)
+
+        out_desc_dir = os.path.join(args.output, ppi_pair_id_name)
 
         if not os.path.exists(out_desc_dir):
             os.mkdir(out_desc_dir)
 
         for pid in 'p1', 'p2':
-            rho_wrt_center = np.load(os.path.join(in_ppi_pair_dir, pid + '_rho_wrt_center.npy'))
-            theta_wrt_center = np.load(os.path.join(in_ppi_pair_dir, pid + '_theta_wrt_center.npy'))
+            rho_wrt_center = np.load(os.path.join(ppi_pair_id, pid + '_rho_wrt_center.npy'))
+            theta_wrt_center = np.load(os.path.join(ppi_pair_id, pid + '_theta_wrt_center.npy'))
 
-            input_feat = np.load(os.path.join(in_ppi_pair_dir, pid + '_input_feat.npy'))
+            input_feat = np.load(os.path.join(ppi_pair_id, pid + '_input_feat.npy'))
             input_feat = mask_input_feat(input_feat, params['feat_mask'])
 
-            mask = np.load(os.path.join(in_ppi_pair_dir, pid + '_mask.npy'))
+            mask = np.load(os.path.join(ppi_pair_id, pid + '_mask.npy'))
 
             idx = np.array(range(len(rho_wrt_center)))
 
