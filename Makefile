@@ -3,7 +3,9 @@
 
 all: data
 
-data: data/processed/selected-stcrdab_feats
+data: \
+	data/processed/selected-stcrdab_feats \
+	data/processed/selected-stcrdab_ply
 
 data/raw/stcrdab:
 	@python -m tcr_antigen_prediction.apps.download_stcrdab $@
