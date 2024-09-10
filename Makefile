@@ -1,7 +1,7 @@
-.PHONY: all data lint test docs
+.PHONY: all data models lint test docs
 
 
-all: data
+all: data model
 
 data: \
 	data/processed/selected-stcrdab_feats \
@@ -131,6 +131,28 @@ data/processed/selected-stcrdab_feats: data/processed/selected-stcrdab_ply
 
 data/external/masif_ppi_search_training_set.txt:
 	@wget -O $@ https://raw.githubusercontent.com/LPDI-EPFL/masif/master/data/masif_ppi_search/lists/training.txt
+
+models: data models/baseline_masif_ppi models/finetune_masif_ppi
+
+models/finetune_masif_ppi: data/processed/selected-stcrdab_feats data/processed/selected-stcrdab_ply  models/baseline_masif_ppi
+	@python -m tcr_antigen_prediction.apps.train_masif \
+		-o $@ \
+		--validation-data $$(cat "$(word 1,$^)/stcrdab_split.csv" | grep "validation" | awk -F, -v dir="$(word 1,$^)" '{ printf "%s/%s_%s%s%s%s%s ", dir, $$1, $$2, $$3, $$4, $$5, $$6 }') \
+		--ply-dir "$(word 2,$^)" \
+		--model "$(word 3,$^)/model" \
+		--seed 123 \
+		--binder-name p2 \
+		--positive-name p1 \
+		--num_iterations 10_000 \
+		--num_iter_eval 250 \
+		--batch_size 32 \
+		--validation_batch_size 1000 \
+		--feat-mask 1.0 1.0 1.0 1.0 1.0 1.0 \
+		--contact-distance 5.0 \
+		--sc-max-cutoff 1.0 \
+		--sc-min-cutoff 0.5 \
+		--pos-surf-accept-probability 1.0 \
+		$$(cat "$(word 1,$^)/stcrdab_split.csv" | grep "training" | awk -F, -v dir="$(word 1,$^)" '{ printf "%s/%s_%s%s%s%s%s ", dir, $$1, $$2, $$3, $$4, $$5, $$6 }')
 
 lint:
 	@FL_STATUS=0; PY_STATUS=0; \

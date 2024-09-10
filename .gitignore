@@ -2,6 +2,7 @@
 external/*
 jobs/*
 notebooks/exploratory/
+models/experiments/*
 
 data/raw/*
 !data/raw/.gitkeep
