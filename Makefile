@@ -144,4 +144,4 @@ test:
 
 docs:
 	@sphinx-apidoc -f -e -o docs/source src/tcr_antigen_prediction
-	@sphinx-build -b html ./docs public
+	@sphinx-build -b html ./docs ./docs/public

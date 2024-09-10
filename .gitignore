@@ -20,7 +20,7 @@ data/processed/*
 **/*.t.err
 
 # Documentation Files
-public/*
+docs/public/*
 docs/source/*
 
 # Developement Environment Files
