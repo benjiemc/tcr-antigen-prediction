@@ -600,13 +600,6 @@ def main():
                     output_model = os.path.join(args.output, 'model')
                     learning_obj.saver.save(learning_obj.session, output_model)
 
-                    np.save(os.path.join(args.output, 'pos_dists.npy'), pos_dists)
-                    np.save(os.path.join(args.output, 'neg_dists.npy'), neg_dists)
-                    np.save(os.path.join(args.output, 'pos_desc.npy'), pos_desc)
-                    np.save(os.path.join(args.output, 'binder_desc.npy'), binder_desc)
-                    np.save(os.path.join(args.output, 'neg_desc.npy'), neg_desc)
-                    np.save(os.path.join(args.output, 'neg_desc_2.npy'), neg_desc_2)
-
     if args.validation_data is None:
         logger.info('Saving model...')
         output_model = os.path.join(args.output, 'model')
