@@ -392,6 +392,9 @@ def main():
     args = parser.parse_args()
     setup_logger(logger, args.log_level)
 
+    for argument, value in vars(args).items():
+        logger.info('Parameter: %s=%r', argument, value)
+
     if args.seed is not None:
         logger.info('Seeding random state with seed %d', args.seed)
         np.random.seed(args.seed)
