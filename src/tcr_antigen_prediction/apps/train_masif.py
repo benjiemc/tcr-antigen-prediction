@@ -451,7 +451,6 @@ def main():
     if args.model:
         learning_obj.saver.restore(learning_obj.session, args.model)
 
-    list_training_loss = []
     best_val_auc = 0
 
     pos_training_idx_copy = np.copy(training_idx)
@@ -459,10 +458,7 @@ def main():
 
     logger.info('Number of iterations: %d', args.num_iterations)
 
-    iter_pos_score = []
-    iter_neg_score = []
-
-    for num_iter in range(1, args.num_iterations + 1):
+    for num_iter in range(0, args.num_iterations + 1):
         logger.debug('Iterations number %d', num_iter)
         # Read dataset for training.
         np.random.shuffle(pos_training_idx_copy)
@@ -504,10 +500,10 @@ def main():
 
         # Do not train during the first iteration
         if num_iter == 0:
-            [score] = learning_obj.session.run(
-                [learning_obj.score], feed_dict=feed_dict
+            training_loss, score = learning_obj.session.run(
+                [learning_obj.data_loss, learning_obj.score],
+                feed_dict=feed_dict,
             )
-            training_loss = 0
 
         else:
             _, training_loss, _, score = learning_obj.session.run(
@@ -525,26 +521,16 @@ def main():
         pos_score = score[:n]
         neg_score = score[n:]
 
-        iter_pos_score = np.concatenate([pos_score, iter_pos_score], axis=0)
-        iter_neg_score = np.concatenate([neg_score, iter_neg_score], axis=0)
-        list_training_loss.append(training_loss)
-
         if num_iter % args.num_iter_eval == 0:
             logger.info('Evaluating at iteration %d', num_iter)
 
-            logger.info('averaged training loss for the last %d iterations: %f',
-                        args.num_iter_eval,
-                        np.mean(list_training_loss))
+            logger.info('Training loss: %f', training_loss)
 
-            roc_auc = 1 - compute_roc_auc(iter_pos_score, iter_neg_score)
+            roc_auc = 1 - compute_roc_auc(pos_score, neg_score)
             logger.info('Training ROC-AUC: %f', roc_auc)
 
-            logger.info('Mean training positive score: %f', np.mean(1.0 / iter_pos_score))
-            logger.info('Mean training negative score: %f', np.mean(1.0 / iter_neg_score))
-
-            iter_pos_score = []
-            iter_neg_score = []
-            list_training_loss = []
+            logger.info('Mean training positive score: %f', np.mean(1.0 / pos_score))
+            logger.info('Mean training negative score: %f', np.mean(1.0 / neg_score))
 
             if args.validation_data:
                 pos_desc = compute_val_test_desc(
