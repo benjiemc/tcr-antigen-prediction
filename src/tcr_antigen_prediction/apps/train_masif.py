@@ -286,9 +286,10 @@ def aggregate_data(data_dirs: List[str],
         ply_fn1 = os.path.join(ply_dir, ppi_name + '_' + chains[:2] + '.ply')
         ply_fn2 = os.path.join(ply_dir, ppi_name + '_' + chains[2:] + '.ply')
 
-        # pos_labels: points > max_sc_filt and >  min_sc_filt.
-        # TODO add case for Nones
-        pos_labels = np.where((labels < sc_max_filt) & (labels > sc_min_filt))[0]
+        min_labels = labels > sc_min_filt if sc_min_filt is not None else np.ones(len(labels), dtype=bool)
+        max_labels = labels < sc_max_filt if sc_max_filt is not None else np.ones(len(labels), dtype=bool)
+        pos_labels = np.arange(0, len(labels))[min_labels & max_labels]
+
         select = int(pos_surf_accept_probability * len(pos_labels))
 
         if select < 1:
