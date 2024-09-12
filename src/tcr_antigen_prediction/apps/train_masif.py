@@ -564,14 +564,12 @@ def main():
                     batch_size=args.validation_batch_size,
                 )
 
-                neg_desc_2 = binder_desc.copy()
-
                 # Simply shuffle negative descriptors.
                 np.random.shuffle(neg_desc)
 
                 # Compute val ROC AUC.
                 pos_dists = compute_dists(pos_desc, binder_desc)
-                neg_dists = compute_dists(neg_desc, neg_desc_2)
+                neg_dists = compute_dists(neg_desc, binder_desc)
 
                 val_auc = 1 - compute_roc_auc(pos_dists, neg_dists)
 
