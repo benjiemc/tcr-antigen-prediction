@@ -1,0 +1,94 @@
+'''Renumber TCR structure following either IMGT or Aho numbering.
+
+Requirements:
+    - ANARCI: https://github.com/oxpig/ANARCI
+
+'''
+import argparse
+import logging
+
+import anarci
+from Bio.PDB import PDBIO, PDBParser
+from Bio.SeqUtils import IUPACData
+
+from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
+from tcr_antigen_prediction.structure import get_header
+
+logger = logging.getLogger()
+
+parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+
+parser.add_argument('structure', help='path to the pdb structure file')
+parser.add_argument('--output', '-o', help='name of output structure file')
+
+add_logging_arguments(parser)
+
+
+def main():
+    '''Entry point for script.'''
+    args = parser.parse_args()
+    setup_logger(logger, args.log_level)
+
+    with open(args.structure, 'r') as fh:
+        header = get_header(fh.read())
+        fh.seek(0)
+
+        pdb_parser = PDBParser(QUIET=True)
+        structure = pdb_parser.get_structure('', fh)
+
+    for model in structure:
+        sequences = {chain.id: [IUPACData.protein_letters_3to1[res.get_resname().title()]
+                                for res in chain if res.get_resname().title() in IUPACData.protein_letters_3to1]
+                     for chain in model}
+        sequences = {chain: ''.join(sequence) for chain, sequence in sequences.items()}
+
+        chain_map = []
+
+        for chain_id, sequence in sequences.items():
+            numbering, chain_type = anarci.number(sequence)
+
+            if not numbering:
+                logger.info('Chain ID %s not identified by ANARCI', chain_id)
+                continue
+
+            if len(numbering) == 2:
+                numbering = numbering[0]
+                chain_type = chain_type[0]
+
+                logger.warning(('Multiple possible chain annotations found for chain id %s. '
+                                'Defaulting to first (%sCHAIN)'), chain_id, chain_type)
+
+            numbering = [(seq_id, insert_code) for (seq_id, insert_code), res_name in numbering if res_name != '-']
+
+            residues = [res for res in model[chain_id].get_residues()]
+            num_residues_not_numbered = len(residues) - len(numbering)
+
+            next_seq_id = numbering[-1][0] + 1
+
+            for _ in range(num_residues_not_numbered):
+                numbering.append((next_seq_id, ' '))
+                next_seq_id += 1
+
+            for (seq_id, insert_code), res in zip(numbering, residues):
+                res.id = (res.get_id(), seq_id, insert_code)
+
+            chain_map.append((chain_type, chain_id))
+
+    with open(args.output, 'w') as fh:
+        fh.write(('REMARK     Renumbered using IMGT numbering provided by ANARCI '
+                  '(DOI: 10.1093/bioinformatics/btv552)'))
+        fh.write('\n')
+        fh.write(f"REMARK     {' '.join([f'{chain_type}CHAIN={chain_id}' for chain_type, chain_id in chain_map])}")
+        fh.write('\n')
+
+        if len(header) > 0:
+            fh.write(header)
+            fh.write('\n')
+
+        io = PDBIO()
+        io.set_structure(structure)
+        io.save(fh)
+
+
+if __name__ == '__main__':
+    main()

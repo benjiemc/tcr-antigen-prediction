@@ -122,6 +122,10 @@ data/processed/selected-stcrdab_feats: data/processed/selected-stcrdab_ply
 data/external/masif_ppi_search_training_set.txt:
 	@wget -O $@ https://raw.githubusercontent.com/LPDI-EPFL/masif/master/data/masif_ppi_search/lists/training.txt
 
+data/interim/external_validation_data_renumbered: data/external/ClassI_ternaries
+	@mkdir -p "$@"
+	@find "$^" -name "*.pdb" | xargs -I % bash -c 'python -m tcr_antigen_prediction.apps.renumber_tcr_pmhc_structure -o "$@/$$(basename "%")" "%"'
+
 models: data models/baseline_masif_ppi models/finetune_masif_ppi
 
 models/finetune_masif_ppi: data/processed/selected-stcrdab_feats data/processed/selected-stcrdab_ply  models/baseline_masif_ppi
