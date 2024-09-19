@@ -126,6 +126,19 @@ data/interim/external_validation_data_renumbered: data/external/ClassI_ternaries
 	@mkdir -p "$@"
 	@find "$^" -name "*.pdb" | xargs -I % bash -c 'python -m tcr_antigen_prediction.apps.renumber_tcr_pmhc_structure -o "$@/$$(basename "%")" "%"'
 
+data/interim/external_validation_data_entities: data/interim/external_validation_data_renumbered
+	@mkdir -p $@
+	@echo "name,Achain,Bchain,antigen_chain,mhc_chain1,mhc_chain2,mhc_type" > "$@/structures_summary.csv"
+	@for file_name in "$^"/*; do \
+		file_name_base=$$(basename $$file_name .pdb); \
+		python -m tcr_antigen_prediction.apps.identify_tcr_pmhc_interactions -o "/tmp/$$file_name_base.csv" $$file_name; \
+		cat "/tmp/$$file_name_base.csv" | sed 1d | cut -d, -f1-5 | tr ',' ' ' \
+			| xargs -I % bash -c \
+			'python -m tcr_antigen_prediction.apps.extract_chains_from_structure --chains % -o "$${3}/$${1}_$$(echo "%" | tr -d " ").pdb" "$$2"' \
+			_ $$file_name_base $$file_name $@ || continue; \
+		cat "/tmp/$$file_name_base.csv" | sed 1d | sed "s/^/$$file_name_base,/" >> "$@/structures_summary.csv"; \
+	done
+
 models: data models/baseline_masif_ppi models/finetune_masif_ppi
 
 models/finetune_masif_ppi: data/processed/selected-stcrdab_feats data/processed/selected-stcrdab_ply  models/baseline_masif_ppi
