@@ -139,6 +139,43 @@ data/interim/external_validation_data_entities: data/interim/external_validation
 		cat "/tmp/$$file_name_base.csv" | sed 1d | sed "s/^/$$file_name_base,/" >> "$@/structures_summary.csv"; \
 	done
 
+data/interim/external_validation_data_entities_crop: data/interim/external_validation_data_entities
+	@mkdir -p $@
+	@head -n1 "$^/structures_summary.csv" > "$@/structures_summary.csv"
+	@num_lines=$$(cat $^/structures_summary.csv | wc -l); \
+	line=1; \
+	while [ $$line -lt $$num_lines ]; do \
+		line=$$(expr $$line + 1); \
+		name=$$(sed -n "$${line}p" $^/structures_summary.csv | cut -d, -f1); \
+		alpha_chain=$$(sed -n "$${line}p" $^/structures_summary.csv | cut -d, -f2); \
+		beta_chain=$$(sed -n "$${line}p" $^/structures_summary.csv | cut -d, -f3); \
+		antigen_chain=$$(sed -n "$${line}p" $^/structures_summary.csv | cut -d, -f4); \
+		mhc_chain1=$$(sed -n "$${line}p" $^/structures_summary.csv | cut -d, -f5); \
+		mhc_chain2=$$(sed -n "$${line}p" $^/structures_summary.csv | cut -d, -f6); \
+		mhc_type=$$(sed -n "$${line}p" $^/structures_summary.csv | cut -d, -f7); \
+		chains="$${alpha_chain}$${beta_chain}$${antigen_chain}$${mhc_chain1}$${mhc_chain2}"; \
+		file_name="$${name}_$${chains}.pdb"; \
+		if [ "$$mhc_type" = "MH1" ]; then \
+			python -m tcr_antigen_prediction.apps.crop_tcr_pmhc \
+				"$^/$$file_name" \
+				-o "$@/$$file_name" \
+				--tcr-chains $$alpha_chain $$beta_chain \
+				--mhc-chains $$mhc_chain1 \
+				--antigen-chain $$antigen_chain || continue; \
+				echo "$$(sed -n "$${line}p" $^/structures_summary.csv | cut -d, -f1-5),,$$(sed -n "$${line}p" $^/structures_summary.csv | cut -d, -f7-)" >> "$@/structures_summary.csv"; \
+		elif [ "$$mhc_type" = "MH2" ]; then \
+			python -m tcr_antigen_prediction.apps.crop_tcr_pmhc \
+				"$^/$$file_name" \
+				-o "$@/$$file_name" \
+				--tcr-chains $$alpha_chain $$beta_chain \
+				--mhc-chains $$mhc_chain1 $$mhc_chain2 \
+				--antigen-chain $$antigen_chain || continue; \
+				sed -n "$${line}p" $^/structures_summary.csv >> "$@/structures_summary.csv"; \
+		else \
+			continue; \
+		fi; \
+	done
+
 models: data models/baseline_masif_ppi models/finetune_masif_ppi
 
 models/finetune_masif_ppi: data/processed/selected-stcrdab_feats data/processed/selected-stcrdab_ply  models/baseline_masif_ppi
