@@ -156,6 +156,7 @@ models/finetune_masif_ppi: data/processed/selected-stcrdab_feats data/processed/
 		--sc-min-cutoff 0.5 \
 		--pos-surf-accept-probability 1.0 \
 		$$(cat "$(word 1,$^)/stcrdab_split.csv" | grep "training" | awk -F, -v dir="$(word 1,$^)" '{ printf "%s/%s_%s%s%s%s%s ", dir, $$1, $$2, $$3, $$4, $$5, $$6 }')
+	@rm "$@/checkpoint"
 
 lint:
 	@FL_STATUS=0; PY_STATUS=0; \

@@ -1,2 +1,0 @@
-model_checkpoint_path: "/project/koohylab/bmcmaste/projects/tcr-antigen-prediction/models/finetune_masif_ppi/model"
-all_model_checkpoint_paths: "/project/koohylab/bmcmaste/projects/tcr-antigen-prediction/models/finetune_masif_ppi/model"
