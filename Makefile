@@ -126,7 +126,14 @@ data/interim/external_validation_data_renumbered: data/external/ClassI_ternaries
 	@mkdir -p "$@"
 	@find "$^" -name "*.pdb" | xargs -I % bash -c 'python -m tcr_antigen_prediction.apps.renumber_tcr_pmhc_structure -o "$@/$$(basename "%")" "%"'
 
-data/interim/external_validation_data_entities: data/interim/external_validation_data_renumbered
+data/interim/external_validation_data_fix: data/interim/external_validation_data_renumbered
+	@mkdir -p $@
+	@for file_name in "$^"/*.pdb; do \
+		file_name_base=$$(basename $$file_name); \
+		python -m tcr_antigen_prediction.apps.fix_pdb -o "$@/$$file_name_base" "$$file_name"; \
+	done
+
+data/interim/external_validation_data_entities: data/interim/external_validation_data_fix
 	@mkdir -p $@
 	@echo "name,Achain,Bchain,antigen_chain,mhc_chain1,mhc_chain2,mhc_type" > "$@/structures_summary.csv"
 	@for file_name in "$^"/*; do \
