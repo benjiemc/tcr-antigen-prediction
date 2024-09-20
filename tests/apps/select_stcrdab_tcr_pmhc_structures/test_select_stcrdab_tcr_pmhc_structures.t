@@ -1,5 +1,5 @@
 Test app (standard)
-  $ python -m tcr_antigen_prediction.apps.select_tcr_pmhc_structures \
+  $ python -m tcr_antigen_prediction.apps.select_stcrdab_tcr_pmhc_structures \
   > --log-level error \
   > --seed 123 \
   > --tcr-types abTCR \
@@ -15,7 +15,7 @@ Test app (standard)
   $ diff output/7q9b_IJHFG.pdb $TESTDIR/reference/standard/7q9b_IJHFG.pdb
 
 Test excluding PDB IDs
-  $  python -m tcr_antigen_prediction.apps.select_tcr_pmhc_structures \
+  $  python -m tcr_antigen_prediction.apps.select_stcrdab_tcr_pmhc_structures \
   > --log-level error \
   > --seed 123 \
   > --tcr-types abTCR \
@@ -28,7 +28,7 @@ Test excluding PDB IDs
   $ diff output-exclude-pdb-ids/stcrdab_split.csv $TESTDIR/reference/exclude-pdb-ids/stcrdab_split.csv
 
 Test removing structures missing residues
-  $ python -m tcr_antigen_prediction.apps.select_tcr_pmhc_structures \
+  $ python -m tcr_antigen_prediction.apps.select_stcrdab_tcr_pmhc_structures \
   > --log-level error \
   > --seed 123 \
   > --tcr-types abTCR \
@@ -41,7 +41,7 @@ Test removing structures missing residues
   $ diff output-no-missing-residues/stcrdab_split.csv $TESTDIR/reference/output-no-missing-residues/stcrdab_split.csv
 
 Test structural similarity cutoff
-  $ python -m tcr_antigen_prediction.apps.select_tcr_pmhc_structures \
+  $ python -m tcr_antigen_prediction.apps.select_stcrdab_tcr_pmhc_structures \
   > --log-level error \
   > --seed 123 \
   > --tcr-types abTCR \

@@ -12,7 +12,7 @@ data/raw/stcrdab:
 	@touch $@
 
 data/interim/selected-stcrdab: data/raw/stcrdab data/external/masif_ppi_search_training_set.txt
-	@python -m tcr_antigen_prediction.apps.select_tcr_pmhc_structures \
+	@python -m tcr_antigen_prediction.apps.select_stcrdab_tcr_pmhc_structures \
 		--seed 123 \
 		--tcr-types abTCR \
 		--mhc-types MH1 MH2 \
