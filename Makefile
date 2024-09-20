@@ -183,6 +183,30 @@ data/interim/external_validation_data_entities_crop: data/interim/external_valid
 		fi; \
 	done
 
+data/interim/external_validation_data_annotated_sequences.csv: data/interim/external_validation_data_entities_crop
+	@echo "$$(head -n1 $^/structures_summary.csv),CDR1alpha_sequence,CDR2alpha_sequence,CDR3alpha_sequence,CDR1beta_sequence,CDR2beta_sequence,CDR3beta_sequence,peptide_sequence" > $@
+	@num_lines=$$(cat $^/structures_summary.csv | wc -l); \
+	line=1; \
+	while [ $$line -lt $$num_lines ]; do \
+		line=$$(expr $$line + 1); \
+		name=$$(sed -n "$${line}p" $^/structures_summary.csv | cut -d, -f1); \
+		alpha_chain=$$(sed -n "$${line}p" $^/structures_summary.csv | cut -d, -f2); \
+		beta_chain=$$(sed -n "$${line}p" $^/structures_summary.csv | cut -d, -f3); \
+		antigen_chain=$$(sed -n "$${line}p" $^/structures_summary.csv | cut -d, -f4); \
+		mhc_chain1=$$(sed -n "$${line}p" $^/structures_summary.csv | cut -d, -f5); \
+		mhc_chain2=$$(sed -n "$${line}p" $^/structures_summary.csv | cut -d, -f6); \
+		chains="$${alpha_chain}$${beta_chain}$${antigen_chain}$${mhc_chain1}$${mhc_chain2}"; \
+		file_name="$${name}_$${chains}.pdb"; \
+		output_name="/tmp/$$(basename $$file_name .pdb).csv"; \
+		python -m tcr_antigen_prediction.apps.annotate_tcr_pmhc_sequences \
+			--alpha-chain-id $$alpha_chain \
+			--beta-chain-id $$beta_chain \
+			--antigen-chain-id $$antigen_chain \
+			-o "$$output_name" \
+			"$^/$$file_name" || continue; \
+		echo "$$(sed -n "$${line}p" $^/structures_summary.csv),$$(cat $$output_name | sed 1d)" >> $@; \
+	done
+
 models: data models/baseline_masif_ppi models/finetune_masif_ppi
 
 models/finetune_masif_ppi: data/processed/selected-stcrdab_feats data/processed/selected-stcrdab_ply  models/baseline_masif_ppi
