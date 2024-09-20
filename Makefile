@@ -209,6 +209,11 @@ data/interim/external_validation_data_annotated_sequences.csv: data/interim/exte
 		echo "$$(sed -n "$${line}p" $^/structures_summary.csv),$$(cat $$output_name | sed 1d)" >> $@; \
 	done
 
+data/interim/external_validation_data_selected: data/interim/external_validation_data_entities_crop data/interim/external_validation_data_annotated_sequences.csv
+	@mkdir -p $@
+	@python -m tcr_antigen_prediction.apps.filter_similar_structures -o "$@/structures_summary.csv" --structural-similarity-cutoff 2.0 --summary-csv $(word 2,$^) $(word 1,$^)
+	@cat "$@/structures_summary.csv" | sed 1d | cut -d, -f1 | xargs -I % cp $(word 1,$^)/%.pdb $@/
+
 models: data models/baseline_masif_ppi models/finetune_masif_ppi
 
 models/finetune_masif_ppi: data/processed/selected-stcrdab_feats data/processed/selected-stcrdab_ply  models/baseline_masif_ppi
