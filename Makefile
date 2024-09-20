@@ -143,7 +143,9 @@ data/interim/external_validation_data_entities: data/interim/external_validation
 			| xargs -I % bash -c \
 			'python -m tcr_antigen_prediction.apps.extract_chains_from_structure --chains % -o "$${3}/$${1}_$$(echo "%" | tr -d " ").pdb" "$$2"' \
 			_ $$file_name_base $$file_name $@ || continue; \
-		cat "/tmp/$$file_name_base.csv" | sed 1d | sed "s/^/$$file_name_base,/" >> "$@/structures_summary.csv"; \
+		cat "/tmp/$$file_name_base.csv" | sed 1d | xargs -I % bash -c 'echo $${1}_$$(echo % | cut -d, -f1-5 | sed s/,//g),%' \
+		_ $$file_name_base \
+		>> "$@/structures_summary.csv"; \
 	done
 
 data/interim/external_validation_data_entities_crop: data/interim/external_validation_data_entities
@@ -161,7 +163,7 @@ data/interim/external_validation_data_entities_crop: data/interim/external_valid
 		mhc_chain2=$$(sed -n "$${line}p" $^/structures_summary.csv | cut -d, -f6); \
 		mhc_type=$$(sed -n "$${line}p" $^/structures_summary.csv | cut -d, -f7); \
 		chains="$${alpha_chain}$${beta_chain}$${antigen_chain}$${mhc_chain1}$${mhc_chain2}"; \
-		file_name="$${name}_$${chains}.pdb"; \
+		file_name="$${name}.pdb"; \
 		if [ "$$mhc_type" = "MH1" ]; then \
 			python -m tcr_antigen_prediction.apps.crop_tcr_pmhc \
 				"$^/$$file_name" \
@@ -196,7 +198,7 @@ data/interim/external_validation_data_annotated_sequences.csv: data/interim/exte
 		mhc_chain1=$$(sed -n "$${line}p" $^/structures_summary.csv | cut -d, -f5); \
 		mhc_chain2=$$(sed -n "$${line}p" $^/structures_summary.csv | cut -d, -f6); \
 		chains="$${alpha_chain}$${beta_chain}$${antigen_chain}$${mhc_chain1}$${mhc_chain2}"; \
-		file_name="$${name}_$${chains}.pdb"; \
+		file_name="$${name}.pdb"; \
 		output_name="/tmp/$$(basename $$file_name .pdb).csv"; \
 		python -m tcr_antigen_prediction.apps.annotate_tcr_pmhc_sequences \
 			--alpha-chain-id $$alpha_chain \
