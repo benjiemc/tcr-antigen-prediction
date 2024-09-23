@@ -129,8 +129,8 @@ data/interim/external_validation_data_renumbered: data/external/ClassI_ternaries
 data/interim/external_validation_data_fix: data/interim/external_validation_data_renumbered
 	@mkdir -p $@
 	@for file_name in "$^"/*.pdb; do \
-		file_name_base=$$(basename $$file_name); \
-		python -m tcr_antigen_prediction.apps.fix_pdb -o "$@/$$file_name_base" "$$file_name"; \
+		file_name_base=$$(basename $$file_name .pdb); \
+		python -m tcr_antigen_prediction.apps.fix_pdb -o "$@/$$(echo $$file_name_base | tr '.' '_').pdb" "$$file_name"; \
 	done
 
 data/interim/external_validation_data_entities: data/interim/external_validation_data_fix
