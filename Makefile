@@ -245,6 +245,43 @@ data/processed/external_validation_data_selected_ply: data/interim/external_vali
 	done
 	@echo "All done."
 
+data/processed/external_validation_data_selected_feats: data/processed/external_validation_data_selected_ply
+	@mkdir -p $@
+	@head -n1 "$^/structures_summary.csv" > "$@/structures_summary.csv"
+	@num_lines=$$(sed -n '$$=' "$^/structures_summary.csv"); \
+	line=1; \
+	while [ $$line -lt $$num_lines ]; do \
+	    line=$$(expr $$line + 1); \
+	    name=$$(sed -n "$${line}p" "$^/structures_summary.csv" | cut -d ',' -f1); \
+	    alpha_chain=$$(sed -n "$${line}p" "$^/structures_summary.csv" | cut -d ',' -f2); \
+	    beta_chain=$$(sed -n "$${line}p" "$^/structures_summary.csv" | cut -d ',' -f3); \
+	    antigen_chain=$$(sed -n "$${line}p" "$^/structures_summary.csv" | cut -d ',' -f4); \
+	    mhc_chain1=$$(sed -n "$${line}p" "$^/structures_summary.csv" | cut -d ',' -f5); \
+	    mhc_chain2=$$(sed -n "$${line}p" "$^/structures_summary.csv" | cut -d ',' -f6); \
+		mhc_type=$$(sed -n "$${line}p" "$^/structures_summary.csv" | cut -d ',' -f7); \
+	    echo "Working on $$name..."; \
+	    output_name="$@/$$name"; \
+		mkdir -p $$output_name; \
+		if [ "$$mhc_type" = "MH1" ]; then \
+			python -m tcr_antigen_prediction.apps.compute_features \
+				--mode ppi_search \
+				-o "$$output_name" \
+				"$^/$${name}_$${alpha_chain}$${beta_chain}.ply" \
+				"$^/$${name}_$${antigen_chain}$${mhc_chain1}.ply" || continue; \
+		elif [ "$$mhc_type" = "MH2" ]; then \
+			python -m tcr_antigen_prediction.apps.compute_features \
+				--mode ppi_search \
+				-o "$$output_name" \
+				"$^/$${name}_$${alpha_chain}$${beta_chain}.ply" \
+				"$^/$${name}_$${antigen_chain}$${mhc_chain1}$${mhc_chain2}.ply" || continue; \
+		else \
+			continue; \
+		fi; \
+	    sed -n "$${line}p" "$^/structures_summary.csv" >> "$@/structures_summary.csv"; \
+	    echo "Finished pair"; \
+	done
+	@echo "All done."
+
 models: data models/baseline_masif_ppi models/finetune_masif_ppi
 
 models/finetune_masif_ppi: data/processed/selected-stcrdab_feats data/processed/selected-stcrdab_ply  models/baseline_masif_ppi
