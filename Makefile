@@ -214,6 +214,37 @@ data/interim/external_validation_data_selected: data/interim/external_validation
 	@python -m tcr_antigen_prediction.apps.filter_similar_structures -o "$@/structures_summary.csv" --structural-similarity-cutoff 2.0 --summary-csv $(word 2,$^) $(word 1,$^)
 	@cat "$@/structures_summary.csv" | sed 1d | cut -d, -f1 | xargs -I % cp $(word 1,$^)/%.pdb $@/
 
+data/processed/external_validation_data_selected_ply: data/interim/external_validation_data_selected
+	@mkdir -p $@
+	@head -n1 "$^/structures_summary.csv" > "$@/structures_summary.csv"
+	@num_lines=$$(cat "$^/structures_summary.csv" | wc -l); \
+	line=1; \
+	while [ $$line -lt $$num_lines ]; do \
+	    line=$$(expr $$line + 1); \
+	    name=$$(sed -n "$${line}p" "$^/structures_summary.csv" | cut -d ',' -f1); \
+	    alpha_chain=$$(sed -n "$${line}p" "$^/structures_summary.csv" | cut -d ',' -f2); \
+	    beta_chain=$$(sed -n "$${line}p" "$^/structures_summary.csv" | cut -d ',' -f3); \
+	    antigen_chain=$$(sed -n "$${line}p" "$^/structures_summary.csv" | cut -d ',' -f4); \
+	    mhc_chain1=$$(sed -n "$${line}p" "$^/structures_summary.csv" | cut -d ',' -f5); \
+	    mhc_chain2=$$(sed -n "$${line}p" "$^/structures_summary.csv" | cut -d ',' -f6); \
+		mhc_type=$$(sed -n "$${line}p" "$^/structures_summary.csv" | cut -d ',' -f7); \
+		echo "Working on $$name"; \
+	    echo "Computing TCR (chains $$alpha_chain and $$beta_chain)"; \
+	    python -m tcr_antigen_prediction.apps.prepare_structure "$^/$$name.pdb" -o "$@" --chains $$alpha_chain $$beta_chain || continue; \
+		if [ "$$mhc_type" = "MH1" ]; then \
+			echo "Computing pMHC-I (chains $$antigen_chain and $$mhc_chain1)"; \
+			python -m tcr_antigen_prediction.apps.prepare_structure "$^/$$name.pdb" -o "$@" --chains $$antigen_chain $$mhc_chain1 || continue; \
+		elif [ "$$mhc_type" = "MH2" ]; then \
+			echo "Computing pMHC-II (chains $$antigen_chain, $$mhc_chain1, and $$mhc_chain2)"; \
+			python -m tcr_antigen_prediction.apps.prepare_structure "$^/$$name.pdb" -o "$@" --chains $$antigen_chain $$mhc_chain1 $$mhc_chain2 || continue; \
+		else \
+			continue; \
+		fi; \
+	    sed -n "$${line}p" "$^/structures_summary.csv" >> "$@/structures_summary.csv"; \
+	    echo "Finished Structure"; \
+	done
+	@echo "All done."
+
 models: data models/baseline_masif_ppi models/finetune_masif_ppi
 
 models/finetune_masif_ppi: data/processed/selected-stcrdab_feats data/processed/selected-stcrdab_ply  models/baseline_masif_ppi
