@@ -9,6 +9,7 @@ data: \
 
 data/raw/stcrdab:
 	@python -m tcr_antigen_prediction.apps.download_stcrdab $@
+	@touch $@
 
 data/interim/selected-stcrdab: data/raw/stcrdab data/external/masif_ppi_search_training_set.txt
 	@python -m tcr_antigen_prediction.apps.select_tcr_pmhc_structures \
@@ -21,6 +22,7 @@ data/interim/selected-stcrdab: data/raw/stcrdab data/external/masif_ppi_search_t
 		--pdb-ids-to-exclude $$(cut -d _ -f 1 $(word 2,$^) | tr '[:upper:]' '[:lower:]' | sort | uniq | tr '\n' ' ') \
 		-o $@ \
 		$(word 1,$^)
+	@touch $@
 
 data/interim/selected-stcrdab_crop: data/interim/selected-stcrdab
 	@mkdir -p $@
@@ -62,6 +64,7 @@ data/interim/selected-stcrdab_crop: data/interim/selected-stcrdab
 		echo "Finished Structure"; \
 	done
 	@echo "All done."
+	@touch $@
 
 data/processed/selected-stcrdab_ply: data/interim/selected-stcrdab_crop
 	@mkdir -p $@
@@ -86,6 +89,7 @@ data/processed/selected-stcrdab_ply: data/interim/selected-stcrdab_crop
 	    echo "Finished Structure"; \
 	done
 	@echo "All done."
+	@touch $@
 
 data/processed/selected-stcrdab_feats: data/processed/selected-stcrdab_ply
 	@mkdir -p $@
@@ -113,6 +117,7 @@ data/processed/selected-stcrdab_feats: data/processed/selected-stcrdab_ply
 	    echo "Finished pair"; \
 	done
 	@echo "All done."
+	@touch $@
 
 data/external/masif_ppi_search_training_set.txt:
 	@wget -O $@ https://raw.githubusercontent.com/LPDI-EPFL/masif/master/data/masif_ppi_search/lists/training.txt
@@ -139,6 +144,7 @@ models/finetune_masif_ppi: data/processed/selected-stcrdab_feats data/processed/
 		--pos-surf-accept-probability 1.0 \
 		$$(cat "$(word 1,$^)/stcrdab_split.csv" | grep "training" | awk -F, -v dir="$(word 1,$^)" '{ printf "%s/%s_%s%s%s%s%s ", dir, $$1, $$2, $$3, $$4, $$5, $$6 }')
 	@rm "$@/checkpoint"
+	@touch $@
 
 lint:
 	@FL_STATUS=0; PY_STATUS=0; \
