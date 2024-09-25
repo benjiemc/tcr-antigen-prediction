@@ -125,6 +125,7 @@ data/external/masif_ppi_search_training_set.txt:
 data/interim/external_validation_data_renumbered: data/external/ClassI_ternaries
 	@mkdir -p "$@"
 	@find "$^" -name "*.pdb" | xargs -I % bash -c 'python -m tcr_antigen_prediction.apps.renumber_tcr_pmhc_structure -o "$@/$$(basename "%")" "%"'
+	@touch $@
 
 data/interim/external_validation_data_fix: data/interim/external_validation_data_renumbered
 	@mkdir -p $@
@@ -132,6 +133,7 @@ data/interim/external_validation_data_fix: data/interim/external_validation_data
 		file_name_base=$$(basename $$file_name .pdb); \
 		python -m tcr_antigen_prediction.apps.fix_pdb -o "$@/$$(echo $$file_name_base | tr '.' '_').pdb" "$$file_name"; \
 	done
+	@touch $@
 
 data/interim/external_validation_data_entities: data/interim/external_validation_data_fix
 	@mkdir -p $@
@@ -147,6 +149,7 @@ data/interim/external_validation_data_entities: data/interim/external_validation
 		_ $$file_name_base \
 		>> "$@/structures_summary.csv"; \
 	done
+	@touch $@
 
 data/interim/external_validation_data_entities_crop: data/interim/external_validation_data_entities
 	@mkdir -p $@
@@ -184,6 +187,7 @@ data/interim/external_validation_data_entities_crop: data/interim/external_valid
 			continue; \
 		fi; \
 	done
+	@touch $@
 
 data/interim/external_validation_data_annotated_sequences.csv: data/interim/external_validation_data_entities_crop
 	@echo "$$(head -n1 $^/structures_summary.csv),CDR1alpha_sequence,CDR2alpha_sequence,CDR3alpha_sequence,CDR1beta_sequence,CDR2beta_sequence,CDR3beta_sequence,peptide_sequence" > $@
@@ -213,6 +217,7 @@ data/interim/external_validation_data_selected: data/interim/external_validation
 	@mkdir -p $@
 	@python -m tcr_antigen_prediction.apps.filter_similar_structures -o "$@/structures_summary.csv" --structural-similarity-cutoff 2.0 --summary-csv $(word 2,$^) $(word 1,$^)
 	@cat "$@/structures_summary.csv" | sed 1d | cut -d, -f1 | xargs -I % cp $(word 1,$^)/%.pdb $@/
+	@touch $@
 
 data/processed/external_validation_data_selected_ply: data/interim/external_validation_data_selected
 	@mkdir -p $@
@@ -243,6 +248,7 @@ data/processed/external_validation_data_selected_ply: data/interim/external_vali
 	    sed -n "$${line}p" "$^/structures_summary.csv" >> "$@/structures_summary.csv"; \
 	    echo "Finished Structure"; \
 	done
+	@touch $@
 	@echo "All done."
 
 data/processed/external_validation_data_selected_feats: data/processed/external_validation_data_selected_ply
@@ -280,6 +286,7 @@ data/processed/external_validation_data_selected_feats: data/processed/external_
 	    sed -n "$${line}p" "$^/structures_summary.csv" >> "$@/structures_summary.csv"; \
 	    echo "Finished pair"; \
 	done
+	@touch $@
 	@echo "All done."
 
 models: data models/baseline_masif_ppi models/finetune_masif_ppi
