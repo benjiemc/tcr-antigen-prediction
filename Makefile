@@ -300,7 +300,14 @@ data/processed/external_validation_data_selected_feats: data/processed/external_
 	@touch $@
 	@echo "All done."
 
-models: data models/baseline_masif_ppi models/finetune_masif_ppi
+models: data models/TCRen models/baseline_masif_ppi models/finetune_masif_ppi
+
+models/TCRen: data/processed/selected-stcrdab_crop
+	@mkdir -p $@
+	@python -m tcr_antigen_prediction.apps.train_tcr_en \
+		-o "$@/TCRen_probabilities.csv" \
+		--summary-csv "$^/stcrdab_split.csv" \
+		$$(cat "$^/stcrdab_split.csv" | grep "train" | awk -F, -v dir="$^" '{ printf "%s/%s_%s%s%s%s%s.pdb ", dir, $$1, $$2, $$3, $$4, $$5, $$6 }')
 
 models/finetune_masif_ppi: data/processed/selected-stcrdab_feats data/processed/selected-stcrdab_ply  models/baseline_masif_ppi
 	@python -m tcr_antigen_prediction.apps.train_masif \

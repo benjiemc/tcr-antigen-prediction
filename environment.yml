@@ -1,5 +1,6 @@
 name: MaSIF
 channels:
+  - bioconda
   - conda-forge
   - defaults
 dependencies:
@@ -9,9 +10,10 @@ dependencies:
   - backcall=0.2.0=pyh9f0ad1d_0
   - backports=1.0=pyhd8ed1ab_3
   - backports.functools_lru_cache=2.0.0=pyhd8ed1ab_0
-  - ca-certificates=2024.7.4=hbcca054_0
+  - ca-certificates=2024.8.30=hbcca054_0
   - defusedxml=0.7.1=pyhd8ed1ab_0
   - entrypoints=0.4=pyhd8ed1ab_0
+  - hmmer=3.3.2=hdbdd923_4
   - ipython_genutils=0.2.0=pyhd8ed1ab_1
   - jinja2=3.0.3=pyhd8ed1ab_0
   - jupyter=1.0.0=pyhd8ed1ab_10
@@ -57,6 +59,7 @@ dependencies:
   - python=3.6.2=0
   - python-dateutil=2.8.2=pyhd8ed1ab_0
   - python_abi=3.6=2_cp36m
+  - pytz=2023.3.post1=pyhd8ed1ab_0
   - qtconsole-base=5.2.2=pyhd8ed1ab_1
   - qtpy=2.0.1=pyhd8ed1ab_0
   - readline=6.2=0
@@ -118,7 +121,7 @@ dependencies:
       - isort==5.10.1
       - jedi==0.18.2
       - jedi-language-server==0.35.1
-      - joblib==1.1.1
+      - joblib==0.13.2
       - json5==0.9.14
       - jsonpickle==2.2.0
       - jsonschema==3.2.0
@@ -168,7 +171,6 @@ dependencies:
       - pyparsing==2.4.0
       - pyrsistent==0.18.0
       - pytest==7.0.1
-      - pytz==2023.3.post1
       - pyyaml==6.0.1
       - pyzmq==25.1.2
       - requests==2.27.1

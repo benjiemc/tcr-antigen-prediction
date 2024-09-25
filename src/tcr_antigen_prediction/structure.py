@@ -17,6 +17,7 @@
 from subprocess import Popen, PIPE
 from typing import Optional, Set, Iterable
 
+import pandas as pd
 from Bio.PDB import PDBParser, PDBIO, Selection, StructureBuilder, Select, Structure, Model
 from Bio.SeqUtils import IUPACData
 PROTEIN_LETTERS = [x.upper() for x in IUPACData.protein_letters_3to1.keys()]
@@ -156,3 +157,43 @@ def extract_chains(structure: Structure.Structure, chains: Iterable[str]) -> Str
         new_structure.add(new_model)
 
     return new_structure
+
+
+def bio_to_pandas(structure: Structure.Structure) -> pd.DataFrame:
+    '''Convert a biopython structure to a pandas dataframe.'''
+    records = []
+
+    multiple_models = len(structure) > 1
+
+    for model in structure:
+        for chain in model:
+            for residue in chain:
+                for atom in residue:
+                    records.append({
+                        'record_type': 'ATOM' if residue.id[0] == ' ' else 'HETATM',
+                        'atom_number': atom.serial_number,
+                        'atom_name': atom.id,
+                        'alt_loc': atom.altloc if atom.altloc != ' ' else None,
+                        'residue_name': residue.resname,
+                        'chain_id': chain.id,
+                        'residue_seq_id': residue.id[1],
+                        'residue_insert_code': residue.id[2] if residue.id[2] != ' ' else None,
+                        'pos_x': atom.coord[0],
+                        'pos_y': atom.coord[1],
+                        'pos_z': atom.coord[2],
+                        'occupancy': atom.occupancy,
+                        'b_factor': atom.bfactor,
+                        'element': atom.element,
+                        'charge': atom.get_charge(),
+                    })
+
+                    if multiple_models:
+                        records[-1]['model_index'] = model.id
+
+        column_names = ['record_type', 'atom_number', 'atom_name', 'alt_loc', 'residue_name', 'chain_id',
+                        'residue_seq_id', 'residue_insert_code', 'pos_x', 'pos_y', 'pos_z', 'occupancy',
+                        'b_factor', 'element', 'charge']
+    if multiple_models:
+        column_names.append('model_index')
+
+    return pd.DataFrame(records, columns=column_names)
