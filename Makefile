@@ -1,7 +1,7 @@
 .PHONY: all data models lint test docs
 
 
-all: data model
+all: data models
 
 data: \
 	data/processed/selected-stcrdab_feats \
