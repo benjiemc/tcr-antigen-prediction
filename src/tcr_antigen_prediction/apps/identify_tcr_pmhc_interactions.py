@@ -196,10 +196,10 @@ def main():
         antigen_mask = chains == antigen_chain_id
 
         cdr_coords = heavy_atom_coordinates[cdr_mask]
-        pmhc_abd_coords = heavy_atom_coordinates[mhc_abd_mask | antigen_mask]
+        antigen_coords = heavy_atom_coordinates[antigen_mask]
 
         distances = distances = (
-            np.sqrt(np.sum((cdr_coords[:, np.newaxis, :] - pmhc_abd_coords[np.newaxis, :, :]) ** 2, axis=2))
+            np.sqrt(np.sum((cdr_coords[:, np.newaxis, :] - antigen_coords[np.newaxis, :, :]) ** 2, axis=2))
         )
 
         contacts = distances <= args.contact_distance
