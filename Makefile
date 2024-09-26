@@ -167,6 +167,11 @@ data/interim/external_validation_data_entities_crop: data/interim/external_valid
 		mhc_type=$$(sed -n "$${line}p" $^/structures_summary.csv | cut -d, -f7); \
 		chains="$${alpha_chain}$${beta_chain}$${antigen_chain}$${mhc_chain1}$${mhc_chain2}"; \
 		file_name="$${name}.pdb"; \
+		echo "Working on $$name..."; \
+		if [ "$$alpha_chain" = "" ] || [ "$$beta_chain" = "" ]; then \
+			echo "Skipping entry without TCR"; \
+			continue; \
+		fi; \
 		if [ "$$mhc_type" = "MH1" ]; then \
 			python -m tcr_antigen_prediction.apps.crop_tcr_pmhc \
 				"$^/$$file_name" \
@@ -184,6 +189,7 @@ data/interim/external_validation_data_entities_crop: data/interim/external_valid
 				--antigen-chain $$antigen_chain || continue; \
 				sed -n "$${line}p" $^/structures_summary.csv >> "$@/structures_summary.csv"; \
 		else \
+			echo "Skipping entry without MHC"; \
 			continue; \
 		fi; \
 	done
