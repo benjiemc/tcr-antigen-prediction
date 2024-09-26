@@ -1,4 +1,4 @@
-.PHONY: all data models lint test docs
+.PHONY: all data data-external models lint test docs
 
 
 all: data models
@@ -121,6 +121,10 @@ data/processed/selected-stcrdab_feats: data/processed/selected-stcrdab_ply
 
 data/external/masif_ppi_search_training_set.txt:
 	@wget -O $@ https://raw.githubusercontent.com/LPDI-EPFL/masif/master/data/masif_ppi_search/lists/training.txt
+
+data-external: \
+	data/processed/external_validation_data_selected_ply \
+	data/processed/external_validation_data_selected_feats
 
 data/interim/external_validation_data_renumbered: data/external/ClassI_ternaries
 	@mkdir -p "$@"
