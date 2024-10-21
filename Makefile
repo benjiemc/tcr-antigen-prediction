@@ -319,7 +319,7 @@ models/finetune_masif_ppi: data/processed/selected-stcrdab_feats data/processed/
 		--sc-max-cutoff 1.0 \
 		--sc-min-cutoff 0.5 \
 		--pos-surf-accept-probability 1.0 \
-		$$(cat "$(word 1,$^)/stcrdab_split.csv" | grep "training" | awk -F, -v dir="$(word 1,$^)" '{ printf "%s/%s_%s%s%s%s%s ", dir, $$1, $$2, $$3, $$4, $$5, $$6 }')
+		$$(cat "$(word 1,$^)/stcrdab_split.csv" | grep "train" | awk -F, -v dir="$(word 1,$^)" '{ printf "%s/%s_%s%s%s%s%s ", dir, $$1, $$2, $$3, $$4, $$5, $$6 }')
 	@rm "$@/checkpoint"
 	@touch $@
 
