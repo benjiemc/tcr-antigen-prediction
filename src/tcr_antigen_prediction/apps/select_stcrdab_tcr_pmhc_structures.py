@@ -340,6 +340,10 @@ def main():
     separated_groups_data = [pd.concat([list(peptide_groups)[idx][1] for idx in group], axis=0)
                              for group in separated_groups]
 
+    logger.debug('Adding group IDs')
+    for group_id, group in enumerate(separated_groups_data, 1):
+        group['group_id'] = group_id
+
     exclude_group_idxs = [
         idx for idx, group in enumerate(separated_groups_data) if group['pdb'].isin(args.pdb_ids_to_exclude).any()
     ] if args.pdb_ids_to_exclude is not None else None
@@ -376,7 +380,7 @@ def main():
              'antigen_chain',
              'mhc_chain1', 'mhc_chain2',
              'mhc_type', 'peptide_sequence', 'collated_cdrs',
-             'split']].to_csv(os.path.join(args.output, 'stcrdab_split.csv'), index=False)
+             'group_id', 'split']].to_csv(os.path.join(args.output, 'stcrdab_split.csv'), index=False)
 
     pdb_parser = PDBParser()
     for _, row in dataset.iterrows():
