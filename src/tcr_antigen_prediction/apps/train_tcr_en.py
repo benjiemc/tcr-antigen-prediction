@@ -6,6 +6,7 @@ import argparse
 import itertools
 import logging
 import os
+from collections import defaultdict
 from typing import List
 
 import numpy as np
@@ -21,8 +22,10 @@ logger = logging.getLogger()
 
 parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
 parser.add_argument('training_data', nargs='+', help='paths to training data for model')
+parser.add_argument('--strategy', choices=['regular', 'leave-one-out'], default='regular',
+                    help="training strategy employed to train the model (Default: 'regular')")
 parser.add_argument('--summary-csv', required=True, help='path to summary csv file for the structures')
-parser.add_argument('--output', '-o', required=True, help='path to output csv')
+parser.add_argument('--output', '-o', required=True, help='path to output csv(s)')
 parser.add_argument('--contact-distance', default=5.0, type=float,
                     help='threshold for contact distance between heavy atoms (Default: 5.0 Å)')
 
@@ -34,7 +37,7 @@ AMINO_ACID_OLCS = list(IUPACData.protein_letters)
 def load_data(paths: List[str], summary_df: pd.DataFrame, contact_distance: float) -> pd.DataFrame:
     '''Get interacting residues from a list of TCR:pMHC PDB structures.'''
     pdb_parser = PDBParser(QUIET=True)
-    interacting_residues = []
+    interacting_residues = defaultdict(list)
 
     for path in paths:
         entry_name = os.path.basename(path).replace('.pdb', '')
@@ -72,15 +75,26 @@ def load_data(paths: List[str], summary_df: pd.DataFrame, contact_distance: floa
             'chain_id_antigen', 'residue_seq_id_antigen', 'residue_insert_code_antigen',
         ])
 
-        interacting_residues += list(zip(
-            residue_contacts['residue_name_cdr'].str.title().map(IUPACData.protein_letters_3to1),
-            residue_contacts['residue_name_antigen'].str.title().map(IUPACData.protein_letters_3to1),
-        ))
+        interacting_residues['pdb'] += [row['pdb']] * len(residue_contacts)
+        interacting_residues['Achain'] += [row['Achain']] * len(residue_contacts)
+        interacting_residues['Bchain'] += [row['Bchain']] * len(residue_contacts)
+        interacting_residues['antigen_chain'] += [row['antigen_chain']] * len(residue_contacts)
+        interacting_residues['mhc_chain1'] += [row['mhc_chain1']] * len(residue_contacts)
+        interacting_residues['mhc_chain2'] += [row['mhc_chain2']] * len(residue_contacts)
 
-    return pd.DataFrame(interacting_residues, columns=['tcr_cdr_residue', 'peptide_residue'])
+        interacting_residues['group_id'] += [row['group_id']] * len(residue_contacts)
+
+        interacting_residues['tcr_cdr_residue'] += residue_contacts['residue_name_cdr'].str.title().map(
+            IUPACData.protein_letters_3to1,
+        ).tolist()
+        interacting_residues['peptide_residue'] += residue_contacts['residue_name_antigen'].str.title().map(
+            IUPACData.protein_letters_3to1,
+        ).tolist()
+
+    return pd.DataFrame.from_dict(interacting_residues)
 
 
-def calculate_tcr_en(interacting_residues: pd.DataFrame) -> pd.DataFrame:
+def fit_tcr_en(interacting_residues: pd.DataFrame) -> pd.DataFrame:
     '''Calculate the TCRen score from a table on interacting residues.'''
     logger.info('Calculating observed pairing probabilities')
     p_obs = interacting_residues.value_counts(normalize=True)
@@ -139,11 +153,58 @@ def main():
         axis=1,
     )
 
-    interacting_residues = load_data(args.training_data, summary_df, args.contact_distance)
-    tcren = calculate_tcr_en(interacting_residues)
+    if args.strategy == 'regular':
+        interacting_residues = load_data(args.training_data, summary_df, args.contact_distance)
+        tcren = fit_tcr_en(interacting_residues[['tcr_cdr_residue', 'peptide_residue']])
 
-    logger.info('Outputting pottentials to %s', args.output)
-    tcren.to_csv(args.output)
+        logger.info('Outputting pottentials to %s', args.output)
+        tcren.to_csv(args.output)
+
+    elif args.strategy == 'leave-one-out':
+        summary_df['structure_name'] = summary_df['pdb'] + '_' + summary_df['chains']
+
+        relevant_data_names = [os.path.basename(path).replace('.pdb', '') for path in args.training_data]
+        relevant_summary_df = summary_df[summary_df['structure_name'].isin(relevant_data_names)]
+        relevant_data = load_data(args.training_data, relevant_summary_df, args.contact_distance)
+
+        groups = relevant_summary_df['group_id'].unique()
+
+        for group in groups:
+            logger.info('Fitting potentials to hold-out group: %d', group)
+            training_data = relevant_data[relevant_data['group_id'] != group]
+            evaluation_data = relevant_data[relevant_data['group_id'] == group]
+
+            tcren = fit_tcr_en(training_data[['tcr_cdr_residue', 'peptide_residue']])
+
+            logger.info('Evaluating leave-one-out group: %d', group)
+            evaluation_tcr_ens = evaluation_data.merge(
+                tcren.reset_index(),
+                how='left',
+            ).groupby(
+                ['pdb', 'Achain', 'Bchain', 'antigen_chain', 'mhc_chain1', 'mhc_chain2'],
+                dropna=False,
+            )['tcren'].sum()
+
+            for (pdb_id,
+                 alpha_chain,
+                 beta_chain,
+                 antigen_chain,
+                 mhc_chain1,
+                 mhc_chain2), eval_tcren in evaluation_tcr_ens.items():
+                logger.info(
+                    ('Evaluating group_id=%d, '
+                     'pdb=%s, Achain=%s, Bchain=%s, antigen_chain=%s, mhc_chain1=%s, mhc_chain2=%s: '
+                     'TCRen=%f'),
+                    group, pdb_id, alpha_chain, beta_chain, antigen_chain, mhc_chain1, mhc_chain2, eval_tcren,
+                )
+
+            base_output_name = os.path.basename(args.output)
+            output_name = os.path.join(
+                os.path.dirname(args.output),
+                f"{base_output_name.split('.', 1)[0]}_LOO_{group}.{base_output_name.split('.', 1)[-1]}",
+            )
+            logger.info('Outputting potentials to %s', output_name)
+            tcren.to_csv(output_name)
 
 
 if __name__ == '__main__':
