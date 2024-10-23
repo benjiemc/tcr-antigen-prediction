@@ -59,7 +59,7 @@ def remove_similar_structures(df: pd.DataFrame,
 
 def main():
     args = parser.parse_args()
-    setup_logger(logger, args.log_level)
+    setup_logger(logger, args.log_level, args.log_file)
 
     summary_df = pd.read_csv(args.summary_csv)
     summary_df['collated_cdrs'] = summary_df.filter(regex='cdr|CDR').apply('-'.join, axis=1)

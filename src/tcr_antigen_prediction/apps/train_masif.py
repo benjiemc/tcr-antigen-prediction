@@ -391,7 +391,7 @@ def aggregate_data(data_dirs: List[str],
 
 def main():
     args = parser.parse_args()
-    setup_logger(logger, args.log_level)
+    setup_logger(logger, args.log_level, args.log_file)
 
     for argument, value in vars(args).items():
         logger.info('Parameter: %s=%r', argument, value)

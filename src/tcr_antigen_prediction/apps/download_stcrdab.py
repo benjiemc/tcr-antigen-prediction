@@ -22,7 +22,7 @@ STCRDAB_RAW_STRUCTURE_BASE_URL = f'{STCRDAB_IMGT_STRUCTURE_BASE_URL}?raw=true'
 
 def main():
     args = parser.parse_args()
-    setup_logger(logger, args.log_level)
+    setup_logger(logger, args.log_level, args.log_file)
 
     logger.info('Creating output dir')
     os.mkdir(args.output)

@@ -25,7 +25,7 @@ add_logging_arguments(parser)
 
 def main():
     args = parser.parse_args()
-    setup_logger(logger, args.log_level)
+    setup_logger(logger, args.log_level, args.log_file)
 
     pdb_parser = PDBParser(QUIET=True)
     structure = pdb_parser.get_structure('', args.structure)

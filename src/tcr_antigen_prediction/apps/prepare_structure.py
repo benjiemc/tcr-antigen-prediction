@@ -47,7 +47,7 @@ add_logging_arguments(parser)
 
 def main() -> None:
     args = parser.parse_args()
-    setup_logger(logger, args.log_level)
+    setup_logger(logger, args.log_level, args.log_file)
 
     base_name = os.path.basename(args.structure).rsplit('.', 1)[0]
 

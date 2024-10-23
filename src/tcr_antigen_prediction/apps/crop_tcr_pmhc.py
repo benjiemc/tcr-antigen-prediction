@@ -40,7 +40,7 @@ class NonHetSelect(Select):
 
 def main():
     args = parser.parse_args()
-    setup_logger(logger, args.log_level)
+    setup_logger(logger, args.log_level, args.log_file)
 
     tcr_chains = args.tcr_chains if args.tcr_chains else []
     mhc_chains = args.mhc_chains if args.mhc_chains else []

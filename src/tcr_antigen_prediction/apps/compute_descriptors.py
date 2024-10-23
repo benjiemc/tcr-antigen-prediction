@@ -123,7 +123,7 @@ def compute_descriptors(learning_obj,
 
 def main() -> None:
     args = parser.parse_args()
-    setup_logger(logger, args.log_level)
+    setup_logger(logger, args.log_level, args.log_file)
 
     learning_obj = MasifPPISearch(
         params['max_distance'],

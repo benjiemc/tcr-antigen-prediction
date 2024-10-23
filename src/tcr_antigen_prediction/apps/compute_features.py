@@ -54,7 +54,7 @@ config = {
 
 def main() -> None:
     args = parser.parse_args()
-    setup_logger(logger, args.log_level)
+    setup_logger(logger, args.log_level, args.log_file)
 
     if not os.path.exists(args.output):
         os.mkdir(args.output)

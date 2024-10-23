@@ -27,7 +27,7 @@ add_logging_arguments(parser)
 def main():
     '''Entry point for script.'''
     args = parser.parse_args()
-    setup_logger(logger, args.log_level)
+    setup_logger(logger, args.log_level, args.log_file)
 
     with open(args.structure, 'r') as fh:
         header = get_header(fh.read())

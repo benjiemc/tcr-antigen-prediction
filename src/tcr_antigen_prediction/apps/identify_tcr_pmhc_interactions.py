@@ -24,7 +24,7 @@ add_logging_arguments(parser)
 
 def main():
     args = parser.parse_args()
-    setup_logger(logger, args.log_level)
+    setup_logger(logger, args.log_level, args.log_file)
 
     # Parse information
     with open(args.structure, 'r') as fh:

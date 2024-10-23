@@ -266,7 +266,7 @@ def merge_groups(groups):
 
 def main():
     args = parser.parse_args()
-    setup_logger(logger, args.log_level)
+    setup_logger(logger, args.log_level, args.log_file)
 
     if args.seed:
         random.seed(args.seed)

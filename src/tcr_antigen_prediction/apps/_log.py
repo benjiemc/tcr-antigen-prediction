@@ -1,6 +1,7 @@
 '''Helper functions and config for command line application logging.'''
 import logging
 from argparse import ArgumentParser
+from typing import Optional
 
 LOG_MAP = {
     'error': logging.ERROR,
@@ -15,17 +16,20 @@ def add_logging_arguments(parser: ArgumentParser) -> None:
     logging_group = parser.add_argument_group('Logging', 'Options for logging')
     logging_group.add_argument('--log-level', choices=['debug', 'info', 'warning', 'error'], default='warning',
                                help="Level to log messages at (Default: 'warning')")
+    logging_group.add_argument('--log-file', default=None,
+                               help='File to output logs (default is to write to stderr)')
 
 
-def setup_logger(logger, level='warning'):
+def setup_logger(logger, level: str = 'warning', log_file: Optional[str] = None):
     '''Setup logger for command line applications.
 
     Args:
         logger: logger object from logging.getLogger(__name__) call
         level: one of 'error', 'warning', 'info', or 'debug'
+        log_file: file path to write logs to
 
     '''
-    handler = logging.StreamHandler()
+    handler = logging.FileHandler(log_file, mode='w') if log_file else logging.StreamHandler()
     handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s: %(message)s'))
     logger.addHandler(handler)
 
