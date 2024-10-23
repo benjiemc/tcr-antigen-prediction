@@ -43,7 +43,7 @@ def load_data(paths: List[str], summary_df: pd.DataFrame, contact_distance: floa
 
     for path in paths:
         entry_name = os.path.basename(path).replace('.pdb', '')
-        logger.info('Collecting contacts from %s', entry_name)
+        logger.debug('Collecting contacts from %s', entry_name)
 
         pdb_id, chains = entry_name.split('_')
 
@@ -98,11 +98,11 @@ def load_data(paths: List[str], summary_df: pd.DataFrame, contact_distance: floa
 
 def fit_tcr_en(interacting_residues: pd.DataFrame) -> pd.DataFrame:
     '''Calculate the TCRen score from a table on interacting residues.'''
-    logger.info('Calculating observed pairing probabilities')
+    logger.debug('Calculating observed pairing probabilities')
     p_obs = interacting_residues.value_counts(normalize=True)
     p_obs.name = 'p_obs'
 
-    logger.info('Calculating expected pairing probabilities')
+    logger.debug('Calculating expected pairing probabilities')
     p_a = interacting_residues.value_counts('tcr_cdr_residue', normalize=True)
     p_a.name = 'proportion'
     p_a = p_a.to_frame().reset_index()
@@ -131,7 +131,7 @@ def fit_tcr_en(interacting_residues: pd.DataFrame) -> pd.DataFrame:
             logger.debug('Pairing %s not found in expected pairings. Assigning probability to 0.00', ':'.join(pairing))
             p_exp.loc[pairing] = 0.00
 
-    logger.info('Calculating TCRen potentials')
+    logger.debug('Calculating TCRen potentials')
     tcren = p_obs.to_frame().join(p_exp.to_frame())
 
     with np.errstate(divide='ignore'):
@@ -156,11 +156,15 @@ def main():
     )
 
     if args.strategy == 'regular':
+        logger.info('Loading data and finding contacting residues')
         training_data = load_data(args.training_data, summary_df, args.contact_distance)
+
+        logger.info('Fitting potentials to training data')
         tcren = fit_tcr_en(training_data[['tcr_cdr_residue', 'peptide_residue']])
 
         if args.validation_data:
             logger.info('Evaluating TCRen model')
+            logger.info('Loading data and finding contacting residues')
             evaluation_data = load_data(args.validation_data, summary_df, args.contact_distance)
 
             evaluation_tcr_ens = evaluation_data.merge(
@@ -186,6 +190,7 @@ def main():
         tcren.to_csv(args.output)
 
     elif args.strategy == 'leave-one-out':
+        logger.info('Loading data and finding contacting residues')
         summary_df['structure_name'] = summary_df['pdb'] + '_' + summary_df['chains']
 
         relevant_data_names = [os.path.basename(path).replace('.pdb', '') for path in args.training_data]
