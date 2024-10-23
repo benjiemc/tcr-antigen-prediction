@@ -24,6 +24,8 @@ parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.R
 parser.add_argument('training_data', nargs='+', help='paths to training data for model')
 parser.add_argument('--strategy', choices=['regular', 'leave-one-out'], default='regular',
                     help="training strategy employed to train the model (Default: 'regular')")
+parser.add_argument('--validation-data', nargs='+',
+                    help="path to validation data if validation is desired after fitting the model in 'regular' mode")
 parser.add_argument('--summary-csv', required=True, help='path to summary csv file for the structures')
 parser.add_argument('--output', '-o', required=True, help='path to output csv(s)')
 parser.add_argument('--contact-distance', default=5.0, type=float,
@@ -154,8 +156,31 @@ def main():
     )
 
     if args.strategy == 'regular':
-        interacting_residues = load_data(args.training_data, summary_df, args.contact_distance)
-        tcren = fit_tcr_en(interacting_residues[['tcr_cdr_residue', 'peptide_residue']])
+        training_data = load_data(args.training_data, summary_df, args.contact_distance)
+        tcren = fit_tcr_en(training_data[['tcr_cdr_residue', 'peptide_residue']])
+
+        if args.validation_data:
+            logger.info('Evaluating TCRen model')
+            evaluation_data = load_data(args.validation_data, summary_df, args.contact_distance)
+
+            evaluation_tcr_ens = evaluation_data.merge(
+                tcren.reset_index(),
+                how='left',
+            ).groupby(
+                ['pdb', 'Achain', 'Bchain', 'antigen_chain', 'mhc_chain1', 'mhc_chain2'],
+                dropna=False,
+            )['tcren'].sum()
+
+            for (pdb_id,
+                 alpha_chain,
+                 beta_chain,
+                 antigen_chain,
+                 mhc_chain1,
+                 mhc_chain2), eval_tcren in evaluation_tcr_ens.items():
+                logger.info(('Evaluating '
+                             'pdb=%s, Achain=%s, Bchain=%s, antigen_chain=%s, mhc_chain1=%s, mhc_chain2=%s: '
+                             'TCRen=%f'),
+                            pdb_id, alpha_chain, beta_chain, antigen_chain, mhc_chain1, mhc_chain2, eval_tcren)
 
         logger.info('Outputting pottentials to %s', args.output)
         tcren.to_csv(args.output)
