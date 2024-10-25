@@ -39,6 +39,8 @@ parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.R
 parser.add_argument('training', nargs='+', help='path to training data')
 parser.add_argument('--output', '-o', required=True, help='path to model output')
 parser.add_argument('--validation-data', nargs='+', help='path to validation data')
+parser.add_argument('--data-groups', nargs='+',
+                    help='group for each input data input. These are used in LOO and CV training strategies')
 parser.add_argument('--ply-dir', help='path to ply mesh files')
 parser.add_argument('--model', help='path to the model for restarting training or fine tuning.')
 parser.add_argument('--seed', default=None, type=int, help='seed for random state')
@@ -46,6 +48,10 @@ parser.add_argument('--binder-name', required=True, help='name of binders')
 parser.add_argument('--positive-name', required=True, help='name of positives')
 
 training_parameters = parser.add_argument_group('Training Parameters')
+training_parameters.add_argument('--strategy',
+                                 choices=['regular', 'leave-one-out'],
+                                 default='regular',
+                                 help=("strategy employed to train and validate model (Default: 'regular')"))
 training_parameters.add_argument('--num-iterations', type=int, default=1_000_000,
                                  help='number of training iterations (Default: 1_000_000)')
 training_parameters.add_argument('--num-iter-eval', type=int, default=1000,
@@ -248,7 +254,8 @@ def aggregate_data(data_dirs: List[str],
                    contact_distance: float = 5.0,
                    pos_surf_accept_probability: float = 1.0,
                    sc_min_filt: Optional[float] = None,
-                   sc_max_filt: Optional[float] = None) -> Tuple:
+                   sc_max_filt: Optional[float] = None,
+                   group_ids: Optional[np.ndarray] = None) -> Tuple:
     binder_rho_wrt_center = []
     binder_theta_wrt_center = []
     binder_input_feat = []
@@ -265,12 +272,16 @@ def aggregate_data(data_dirs: List[str],
     neg_mask = []
 
     index = []
+    group_idxs = []
     pos_names = []
     neg_names = []
 
+    if group_ids is None:
+        group_ids = np.repeat(0, len(data_dirs))
+
     idx_count = 0
 
-    for ppi_pair_id in data_dirs:
+    for group_id, ppi_pair_id in zip(group_ids, data_dirs):
         ppi_name = ppi_pair_id.rstrip('/').split('/')[-1]
         logger.debug('Loading %s', ppi_name)
 
@@ -366,6 +377,7 @@ def aggregate_data(data_dirs: List[str],
 
         # Training, validation or test?
         index = np.append(index, np.arange(idx_count, idx_count + n_pos)).astype(int)
+        group_idxs = np.append(group_idxs, np.repeat(group_id, n_pos))
         idx_count += n_pos
 
     binder_rho_wrt_center = np.concatenate(binder_rho_wrt_center, axis=0)
@@ -383,7 +395,7 @@ def aggregate_data(data_dirs: List[str],
     neg_input_feat = np.concatenate(neg_input_feat, axis=0)
     neg_mask = np.concatenate(neg_mask, axis=0)
 
-    return (index,
+    return (index, group_idxs,
             binder_rho_wrt_center, binder_theta_wrt_center, binder_input_feat, binder_mask,
             pos_rho_wrt_center, pos_theta_wrt_center, pos_input_feat, pos_mask,
             neg_rho_wrt_center, neg_theta_wrt_center, neg_input_feat, neg_mask)
@@ -400,37 +412,15 @@ def main():
         logger.info('Seeding random state with seed %d', args.seed)
         np.random.seed(args.seed)
 
-    logger.info('Aggregating training data')
+    if args.strategy == 'regular':
+        logger.info('Aggregating training data')
 
-    (
-        training_idx,
-        binder_rho_wrt_center, binder_theta_wrt_center, binder_input_feat, binder_mask,
-        pos_rho_wrt_center, pos_theta_wrt_center, pos_input_feat, pos_mask,
-        neg_rho_wrt_center, neg_theta_wrt_center, neg_input_feat, neg_mask
-    ) = aggregate_data(args.training,
-                       args.binder_name,
-                       args.positive_name,
-                       args.ply_dir,
-                       args.contact_distance,
-                       args.pos_surf_accept_probability,
-                       args.sc_min_cutoff,
-                       args.sc_max_cutoff)
-
-    binder_input_feat = mask_input_feat(binder_input_feat, args.feat_mask)
-    pos_input_feat = mask_input_feat(pos_input_feat, args.feat_mask)
-    neg_input_feat = mask_input_feat(neg_input_feat, args.feat_mask)
-
-    logger.debug('Number of training shapes: %d', len(training_idx))
-    logger.debug('Read %d positive shapes', len(pos_rho_wrt_center))
-    logger.debug('Read %d negative shapes', len(neg_rho_wrt_center))
-
-    if args.validation_data:
         (
-            val_idx,
-            val_binder_rho_wrt_center, val_binder_theta_wrt_center, val_binder_input_feat, val_binder_mask,
-            val_pos_rho_wrt_center, val_pos_theta_wrt_center, val_pos_input_feat, val_pos_mask,
-            val_neg_rho_wrt_center, val_neg_theta_wrt_center, val_neg_input_feat, val_neg_mask,
-        ) = aggregate_data(args.validation_data,
+            training_idx, _,
+            binder_rho_wrt_center, binder_theta_wrt_center, binder_input_feat, binder_mask,
+            pos_rho_wrt_center, pos_theta_wrt_center, pos_input_feat, pos_mask,
+            neg_rho_wrt_center, neg_theta_wrt_center, neg_input_feat, neg_mask
+        ) = aggregate_data(args.training,
                            args.binder_name,
                            args.positive_name,
                            args.ply_dir,
@@ -439,156 +429,363 @@ def main():
                            args.sc_min_cutoff,
                            args.sc_max_cutoff)
 
-        logger.debug('Number of validation shapes: %d', len(val_idx))
+        binder_input_feat = mask_input_feat(binder_input_feat, args.feat_mask)
+        pos_input_feat = mask_input_feat(pos_input_feat, args.feat_mask)
+        neg_input_feat = mask_input_feat(neg_input_feat, args.feat_mask)
 
-    learning_obj = MasifPPISearch(args.max_distance,
-                                  n_thetas=16,
-                                  n_rhos=5,
-                                  n_rotations=16,
-                                  idx_gpu='/gpu:0',
-                                  feat_mask=args.feat_mask)
+        logger.debug('Number of training shapes: %d', len(training_idx))
+        logger.debug('Read %d positive shapes', len(pos_rho_wrt_center))
+        logger.debug('Read %d negative shapes', len(neg_rho_wrt_center))
 
-    if args.model:
-        learning_obj.saver.restore(learning_obj.session, args.model)
+        if args.validation_data:
+            (
+                val_idx, _,
+                val_binder_rho_wrt_center, val_binder_theta_wrt_center, val_binder_input_feat, val_binder_mask,
+                val_pos_rho_wrt_center, val_pos_theta_wrt_center, val_pos_input_feat, val_pos_mask,
+                val_neg_rho_wrt_center, val_neg_theta_wrt_center, val_neg_input_feat, val_neg_mask,
+            ) = aggregate_data(args.validation_data,
+                               args.binder_name,
+                               args.positive_name,
+                               args.ply_dir,
+                               args.contact_distance,
+                               args.pos_surf_accept_probability,
+                               args.sc_min_cutoff,
+                               args.sc_max_cutoff)
 
-    best_val_auc = 0
+            logger.debug('Number of validation shapes: %d', len(val_idx))
 
-    pos_training_idx_copy = np.copy(training_idx)
-    neg_training_idx_copy = np.copy(training_idx)
+        learning_obj = MasifPPISearch(args.max_distance,
+                                      n_thetas=16,
+                                      n_rhos=5,
+                                      n_rotations=16,
+                                      idx_gpu='/gpu:0',
+                                      feat_mask=args.feat_mask)
 
-    logger.info('Number of iterations: %d', args.num_iterations)
+        if args.model:
+            learning_obj.saver.restore(learning_obj.session, args.model)
 
-    for num_iter in range(0, args.num_iterations + 1):
-        logger.debug('Iterations number %d', num_iter)
-        # Read dataset for training.
-        np.random.shuffle(pos_training_idx_copy)
-        np.random.shuffle(neg_training_idx_copy)
+        best_val_auc = 0
 
-        c_pos_training_idx = pos_training_idx_copy[: args.batch_size // 4]
-        c_neg_training_idx = neg_training_idx_copy[: args.batch_size // 4]
+        pos_training_idx_copy = np.copy(training_idx)
+        neg_training_idx_copy = np.copy(training_idx)
 
-        # Features and theta are flipped for the binder in construct_batch (except for hydrophobicity).
-        batch_rho_coords, batch_theta_coords, batch_input_feat, batch_mask = construct_batch(
-            binder_rho_wrt_center,
-            binder_theta_wrt_center,
-            binder_input_feat,
-            binder_mask,
-            c_pos_training_idx,
-            pos_rho_wrt_center,
-            pos_theta_wrt_center,
-            pos_input_feat,
-            pos_mask,
-            c_neg_training_idx,
-            neg_rho_wrt_center,
-            neg_theta_wrt_center,
-            neg_input_feat,
-            neg_mask,
-        )
+        logger.info('Number of iterations: %d', args.num_iterations)
 
-        assert len(batch_rho_coords) == args.batch_size
-        assert len(batch_theta_coords) == args.batch_size
-        assert len(batch_input_feat) == args.batch_size
-        assert len(batch_mask) == args.batch_size
+        for num_iter in range(0, args.num_iterations + 1):
+            logger.debug('Iterations number %d', num_iter)
+            # Read dataset for training.
+            np.random.shuffle(pos_training_idx_copy)
+            np.random.shuffle(neg_training_idx_copy)
 
-        feed_dict = {
-            learning_obj.rho_coords: batch_rho_coords,
-            learning_obj.theta_coords: batch_theta_coords,
-            learning_obj.input_feat: batch_input_feat,
-            learning_obj.mask: batch_mask,
-            learning_obj.keep_prob: 0.5,
-        }
+            c_pos_training_idx = pos_training_idx_copy[: args.batch_size // 4]
+            c_neg_training_idx = neg_training_idx_copy[: args.batch_size // 4]
 
-        # Do not train during the first iteration
-        if num_iter == 0:
-            training_loss, score = learning_obj.session.run(
-                [learning_obj.data_loss, learning_obj.score],
-                feed_dict=feed_dict,
+            # Features and theta are flipped for the binder in construct_batch (except for hydrophobicity).
+            batch_rho_coords, batch_theta_coords, batch_input_feat, batch_mask = construct_batch(
+                binder_rho_wrt_center,
+                binder_theta_wrt_center,
+                binder_input_feat,
+                binder_mask,
+                c_pos_training_idx,
+                pos_rho_wrt_center,
+                pos_theta_wrt_center,
+                pos_input_feat,
+                pos_mask,
+                c_neg_training_idx,
+                neg_rho_wrt_center,
+                neg_theta_wrt_center,
+                neg_input_feat,
+                neg_mask,
             )
 
-        else:
-            _, training_loss, _, score = learning_obj.session.run(
-                [
-                    learning_obj.optimizer,
-                    learning_obj.data_loss,
-                    learning_obj.norm_grad,
-                    learning_obj.score,
-                ],
-                feed_dict=feed_dict,
-            )
+            assert len(batch_rho_coords) == args.batch_size
+            assert len(batch_theta_coords) == args.batch_size
+            assert len(batch_input_feat) == args.batch_size
+            assert len(batch_mask) == args.batch_size
 
-        n = len(score) // 2
+            feed_dict = {
+                learning_obj.rho_coords: batch_rho_coords,
+                learning_obj.theta_coords: batch_theta_coords,
+                learning_obj.input_feat: batch_input_feat,
+                learning_obj.mask: batch_mask,
+                learning_obj.keep_prob: 0.5,
+            }
 
-        pos_score = score[:n]
-        neg_score = score[n:]
-
-        if num_iter % args.num_iter_eval == 0:
-            logger.info('Evaluating at iteration %d', num_iter)
-
-            logger.info('Training loss: %f', training_loss)
-
-            roc_auc = 1 - compute_roc_auc(pos_score, neg_score)
-            logger.info('Training ROC-AUC: %f', roc_auc)
-
-            logger.info('Mean training positive score: %f', np.mean(1.0 / pos_score))
-            logger.info('Mean training negative score: %f', np.mean(1.0 / neg_score))
-
-            if args.validation_data:
-                pos_desc = compute_val_test_desc(
-                    learning_obj,
-                    val_idx,
-                    val_pos_rho_wrt_center,
-                    val_pos_theta_wrt_center,
-                    val_pos_input_feat,
-                    val_pos_mask,
-                    batch_size=args.validation_batch_size,
+            # Do not train during the first iteration
+            if num_iter == 0:
+                training_loss, score = learning_obj.session.run(
+                    [learning_obj.data_loss, learning_obj.score],
+                    feed_dict=feed_dict,
                 )
 
-                binder_desc = compute_val_test_desc(
-                    learning_obj,
-                    val_idx,
-                    val_binder_rho_wrt_center,
-                    val_binder_theta_wrt_center,
-                    val_binder_input_feat,
-                    val_binder_mask,
-                    batch_size=args.validation_batch_size,
-                    flip=True,
+            else:
+                _, training_loss, _, score = learning_obj.session.run(
+                    [
+                        learning_obj.optimizer,
+                        learning_obj.data_loss,
+                        learning_obj.norm_grad,
+                        learning_obj.score,
+                    ],
+                    feed_dict=feed_dict,
                 )
 
-                neg_desc = compute_val_test_desc(
-                    learning_obj,
-                    val_idx,
-                    val_neg_rho_wrt_center,
-                    val_neg_theta_wrt_center,
-                    val_neg_input_feat,
-                    val_neg_mask,
-                    batch_size=args.validation_batch_size,
+            n = len(score) // 2
+
+            pos_score = score[:n]
+            neg_score = score[n:]
+
+            if num_iter % args.num_iter_eval == 0:
+                logger.info('Evaluating at iteration %d', num_iter)
+
+                logger.info('Training loss: %f', training_loss)
+
+                roc_auc = 1 - compute_roc_auc(pos_score, neg_score)
+                logger.info('Training ROC-AUC: %f', roc_auc)
+
+                logger.info('Mean training positive score: %f', np.mean(1.0 / pos_score))
+                logger.info('Mean training negative score: %f', np.mean(1.0 / neg_score))
+
+                if args.validation_data:
+                    pos_desc = compute_val_test_desc(
+                        learning_obj,
+                        val_idx,
+                        val_pos_rho_wrt_center,
+                        val_pos_theta_wrt_center,
+                        val_pos_input_feat,
+                        val_pos_mask,
+                        batch_size=args.validation_batch_size,
+                    )
+
+                    binder_desc = compute_val_test_desc(
+                        learning_obj,
+                        val_idx,
+                        val_binder_rho_wrt_center,
+                        val_binder_theta_wrt_center,
+                        val_binder_input_feat,
+                        val_binder_mask,
+                        batch_size=args.validation_batch_size,
+                        flip=True,
+                    )
+
+                    neg_desc = compute_val_test_desc(
+                        learning_obj,
+                        val_idx,
+                        val_neg_rho_wrt_center,
+                        val_neg_theta_wrt_center,
+                        val_neg_input_feat,
+                        val_neg_mask,
+                        batch_size=args.validation_batch_size,
+                    )
+
+                    # Simply shuffle negative descriptors.
+                    np.random.shuffle(neg_desc)
+
+                    # Compute val ROC AUC.
+                    pos_dists = compute_dists(pos_desc, binder_desc)
+                    neg_dists = compute_dists(neg_desc, binder_desc)
+
+                    val_auc = 1 - compute_roc_auc(pos_dists, neg_dists)
+
+                    logger.info('Validation ROC-AUC: %f', val_auc)
+
+                    logger.info('Mean validation positive score: %f', np.mean(pos_dists))
+                    logger.info('Mean validation negative score: %f', np.mean(neg_dists))
+
+                    if val_auc > best_val_auc:
+                        logger.info('Lower validation ROC-AUC achieved, saving model...')
+
+                        best_val_auc = val_auc
+                        output_model = os.path.join(args.output, 'model')
+                        learning_obj.saver.save(learning_obj.session, output_model)
+
+        if args.validation_data is None:
+            logger.info('Saving model...')
+            output_model = os.path.join(args.output, 'model')
+            learning_obj.saver.save(learning_obj.session, output_model)
+
+    elif args.strategy == 'leave-one-out':
+        groups = np.array(args.data_groups).astype(int)
+        unique_groups = np.unique(groups)
+
+        (
+            idx, group_idx,
+            binder_rho_wrt_center, binder_theta_wrt_center, binder_input_feat, binder_mask,
+            pos_rho_wrt_center, pos_theta_wrt_center, pos_input_feat, pos_mask,
+            neg_rho_wrt_center, neg_theta_wrt_center, neg_input_feat, neg_mask
+        ) = aggregate_data(args.training,
+                           args.binder_name,
+                           args.positive_name,
+                           args.ply_dir,
+                           args.contact_distance,
+                           args.pos_surf_accept_probability,
+                           args.sc_min_cutoff,
+                           args.sc_max_cutoff,
+                           groups)
+
+        binder_input_feat = mask_input_feat(binder_input_feat, args.feat_mask)
+        pos_input_feat = mask_input_feat(pos_input_feat, args.feat_mask)
+        neg_input_feat = mask_input_feat(neg_input_feat, args.feat_mask)
+
+        for group in unique_groups:
+            logger.info('Starting training leaving out group %d', group)
+            learning_obj = MasifPPISearch(args.max_distance,
+                                          n_thetas=16,
+                                          n_rhos=5,
+                                          n_rotations=16,
+                                          idx_gpu='/gpu:0',
+                                          feat_mask=args.feat_mask)
+
+            if args.model:
+                learning_obj.saver.restore(learning_obj.session, args.model)
+
+            training_idx = idx[group_idx != group]
+            validation_idx = idx[group_idx == group]
+
+            if len(training_idx) == 0:
+                logger.warning('No training data available for group %d, skipping...')
+                continue
+
+            if len(validation_idx) == 0:
+                logger.warning('No validation data available for group %d, skipping...')
+                continue
+
+            logger.debug('Number of training shapes: %d', len(training_idx))
+            logger.debug('Number of validation shapes: %d', len(validation_idx))
+            logger.debug('Read %d positive shapes', len(pos_rho_wrt_center))
+            logger.debug('Read %d negative shapes', len(neg_rho_wrt_center))
+
+            best_val_auc = 0
+
+            pos_training_idx_copy = np.copy(training_idx)
+            neg_training_idx_copy = np.copy(training_idx)
+
+            logger.debug('Number of iterations: %d', args.num_iterations)
+
+            for num_iter in range(0, args.num_iterations + 1):
+                logger.debug('Iteration number %d', num_iter)
+                # Read dataset for training.
+                np.random.shuffle(pos_training_idx_copy)
+                np.random.shuffle(neg_training_idx_copy)
+
+                c_pos_training_idx = pos_training_idx_copy[: args.batch_size // 4]
+                c_neg_training_idx = neg_training_idx_copy[: args.batch_size // 4]
+
+                # Features and theta are flipped for the binder in construct_batch (except for hydrophobicity).
+                batch_rho_coords, batch_theta_coords, batch_input_feat, batch_mask = construct_batch(
+                    binder_rho_wrt_center,
+                    binder_theta_wrt_center,
+                    binder_input_feat,
+                    binder_mask,
+                    c_pos_training_idx,
+                    pos_rho_wrt_center,
+                    pos_theta_wrt_center,
+                    pos_input_feat,
+                    pos_mask,
+                    c_neg_training_idx,
+                    neg_rho_wrt_center,
+                    neg_theta_wrt_center,
+                    neg_input_feat,
+                    neg_mask,
                 )
 
-                # Simply shuffle negative descriptors.
-                np.random.shuffle(neg_desc)
+                assert len(batch_rho_coords) == args.batch_size
+                assert len(batch_theta_coords) == args.batch_size
+                assert len(batch_input_feat) == args.batch_size
+                assert len(batch_mask) == args.batch_size
 
-                # Compute val ROC AUC.
-                pos_dists = compute_dists(pos_desc, binder_desc)
-                neg_dists = compute_dists(neg_desc, binder_desc)
+                feed_dict = {
+                    learning_obj.rho_coords: batch_rho_coords,
+                    learning_obj.theta_coords: batch_theta_coords,
+                    learning_obj.input_feat: batch_input_feat,
+                    learning_obj.mask: batch_mask,
+                    learning_obj.keep_prob: 0.5,
+                }
 
-                val_auc = 1 - compute_roc_auc(pos_dists, neg_dists)
+                # Do not train during the first iteration
+                if num_iter == 0:
+                    training_loss, score = learning_obj.session.run(
+                        [learning_obj.data_loss, learning_obj.score],
+                        feed_dict=feed_dict,
+                    )
 
-                logger.info('Validation ROC-AUC: %f', val_auc)
+                else:
+                    _, training_loss, _, score = learning_obj.session.run(
+                        [
+                            learning_obj.optimizer,
+                            learning_obj.data_loss,
+                            learning_obj.norm_grad,
+                            learning_obj.score,
+                        ],
+                        feed_dict=feed_dict,
+                    )
 
-                logger.info('Mean validation positive score: %f', np.mean(pos_dists))
-                logger.info('Mean validation negative score: %f', np.mean(neg_dists))
+                n = len(score) // 2
 
-                if val_auc > best_val_auc:
-                    logger.info('Lower validation ROC-AUC achieved, saving model...')
+                pos_score = score[:n]
+                neg_score = score[n:]
 
-                    best_val_auc = val_auc
-                    output_model = os.path.join(args.output, 'model')
-                    learning_obj.saver.save(learning_obj.session, output_model)
+                if num_iter % args.num_iter_eval == 0:
+                    logger.info('Evaluating on group %d at iteration %d', group, num_iter)
 
-    if args.validation_data is None:
-        logger.info('Saving model...')
-        output_model = os.path.join(args.output, 'model')
-        learning_obj.saver.save(learning_obj.session, output_model)
+                    logger.info('Training loss: %f', training_loss)
+
+                    roc_auc = 1 - compute_roc_auc(pos_score, neg_score)
+                    logger.info('Training ROC-AUC: %f', roc_auc)
+
+                    logger.info('Mean training positive score: %f', np.mean(1.0 / pos_score))
+                    logger.info('Mean training negative score: %f', np.mean(1.0 / neg_score))
+
+                    pos_desc = compute_val_test_desc(
+                        learning_obj,
+                        validation_idx,
+                        pos_rho_wrt_center,
+                        pos_theta_wrt_center,
+                        pos_input_feat,
+                        pos_mask,
+                        batch_size=args.validation_batch_size,
+                    )
+
+                    binder_desc = compute_val_test_desc(
+                        learning_obj,
+                        validation_idx,
+                        binder_rho_wrt_center,
+                        binder_theta_wrt_center,
+                        binder_input_feat,
+                        binder_mask,
+                        batch_size=args.validation_batch_size,
+                        flip=True,
+                    )
+
+                    neg_desc = compute_val_test_desc(
+                        learning_obj,
+                        validation_idx,
+                        neg_rho_wrt_center,
+                        neg_theta_wrt_center,
+                        neg_input_feat,
+                        neg_mask,
+                        batch_size=args.validation_batch_size,
+                    )
+
+                    # Simply shuffle negative descriptors.
+                    np.random.shuffle(neg_desc)
+
+                    # Compute val ROC AUC.
+                    pos_dists = compute_dists(pos_desc, binder_desc)
+                    neg_dists = compute_dists(neg_desc, binder_desc)
+
+                    val_auc = 1 - compute_roc_auc(pos_dists, neg_dists)
+
+                    logger.info('Validation ROC-AUC: %f', val_auc)
+
+                    logger.info('Mean validation positive score: %f', np.mean(pos_dists))
+                    logger.info('Mean validation negative score: %f', np.mean(neg_dists))
+
+                    if val_auc > best_val_auc:
+                        logger.info('Lower validation ROC-AUC achieved, saving model...')
+
+                        best_val_auc = val_auc
+                        output_model = os.path.join(args.output, f'model_LOO_{group}')
+                        learning_obj.saver.save(learning_obj.session, output_model)
 
 
 if __name__ == '__main__':
