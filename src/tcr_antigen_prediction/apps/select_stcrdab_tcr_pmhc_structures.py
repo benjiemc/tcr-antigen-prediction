@@ -226,7 +226,7 @@ def remove_similar_structures(df: pd.DataFrame, threshold: float, stcrdab_path: 
             chain_maps.append(chain_map)
 
         distance_matrix = compute_structural_distances(structures, chain_maps, mhc_type)
-        clusters = AgglomerativeClustering(affinity='precomputed',
+        clusters = AgglomerativeClustering(metric='precomputed',
                                            distance_threshold=threshold,
                                            linkage='single',
                                            n_clusters=None).fit(distance_matrix).labels_
