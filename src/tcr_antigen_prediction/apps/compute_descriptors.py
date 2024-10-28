@@ -17,6 +17,7 @@
 import argparse
 import logging
 import os
+import sys
 
 import numpy as np
 
@@ -25,7 +26,9 @@ from tcr_antigen_prediction.models import MasifPPISearch
 
 logger = logging.getLogger()
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(prog=f'python -m {sys.modules[__name__].__spec__.name}',
+                                 description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
 
 parser.add_argument('--model', required=True, help='path to trained model')
 parser.add_argument('--output', '-o', required=True, help='path to output')

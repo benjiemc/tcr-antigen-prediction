@@ -17,6 +17,7 @@
 import argparse
 import logging
 import os
+import sys
 import numpy as np
 
 from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
@@ -27,7 +28,9 @@ logger = logging.getLogger()
 
 np.random.seed(0)
 
-parser = argparse.ArgumentParser()
+parser = argparse.ArgumentParser(prog=f'python -m {sys.modules[__name__].__spec__.name}',
+                                 description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
 
 parser.add_argument('--mode', choices=['ppi_search', 'site'], required=True,
                     help='mode to compute features')

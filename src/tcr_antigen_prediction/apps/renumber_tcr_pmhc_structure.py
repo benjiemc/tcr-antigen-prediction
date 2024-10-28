@@ -6,6 +6,7 @@ Requirements:
 '''
 import argparse
 import logging
+import sys
 
 import anarci
 from Bio.PDB import PDBIO, PDBParser
@@ -16,7 +17,9 @@ from tcr_antigen_prediction.structure import get_header
 
 logger = logging.getLogger()
 
-parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+parser = argparse.ArgumentParser(prog=f'python -m {sys.modules[__name__].__spec__.name}',
+                                 description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
 
 parser.add_argument('structure', help='path to the pdb structure file')
 parser.add_argument('--output', '-o', help='name of output structure file')

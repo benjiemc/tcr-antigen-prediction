@@ -3,6 +3,7 @@ import argparse
 import logging
 import os
 import random
+import sys
 
 import numpy as np
 import pandas as pd
@@ -20,7 +21,9 @@ from tcr_antigen_prediction.structure import get_sequence, get_header, extract_c
 
 logger = logging.getLogger()
 
-parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+parser = argparse.ArgumentParser(prog=f'python -m {sys.modules[__name__].__spec__.name}',
+                                 description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
 
 parser.add_argument('stcrdab', help='path to the STCRDab')
 

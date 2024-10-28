@@ -6,6 +6,7 @@ import argparse
 import itertools
 import logging
 import os
+import sys
 from collections import defaultdict
 from typing import List
 
@@ -20,7 +21,9 @@ from tcr_antigen_prediction.structure import bio_to_pandas
 
 logger = logging.getLogger()
 
-parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+parser = argparse.ArgumentParser(prog=f'python -m {sys.modules[__name__].__spec__.name}',
+                                 description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
 parser.add_argument('training_data', nargs='+', help='paths to training data for model')
 parser.add_argument('--strategy', choices=['regular', 'leave-one-out'], default='regular',
                     help="training strategy employed to train the model (Default: 'regular')")

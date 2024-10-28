@@ -14,7 +14,9 @@ from tcr_antigen_prediction.comparisons import compute_structural_distances
 
 logger = logging.getLogger()
 
-parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+parser = argparse.ArgumentParser(prog=f'python -m {sys.modules[__name__].__spec__.name}',
+                                 description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
 
 parser.add_argument('structures', help='path to directory containing structures')
 parser.add_argument('--output', '-o', help='path to output csv')

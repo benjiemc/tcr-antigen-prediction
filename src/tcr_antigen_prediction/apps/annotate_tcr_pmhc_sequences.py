@@ -1,6 +1,7 @@
 '''Get TCR CDR sequences and peptide sequences for a TCR:pMHC structure. Structure must be IMGT numbered.'''
 import argparse
 import logging
+import sys
 
 from Bio.PDB import PDBParser
 
@@ -10,7 +11,9 @@ from tcr_antigen_prediction.structure import get_sequence
 
 logger = logging.getLogger()
 
-parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+parser = argparse.ArgumentParser(prog=f'python -m {sys.modules[__name__].__spec__.name}',
+                                 description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
 
 parser.add_argument('structure', help='path to TCR:pMHC pdb structure')
 parser.add_argument('--output', '-o', help='output path')

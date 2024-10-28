@@ -18,6 +18,7 @@ import argparse
 import logging
 import os
 import shutil
+import sys
 import tempfile
 
 import pymesh
@@ -35,7 +36,9 @@ from tcr_antigen_prediction.triangulate import (fix_mesh,
 
 logger = logging.getLogger()
 
-parser = argparse.ArgumentParser(prog='PrepareStructure')
+parser = argparse.ArgumentParser(prog=f'python -m {sys.modules[__name__].__spec__.name}',
+                                 description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
 
 parser.add_argument('structure', help='Path to pdb structure.')
 parser.add_argument('--output', '-o', help='Path to output processed structure')

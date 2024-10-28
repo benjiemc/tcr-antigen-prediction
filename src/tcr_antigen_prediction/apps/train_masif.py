@@ -21,6 +21,7 @@ TODO Improve generalisability of module.
 import argparse
 import logging
 import os
+import sys
 from typing import List, Optional, Tuple
 
 import numpy as np
@@ -34,7 +35,9 @@ from tcr_antigen_prediction.models import MasifPPISearch
 
 logger = logging.getLogger()
 
-parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+parser = argparse.ArgumentParser(prog=f'python -m {sys.modules[__name__].__spec__.name}',
+                                 description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
 
 parser.add_argument('training', nargs='+', help='path to training data')
 parser.add_argument('--output', '-o', required=True, help='path to model output')

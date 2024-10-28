@@ -2,6 +2,7 @@
 import argparse
 import logging
 import re
+import sys
 
 import numpy as np
 from Bio.PDB import PDBParser
@@ -12,7 +13,9 @@ from tcr_antigen_prediction.structure import get_header
 
 logger = logging.getLogger()
 
-parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+parser = argparse.ArgumentParser(prog=f'python -m {sys.modules[__name__].__spec__.name}',
+                                 description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
 
 parser.add_argument('structure', help='path to pdb structure')
 parser.add_argument('--contact-distance', type=float, default=5.0,

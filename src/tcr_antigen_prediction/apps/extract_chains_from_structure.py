@@ -1,6 +1,7 @@
 '''Extract chains from a PDB structue into a new PDB file.'''
 import argparse
 import logging
+import sys
 
 from Bio.PDB import PDBParser, PDBIO
 
@@ -9,7 +10,9 @@ from tcr_antigen_prediction.structure import extract_chains
 
 logger = logging.getLogger()
 
-parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+parser = argparse.ArgumentParser(prog=f'python -m {sys.modules[__name__].__spec__.name}',
+                                 description=__doc__,
+                                 formatter_class=argparse.RawDescriptionHelpFormatter)
 
 parser.add_argument('structure', help='path to pdb file')
 parser.add_argument('--output', '-o', required=True, help='path to output pdb file')
