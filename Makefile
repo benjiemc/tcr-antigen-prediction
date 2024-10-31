@@ -12,12 +12,18 @@ data/raw/stcrdab:
 	@python -m tcr_antigen_prediction.apps.download_stcrdab $@
 	@touch $@
 
-data/interim/selected-stcrdab: data/raw/stcrdab data/external/masif_ppi_search_training_set.txt
+data/interim/selected-stcrdab: \
+	data/raw/stcrdab data/external/masif_ppi_search_training_set.txt \
+	data/interim/tcr_mhc_class_I_contacts.csv \
+	data/interim/tcr_mhc_class_II_contacts.csv
 	@python -m tcr_antigen_prediction.apps.select_stcrdab_tcr_pmhc_structures \
 		--seed 123 \
 		--tcr-types abTCR \
 		--mhc-types MH1 MH2 \
 		--antigen-types peptide \
+		--mhc-class-I-tcr-contact-residues $$(cut -d, -f2 $(word 3,$^) | sed 1d | sort | uniq | tr '\n' ' ') \
+		--mhc-class-II-alpha-chain-tcr-contact-residues $$(awk -F ',' '$$2 == "mhc_chain1" { print $$3 }' $(word 4,$^) | sort | uniq | tr '\n' ' ') \
+		--mhc-class-II-beta-chain-tcr-contact-residues $$(awk -F ',' '$$2 == "mhc_chain2" { print $$3 }' $(word 4,$^) | sort | uniq | tr '\n' ' ') \
 		--remove-structures-missing-residues \
 		--structural-similarity-cutoff 2.0 \
 		--pdb-ids-to-exclude $$(cut -d _ -f 1 $(word 2,$^) | tr '[:upper:]' '[:lower:]' | sort | uniq | tr '\n' ' ') \
