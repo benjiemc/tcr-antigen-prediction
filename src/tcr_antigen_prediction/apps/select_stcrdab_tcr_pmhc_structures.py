@@ -39,7 +39,7 @@ parser.add_argument('--mhc-class-II-beta-chain-tcr-contact-residues', nargs='+',
 
 data_split_group = parser.add_argument_group('Data Splits')
 data_split_group.add_argument('--train-split', type=float, default=0.70,
-                              help='proportion of data to assign to training (Default: 0.15)')
+                              help='proportion of data to assign to training (Default: 0.70)')
 data_split_group.add_argument('--validation-split', type=float, default=0.15,
                               help='proportion of data to assign to validation (Default: 0.15)')
 data_split_group.add_argument('--test-split', type=float, default=0.15,
