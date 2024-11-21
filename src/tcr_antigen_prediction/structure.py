@@ -3,7 +3,7 @@
 from collections.abc import Iterable
 
 import pandas as pd
-from Bio.PDB import Model, Structure
+from Bio.PDB import Chain, Model, Structure
 from Bio.SeqUtils import IUPACData
 
 PROTEIN_LETTERS: list[str] = [x.upper() for x in IUPACData.protein_letters_3to1]
@@ -121,3 +121,15 @@ def bio_to_pandas(structure: Structure.Structure) -> pd.DataFrame:
         column_names.append('model_index')
 
     return pd.DataFrame(records, columns=column_names)
+
+
+def replace_chain(structure: Structure.Structure, new_chain: Chain.Chain) -> Structure.Structure:
+    """Replace chain with a new chain in a PDB structure (does not modify original structure)."""
+    output_structure = structure.copy()
+    chain_id = new_chain.id
+
+    for model in output_structure:
+        model.detach_child(chain_id)
+        model.add(new_chain)
+
+    return output_structure

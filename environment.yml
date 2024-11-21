@@ -1,11 +1,13 @@
 name: tcr-antigen-prediction
 channels:
   - bioconda
+  - salilab
   - conda-forge
   - defaults
 dependencies:
   - hmmer
   - jupyter
+  - modeller
   - pip
   - python=3.11
   - snakemake

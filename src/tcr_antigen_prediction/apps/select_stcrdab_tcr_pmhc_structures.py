@@ -5,6 +5,7 @@ import logging
 import os
 import random
 import sys
+import tempfile
 
 import numpy as np
 import pandas as pd
@@ -13,14 +14,19 @@ from sklearn.cluster import AgglomerativeClustering
 
 from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
 from tcr_antigen_prediction.comparisons import compute_structural_distances
-from tcr_antigen_prediction.imgt_numbering import IMGT_CDR1, IMGT_CDR2, IMGT_CDR3
-from tcr_antigen_prediction.missing_residues import (
-    get_missing_atoms,
-    get_missing_residues,
-    screen_pmhc_abd,
-    screen_tcr_variable_domain,
+from tcr_antigen_prediction.imgt_numbering import (
+    IMGT_CDR,
+    IMGT_CDR1,
+    IMGT_CDR2,
+    IMGT_CDR3,
+    IMGT_FRAMEWORK_REGION,
+    IMGT_MH1_ABD,
+    IMGT_MH2_ABD,
+    renumber_chain,
 )
-from tcr_antigen_prediction.structure import extract_chains, get_header, get_sequence
+from tcr_antigen_prediction.missing_residues import get_alignment, get_missing_atoms, get_missing_residues, screen_chain
+from tcr_antigen_prediction.missing_residues.fix import predict_missing_residues
+from tcr_antigen_prediction.structure import extract_chains, get_header, get_sequence, replace_chain
 
 logger = logging.getLogger()
 
@@ -100,6 +106,15 @@ quality_group.add_argument(
     ),
 )
 quality_group.add_argument(
+    '--fix-structures-missing-residues',
+    action='store_true',
+    help=(
+        'Fix TCR:pMHC structures with missing residues in the TCR Fw region or '
+        'MHC antigen binding domain rather than discarding (to be used with '
+        '`--remove-structures-missing-residues)'
+    ),
+)
+quality_group.add_argument(
     '--structural-similarity-cutoff',
     type=float,
     default=None,
@@ -119,11 +134,21 @@ class SelectChains(Select):
         return chain.id in self.selected_chain_ids
 
 
-def screen_for_missing_residues(df: pd.DataFrame, stcrdab_path: str) -> pd.DataFrame:
+def screen_for_missing_residues(
+    df: pd.DataFrame, *, fix_structures: bool = False, fix_dir: str | None = None
+) -> pd.DataFrame:
     """Remove entries missing residues in the TCR variable region or pMHC antigen binding domain."""
 
-    def check_structure(
-        pdb_id, alpha_chain_id, beta_chain_id, antigen_chain_id, mhc_chain1_id, mhc_chain2_id, mhc_type
+    def check_structure(  # noqa: PLR0911 TODO refactor this function
+        pdb_id,
+        alpha_chain_id,
+        beta_chain_id,
+        antigen_chain_id,
+        mhc_chain1_id,
+        mhc_chain2_id,
+        mhc_type,
+        imgt_file_path,
+        raw_file_path,
     ):
         if mhc_type == 'MH1':
             mhc_chains = (mhc_chain1_id,)
@@ -142,9 +167,6 @@ def screen_for_missing_residues(df: pd.DataFrame, stcrdab_path: str) -> pd.DataF
             mhc_type,
         )
 
-        raw_file_path = os.path.join(stcrdab_path, 'raw', pdb_id + '.pdb')
-        imgt_file_path = os.path.join(stcrdab_path, 'imgt', pdb_id + '.pdb')
-
         with open(raw_file_path, 'r') as fh:
             header = get_header(fh.read())
 
@@ -155,33 +177,116 @@ def screen_for_missing_residues(df: pd.DataFrame, stcrdab_path: str) -> pd.DataF
         missing_atoms = get_missing_atoms(header)
         missing_residues = get_missing_residues(header)
 
+        fixed = False
+
         try:
-            return screen_tcr_variable_domain(
-                structure, raw_structure, (alpha_chain_id, beta_chain_id), missing_residues, missing_atoms
-            ) and screen_pmhc_abd(
-                structure, raw_structure, antigen_chain_id, mhc_chains, mhc_type, missing_residues, missing_atoms
-            )
+            logger.debug('Checking for missing residues or atoms in antigen chain (chain %s)', antigen_chain_id)
+            if antigen_chain_id in (
+                {res['chain_id'] for res in missing_residues} | {res['chain_id'] for res in missing_atoms}
+            ):
+                logger.debug('Missing elements found')
+                return 'missing'
+
+            for tcr_chain_id in alpha_chain_id, beta_chain_id:
+                logger.debug('Checking for missing residues or atoms in CDRs of chain %s', tcr_chain_id)
+                if not screen_chain(
+                    structure, raw_structure, tcr_chain_id, missing_residues, missing_atoms, IMGT_CDR, trim_ends=False
+                ):
+                    logger.debug('Missing elements found')
+                    return 'missing'
+
+                logger.debug('Checking for missing residues or atoms in framework region of chain %s', tcr_chain_id)
+                if not screen_chain(
+                    structure, raw_structure, tcr_chain_id, missing_residues, missing_atoms, IMGT_FRAMEWORK_REGION
+                ):
+                    logger.debug('Missing elements found')
+
+                    if fix_structures:
+                        logger.debug('Fixing chain')
+                        alignment = get_alignment(structure, raw_structure, tcr_chain_id, missing_residues)
+
+                        new_chain = predict_missing_residues(alignment, structure, tcr_chain_id)
+                        new_chain = renumber_chain(new_chain)
+                        structure = replace_chain(structure, new_chain)
+
+                        fixed = True
+
+                    else:
+                        return 'missing'
+
+            for mhc_chain_id in mhc_chains:
+                logger.debug(
+                    'Checking for missing residues or atoms in antigen binding domain of chain %s', mhc_chain_id
+                )
+                if not screen_chain(
+                    structure,
+                    raw_structure,
+                    mhc_chain_id,
+                    missing_residues,
+                    missing_atoms,
+                    IMGT_MH1_ABD if mhc_type == 'MH1' else IMGT_MH2_ABD,
+                ):
+                    logger.debug('Missing elements found')
+
+                    if fix_structures:
+                        logger.debug('Fixing chain')
+                        alignment = get_alignment(structure, raw_structure, mhc_chain_id, missing_residues)
+
+                        new_chain = predict_missing_residues(alignment, structure, mhc_chain_id)
+                        new_chain = renumber_chain(new_chain)
+                        structure = replace_chain(structure, new_chain)
+
+                        io = PDBIO()
+                        io.set_structure(structure)
+                        io.save(os.path.join(fix_dir, os.path.basename(imgt_file_path)))
+
+                        fixed = True
+
+                    else:
+                        return 'missing'
+
+            if fixed:
+                io = PDBIO()
+                io.set_structure(structure)
+                io.save(os.path.join(fix_dir, os.path.basename(imgt_file_path)))
+
+                return 'fixed'
+
         except KeyError:
             logger.warning(
-                'Chain ID not found in raw structure of %s and chains %s',
+                'Chain ID not found in raw structure of %s and chains %s. Structure will be removed.',
                 pdb_id,
                 '-'.join([alpha_chain_id, beta_chain_id, antigen_chain_id, *mhc_chains]),
             )
-            return False
+            return 'unknown'
 
-    valid_structures = df.apply(
+        else:
+            return 'complete'
+
+    structure_status = df.apply(
         lambda row: check_structure(
-            row.pdb, row.Achain, row.Bchain, row.antigen_chain, row.mhc_chain1, row.mhc_chain2, row.mhc_type
+            row.pdb,
+            row.Achain,
+            row.Bchain,
+            row.antigen_chain,
+            row.mhc_chain1,
+            row.mhc_chain2,
+            row.mhc_type,
+            row.imgt_file_path,
+            row.raw_file_path,
         ),
         axis=1,
     )
 
-    return df[valid_structures].copy()
+    return (
+        df[(structure_status != 'missing') & (structure_status != 'unknown')].copy(),
+        structure_status[(structure_status != 'missing') & (structure_status != 'unknown')].copy(),
+    )
 
 
-def add_cdr_sequences(pdb_id: str, alpha_chain_id: str, beta_chain_id: str, stcrdab_path: str) -> pd.Series:
+def add_cdr_sequences(pdb_id: str, alpha_chain_id: str, beta_chain_id: str, imgt_file_path: str) -> pd.Series:
     """Add CDR sequences from structures."""
-    structure = PDBParser().get_structure(pdb_id, os.path.join(stcrdab_path, 'imgt', pdb_id + '.pdb'))
+    structure = PDBParser().get_structure(pdb_id, imgt_file_path)
 
     sequences = {
         f'cdr_{chain_type[0]}{cdr_num}': get_sequence(structure, chain_id, numbering)
@@ -192,9 +297,9 @@ def add_cdr_sequences(pdb_id: str, alpha_chain_id: str, beta_chain_id: str, stcr
     return pd.Series(sequences).sort_index()
 
 
-def add_peptide_sequences(pdb_id: str, antigen_chain_id: str, stcrdab_path: str) -> str:
+def add_peptide_sequences(pdb_id: str, antigen_chain_id: str, imgt_file_path: str) -> str:
     """Add peptide sequences from structures."""
-    structure = PDBParser().get_structure(pdb_id, os.path.join(stcrdab_path, 'imgt', pdb_id + '.pdb'))
+    structure = PDBParser().get_structure(pdb_id, imgt_file_path)
 
     return get_sequence(structure, antigen_chain_id)
 
@@ -222,7 +327,7 @@ def add_mhc_tcr_contact_pseudo_sequences(
     raise ValueError(msg)
 
 
-def remove_similar_structures(df: pd.DataFrame, threshold: float, stcrdab_path: str) -> pd.DataFrame:
+def remove_similar_structures(df: pd.DataFrame, threshold: float) -> pd.DataFrame:
     """Remove structures with the same CDR and peptide sequences within the RMSD threshold.
 
     The highest resolution structure will be kept.
@@ -263,7 +368,7 @@ def remove_similar_structures(df: pd.DataFrame, threshold: float, stcrdab_path: 
 
             logger.debug('Collecting PDB ID: %s and extracting chains %s', row.pdb, '-'.join(chain_map.values()))
 
-            structure = pdb_parser.get_structure('', os.path.join(stcrdab_path, 'imgt', row.pdb + '.pdb'))
+            structure = pdb_parser.get_structure('', row.imgt_file_path)
             structure = extract_chains(structure, chain_map.values())
 
             structures.append(structure)
@@ -348,7 +453,20 @@ def main():
     if args.seed:
         random.seed(args.seed)
 
+    if args.fix_structures_missing_residues:
+        fix_dir = tempfile.TemporaryDirectory()
+        fix_dir_name = fix_dir.name
+
+    else:
+        fix_dir_name = None
+
     stcrdab_summary = pd.read_csv(os.path.join(args.stcrdab, 'db_summary.dat'), delimiter='\t')
+    stcrdab_summary['imgt_file_path'] = stcrdab_summary['pdb'].map(
+        lambda pdb_id: os.path.join(args.stcrdab, 'imgt', pdb_id + '.pdb'),
+    )
+    stcrdab_summary['raw_file_path'] = stcrdab_summary['pdb'].map(
+        lambda pdb_id: os.path.join(args.stcrdab, 'raw', pdb_id + '.pdb'),
+    )
 
     logger.info('Selecting structures...')
     selected_structures = stcrdab_summary
@@ -363,16 +481,27 @@ def main():
 
     if args.remove_structures_missing_residues:
         logger.debug('Removing structures missing residues')
-        selected_structures = screen_for_missing_residues(selected_structures, args.stcrdab)
+        selected_structures, structure_status = screen_for_missing_residues(
+            selected_structures,
+            fix_structures=args.fix_structures_missing_residues,
+            fix_dir=fix_dir_name,
+        )
+
+        if args.fix_structures_missing_residues:
+            selected_structures.loc[structure_status == 'fixed', 'imgt_file_path'] = selected_structures[
+                structure_status == 'fixed'
+            ]['imgt_file_path'].map(
+                lambda path: os.path.join(fix_dir_name, os.path.basename(path)),
+            )
 
     logger.info('Getting sequence information...')
     cdr_sequences = selected_structures.apply(
-        lambda row: add_cdr_sequences(row.pdb, row.Achain, row.Bchain, args.stcrdab),
+        lambda row: add_cdr_sequences(row.pdb, row.Achain, row.Bchain, row.imgt_file_path),
         axis=1,
     )
 
     peptide_sequences = selected_structures.apply(
-        lambda row: add_peptide_sequences(row.pdb, row.antigen_chain, args.stcrdab),
+        lambda row: add_peptide_sequences(row.pdb, row.antigen_chain, row.imgt_file_path),
         axis=1,
     )
     peptide_sequences.name = 'peptide_sequence'
@@ -441,9 +570,7 @@ def main():
 
     if args.structural_similarity_cutoff:
         logger.info('Removing structures within %.2f Å RMSD', args.structural_similarity_cutoff)
-        selected_structures = remove_similar_structures(
-            selected_structures, args.structural_similarity_cutoff, args.stcrdab
-        )
+        selected_structures = remove_similar_structures(selected_structures, args.structural_similarity_cutoff)
 
     logger.info(
         'Splitting data accoding to partions (Train: %.2f, Validation %.2f, and Test %.2f)',
@@ -531,7 +658,7 @@ def main():
 
     pdb_parser = PDBParser()
     for _, row in dataset.iterrows():
-        structure = pdb_parser.get_structure(row.pdb, os.path.join(args.stcrdab, 'imgt', f'{row.pdb}.pdb'))
+        structure = pdb_parser.get_structure(row.pdb, row.imgt_file_path)
         output_name = f'{row.pdb}_{row.Achain}{row.Bchain}{row.antigen_chain}{row.mhc_chain1}{row.mhc_chain2}.pdb'
 
         io = PDBIO()
@@ -540,6 +667,9 @@ def main():
             os.path.join(args.output, output_name),
             SelectChains(row.Achain, row.Bchain, row.antigen_chain, row.mhc_chain1, row.mhc_chain2),
         )
+
+    if args.fix_structures_missing_residues:
+        fix_dir.cleanup()
 
 
 if __name__ == '__main__':

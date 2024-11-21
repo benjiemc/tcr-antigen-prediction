@@ -15,6 +15,12 @@ git clone https://github.com/benjiemc/tcr-antigen-prediction.git
 cd tcr-antigen-prediction/
 ```
 
+> ### Using MODELLER to fix missing residues and atoms
+>
+> Parts of the data pipeline for this project use [MODELLER](https://salilab.org/modeller/) to fix structures missing atoms and residues. A license is required to use MODELLER. Please [register for a license](https://salilab.org/modeller/registration.html) and then set the license key as an evironment variable using the following command: `export KEY_MODELLER='XXXXXX'`, replacing XXXXXX with your assigned license key.
+>
+> Alternatively, the use of MODELLER can be manually disabled in the workflow steps.
+
 [Conda](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html) and [Snakemake](https://snakemake.readthedocs.io/en/stable/) are used to setup and manage the dependencies and workflows in this project. At a minimum, Conda is required to install the dependencies for the project (a version of Snakemake will be installed as a dependency).
 
 If **both Conda and Snakemake are installed**, simply run:

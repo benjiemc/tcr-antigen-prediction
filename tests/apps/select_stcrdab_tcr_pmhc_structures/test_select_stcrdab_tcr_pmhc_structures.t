@@ -55,6 +55,21 @@ Test removing structures missing residues
 
   $ diff output-no-missing-residues/stcrdab_split.csv $TESTDIR/reference/output-no-missing-residues/stcrdab_split.csv
 
+Test fixing structures missing reisdues
+  $ python -m tcr_antigen_prediction.apps.select_stcrdab_tcr_pmhc_structures \
+  > --log-level error \
+  > --seed 123 \
+  > --tcr-types abTCR \
+  > --mhc-types MH1 MH2 \
+  > --antigen-types peptide \
+  > --remove-structures-missing-residues \
+  > --fix-structures-missing-residues \
+  > -o output-fixed-missing-residues \
+  > $TESTDIR/data/stcrdab-mock/
+
+  $ diff output-fixed-missing-residues/stcrdab_split.csv $TESTDIR/reference/fixed-missing-residues/stcrdab_split.csv
+  $ diff output-fixed-missing-residues/3qiw_CDEAB.pdb $TESTDIR/reference/fixed-missing-residues/3qiw_CDEAB.pdb
+
 Test structural similarity cutoff
   $ python -m tcr_antigen_prediction.apps.select_stcrdab_tcr_pmhc_structures \
   > --log-level error \

@@ -3,11 +3,11 @@ from unittest import TestCase
 
 from Bio.PDB import PDBParser
 
+from tcr_antigen_prediction.imgt_numbering import IMGT_MH2_ABD, IMGT_VARIABLE_DOMAIN
 from tcr_antigen_prediction.missing_residues import (
     get_missing_atoms,
     get_missing_residues,
-    screen_pmhc_abd,
-    screen_tcr_variable_domain,
+    screen_chain,
     trim_start_and_end,
 )
 from tcr_antigen_prediction.structure import get_header
@@ -146,8 +146,8 @@ class TestTrimStartAndEnd(TestCase):
         )
 
 
-class TestScreenTCRVariableDomain(TestCase):
-    def test_3qiw(self):
+class TestScreenChain(TestCase):
+    def test_3qiw_pass(self):
         with open(os.path.join(TEST_DATA, '3qiw_raw.pdb')) as fh:
             header = get_header(fh.read())
 
@@ -159,12 +159,10 @@ class TestScreenTCRVariableDomain(TestCase):
         raw_structure = pdb_parser.get_structure('raw', os.path.join(TEST_DATA, '3qiw_raw.pdb'))
 
         self.assertTrue(
-            screen_tcr_variable_domain(structure, raw_structure, ('C', 'D'), missing_residues, missing_atoms)
+            screen_chain(structure, raw_structure, 'C', missing_residues, missing_atoms, IMGT_VARIABLE_DOMAIN)
         )
 
-
-class TestScreenPMHCABD(TestCase):
-    def test_3qiw(self):
+    def test_3qiw_fail(self):
         with open(os.path.join(TEST_DATA, '3qiw_raw.pdb')) as fh:
             header = get_header(fh.read())
 
@@ -175,6 +173,4 @@ class TestScreenPMHCABD(TestCase):
         structure = pdb_parser.get_structure('imgt', os.path.join(TEST_DATA, '3qiw_imgt.pdb'))
         raw_structure = pdb_parser.get_structure('raw', os.path.join(TEST_DATA, '3qiw_raw.pdb'))
 
-        self.assertFalse(
-            screen_pmhc_abd(structure, raw_structure, 'E', ('A', 'B'), 'MH2', missing_residues, missing_atoms)
-        )
+        self.assertFalse(screen_chain(structure, raw_structure, 'A', missing_residues, missing_atoms, IMGT_MH2_ABD))

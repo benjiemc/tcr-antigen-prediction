@@ -16,6 +16,7 @@ jobs:
             pip install pulp==2.7.0 snakemake
             eval $(ssh-agent -s)
             ssh-add - <<< "${{ secrets.ANARCI_TCR_PMHC_SSH_KEY }}"
+            export KEY_MODELLER=${{ secrets.MODELLER_KEY }}
             snakemake environment --quiet all --cores 1
             conda run -n tcr-antigen-prediction pip install '.[develop]'
       - name: Lint package
