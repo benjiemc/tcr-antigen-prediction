@@ -1,7 +1,11 @@
-.PHONY: all data data-external models lint test docs
+.PHONY: all environment data data-external models lint test docs
 
 
 all: data models
+
+environment:
+	conda env create -f environment.yml
+	conda run -n tcr-antigen-prediction python -m pip install .
 
 data: \
 	data/processed/selected-stcrdab_crop
