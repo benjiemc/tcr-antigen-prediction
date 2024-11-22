@@ -4,16 +4,14 @@
 all: data models
 
 data: \
-	data/processed/selected-stcrdab_crop \
-	data/processed/selected-stcrdab_feats \
-	data/processed/selected-stcrdab_ply
+	data/processed/selected-stcrdab_crop
 
 data/raw/stcrdab:
 	@python -m tcr_antigen_prediction.apps.download_stcrdab $@
 	@touch $@
 
 data/interim/selected-stcrdab: \
-	data/raw/stcrdab data/external/masif_ppi_search_training_set.txt \
+	data/raw/stcrdab \
 	data/interim/tcr_mhc_class_I_contacts.csv \
 	data/interim/tcr_mhc_class_II_contacts.csv
 	@python -m tcr_antigen_prediction.apps.select_stcrdab_tcr_pmhc_structures \
@@ -21,12 +19,11 @@ data/interim/selected-stcrdab: \
 		--tcr-types abTCR \
 		--mhc-types MH1 MH2 \
 		--antigen-types peptide \
-		--mhc-class-I-tcr-contact-residues $$(cut -d, -f2 $(word 3,$^) | sed 1d | sort | uniq | tr '\n' ' ') \
-		--mhc-class-II-alpha-chain-tcr-contact-residues $$(awk -F ',' '$$2 == "mhc_chain1" { print $$3 }' $(word 4,$^) | sort | uniq | tr '\n' ' ') \
-		--mhc-class-II-beta-chain-tcr-contact-residues $$(awk -F ',' '$$2 == "mhc_chain2" { print $$3 }' $(word 4,$^) | sort | uniq | tr '\n' ' ') \
+		--mhc-class-I-tcr-contact-residues $$(cut -d, -f2 $(word 2,$^) | sed 1d | sort | uniq | tr '\n' ' ') \
+		--mhc-class-II-alpha-chain-tcr-contact-residues $$(awk -F ',' '$$2 == "mhc_chain1" { print $$3 }' $(word 3,$^) | sort | uniq | tr '\n' ' ') \
+		--mhc-class-II-beta-chain-tcr-contact-residues $$(awk -F ',' '$$2 == "mhc_chain2" { print $$3 }' $(word 3,$^) | sort | uniq | tr '\n' ' ') \
 		--remove-structures-missing-residues \
 		--structural-similarity-cutoff 2.0 \
-		--pdb-ids-to-exclude $$(cut -d _ -f 1 $(word 2,$^) | tr '[:upper:]' '[:lower:]' | sort | uniq | tr '\n' ' ') \
 		-o $@ \
 		$(word 1,$^)
 	@touch $@
@@ -73,65 +70,8 @@ data/processed/selected-stcrdab_crop: data/interim/selected-stcrdab
 	@echo "All done."
 	@touch $@
 
-data/processed/selected-stcrdab_ply: data/processed/selected-stcrdab_crop
-	@mkdir -p $@
-	@head -n1 "$^/stcrdab_split.csv" > "$@/stcrdab_split.csv"
-	@num_lines=$$(cat "$^/stcrdab_split.csv" | wc -l); \
-	line=1; \
-	while [ $$line -lt $$num_lines ]; do \
-	    line=$$(expr $$line + 1); \
-	    pdb_id=$$(sed -n "$${line}p" "$^/stcrdab_split.csv" | cut -d ',' -f1); \
-	    alpha_chain=$$(sed -n "$${line}p" "$^/stcrdab_split.csv" | cut -d ',' -f2); \
-	    beta_chain=$$(sed -n "$${line}p" "$^/stcrdab_split.csv" | cut -d ',' -f3); \
-	    antigen_chain=$$(sed -n "$${line}p" "$^/stcrdab_split.csv" | cut -d ',' -f4); \
-	    mhc_chain1=$$(sed -n "$${line}p" "$^/stcrdab_split.csv" | cut -d ',' -f5); \
-	    mhc_chain2=$$(sed -n "$${line}p" "$^/stcrdab_split.csv" | cut -d ',' -f6); \
-	    chains="$${alpha_chain}$${beta_chain}$${antigen_chain}$${mhc_chain1}$${mhc_chain2}"; \
-	    echo "Working on $${pdb_id}_$${chains}..."; \
-	    echo "Computing TCR (chains $$alpha_chain and $$beta_chain)"; \
-	    python -m tcr_antigen_prediction.apps.prepare_structure "$^/$${pdb_id}_$${chains}.pdb" -o "$@" --chains $$alpha_chain $$beta_chain || continue; \
-	    echo "Computing pMHC (chains $$antigen_chain, $$mhc_chain1, and $$mhc_chain2)"; \
-	    python -m tcr_antigen_prediction.apps.prepare_structure "$^/$${pdb_id}_$${chains}.pdb" -o "$@" --chains $$antigen_chain $$mhc_chain1 $$mhc_chain2 || continue; \
-	    sed -n "$${line}p" "$^/stcrdab_split.csv" >> "$@/stcrdab_split.csv"; \
-	    echo "Finished Structure"; \
-	done
-	@echo "All done."
-	@touch $@
-
-data/processed/selected-stcrdab_feats: data/processed/selected-stcrdab_ply
-	@mkdir -p $@
-	@head -n1 "$^/stcrdab_split.csv" > "$@/stcrdab_split.csv"
-	@num_lines=$$(sed -n '$$=' "$^/stcrdab_split.csv"); \
-	line=1; \
-	while [ $$line -lt $$num_lines ]; do \
-	    line=$$(expr $$line + 1); \
-	    pdb_id=$$(sed -n "$${line}p" "$^/stcrdab_split.csv" | cut -d ',' -f1); \
-	    alpha_chain=$$(sed -n "$${line}p" "$^/stcrdab_split.csv" | cut -d ',' -f2); \
-	    beta_chain=$$(sed -n "$${line}p" "$^/stcrdab_split.csv" | cut -d ',' -f3); \
-	    antigen_chain=$$(sed -n "$${line}p" "$^/stcrdab_split.csv" | cut -d ',' -f4); \
-	    mhc_chain1=$$(sed -n "$${line}p" "$^/stcrdab_split.csv" | cut -d ',' -f5); \
-	    mhc_chain2=$$(sed -n "$${line}p" "$^/stcrdab_split.csv" | cut -d ',' -f6); \
-	    chains="$${alpha_chain}$${beta_chain}$${antigen_chain}$${mhc_chain1}$${mhc_chain2}"; \
-	    echo "Working on $$pdb_id chains $$chains..."; \
-	    output_name="$@/$${pdb_id}_$${chains}"; \
-		mkdir -p $$output_name; \
-	    python -m tcr_antigen_prediction.apps.compute_features \
-			--mode ppi_search \
-			-o "$$output_name" \
-			"$^/$${pdb_id}_$${chains}_$${alpha_chain}$${beta_chain}.ply" \
-			"$^/$${pdb_id}_$${chains}_$${antigen_chain}$${mhc_chain1}$${mhc_chain2}.ply" || continue; \
-	    sed -n "$${line}p" "$^/stcrdab_split.csv" >> "$@/stcrdab_split.csv"; \
-	    echo "Finished pair"; \
-	done
-	@echo "All done."
-	@touch $@
-
-data/external/masif_ppi_search_training_set.txt:
-	@wget -O $@ https://raw.githubusercontent.com/LPDI-EPFL/masif/master/data/masif_ppi_search/lists/training.txt
-
 data-external: \
-	data/processed/external_validation_data_selected_ply \
-	data/processed/external_validation_data_selected_feats
+    data/processed/external_validation_data_selected
 
 data/interim/external_validation_data_renumbered: data/external/ClassI_ternaries
 	@mkdir -p "$@"
@@ -236,77 +176,7 @@ data/processed/external_validation_data_selected: data/interim/external_validati
 	@cat "$@/structures_summary.csv" | sed 1d | cut -d, -f1 | xargs -I % cp $(word 1,$^)/%.pdb $@/
 	@touch $@
 
-data/processed/external_validation_data_selected_ply: data/processed/external_validation_data_selected
-	@mkdir -p $@
-	@head -n1 "$^/structures_summary.csv" > "$@/structures_summary.csv"
-	@num_lines=$$(cat "$^/structures_summary.csv" | wc -l); \
-	line=1; \
-	while [ $$line -lt $$num_lines ]; do \
-	    line=$$(expr $$line + 1); \
-	    name=$$(sed -n "$${line}p" "$^/structures_summary.csv" | cut -d ',' -f1); \
-	    alpha_chain=$$(sed -n "$${line}p" "$^/structures_summary.csv" | cut -d ',' -f2); \
-	    beta_chain=$$(sed -n "$${line}p" "$^/structures_summary.csv" | cut -d ',' -f3); \
-	    antigen_chain=$$(sed -n "$${line}p" "$^/structures_summary.csv" | cut -d ',' -f4); \
-	    mhc_chain1=$$(sed -n "$${line}p" "$^/structures_summary.csv" | cut -d ',' -f5); \
-	    mhc_chain2=$$(sed -n "$${line}p" "$^/structures_summary.csv" | cut -d ',' -f6); \
-		mhc_type=$$(sed -n "$${line}p" "$^/structures_summary.csv" | cut -d ',' -f7); \
-		echo "Working on $$name"; \
-	    echo "Computing TCR (chains $$alpha_chain and $$beta_chain)"; \
-	    python -m tcr_antigen_prediction.apps.prepare_structure "$^/$$name.pdb" -o "$@" --chains $$alpha_chain $$beta_chain || continue; \
-		if [ "$$mhc_type" = "MH1" ]; then \
-			echo "Computing pMHC-I (chains $$antigen_chain and $$mhc_chain1)"; \
-			python -m tcr_antigen_prediction.apps.prepare_structure "$^/$$name.pdb" -o "$@" --chains $$antigen_chain $$mhc_chain1 || continue; \
-		elif [ "$$mhc_type" = "MH2" ]; then \
-			echo "Computing pMHC-II (chains $$antigen_chain, $$mhc_chain1, and $$mhc_chain2)"; \
-			python -m tcr_antigen_prediction.apps.prepare_structure "$^/$$name.pdb" -o "$@" --chains $$antigen_chain $$mhc_chain1 $$mhc_chain2 || continue; \
-		else \
-			continue; \
-		fi; \
-	    sed -n "$${line}p" "$^/structures_summary.csv" >> "$@/structures_summary.csv"; \
-	    echo "Finished Structure"; \
-	done
-	@touch $@
-	@echo "All done."
-
-data/processed/external_validation_data_selected_feats: data/processed/external_validation_data_selected_ply
-	@mkdir -p $@
-	@head -n1 "$^/structures_summary.csv" > "$@/structures_summary.csv"
-	@num_lines=$$(sed -n '$$=' "$^/structures_summary.csv"); \
-	line=1; \
-	while [ $$line -lt $$num_lines ]; do \
-	    line=$$(expr $$line + 1); \
-	    name=$$(sed -n "$${line}p" "$^/structures_summary.csv" | cut -d ',' -f1); \
-	    alpha_chain=$$(sed -n "$${line}p" "$^/structures_summary.csv" | cut -d ',' -f2); \
-	    beta_chain=$$(sed -n "$${line}p" "$^/structures_summary.csv" | cut -d ',' -f3); \
-	    antigen_chain=$$(sed -n "$${line}p" "$^/structures_summary.csv" | cut -d ',' -f4); \
-	    mhc_chain1=$$(sed -n "$${line}p" "$^/structures_summary.csv" | cut -d ',' -f5); \
-	    mhc_chain2=$$(sed -n "$${line}p" "$^/structures_summary.csv" | cut -d ',' -f6); \
-		mhc_type=$$(sed -n "$${line}p" "$^/structures_summary.csv" | cut -d ',' -f7); \
-	    echo "Working on $$name..."; \
-	    output_name="$@/$$name"; \
-		mkdir -p $$output_name; \
-		if [ "$$mhc_type" = "MH1" ]; then \
-			python -m tcr_antigen_prediction.apps.compute_features \
-				--mode ppi_search \
-				-o "$$output_name" \
-				"$^/$${name}_$${alpha_chain}$${beta_chain}.ply" \
-				"$^/$${name}_$${antigen_chain}$${mhc_chain1}.ply" || continue; \
-		elif [ "$$mhc_type" = "MH2" ]; then \
-			python -m tcr_antigen_prediction.apps.compute_features \
-				--mode ppi_search \
-				-o "$$output_name" \
-				"$^/$${name}_$${alpha_chain}$${beta_chain}.ply" \
-				"$^/$${name}_$${antigen_chain}$${mhc_chain1}$${mhc_chain2}.ply" || continue; \
-		else \
-			continue; \
-		fi; \
-	    sed -n "$${line}p" "$^/structures_summary.csv" >> "$@/structures_summary.csv"; \
-	    echo "Finished pair"; \
-	done
-	@touch $@
-	@echo "All done."
-
-models: data models/TCRen models/baseline_masif_ppi models/finetune_masif_ppi
+models: data models/TCRen
 
 models/TCRen: data/processed/selected-stcrdab_crop
 	@mkdir -p $@
@@ -314,28 +184,6 @@ models/TCRen: data/processed/selected-stcrdab_crop
 		-o "$@/TCRen_probabilities.csv" \
 		--summary-csv "$^/stcrdab_split.csv" \
 		$$(cat "$^/stcrdab_split.csv" | grep "train" | awk -F, -v dir="$^" '{ printf "%s/%s_%s%s%s%s%s.pdb ", dir, $$1, $$2, $$3, $$4, $$5, $$6 }')
-
-models/finetune_masif_ppi: data/processed/selected-stcrdab_feats data/processed/selected-stcrdab_ply  models/baseline_masif_ppi
-	@python -m tcr_antigen_prediction.apps.train_masif \
-		-o $@ \
-		--validation-data $$(cat "$(word 1,$^)/stcrdab_split.csv" | grep "validation" | awk -F, -v dir="$(word 1,$^)" '{ printf "%s/%s_%s%s%s%s%s ", dir, $$1, $$2, $$3, $$4, $$5, $$6 }') \
-		--ply-dir "$(word 2,$^)" \
-		--model "$(word 3,$^)/model" \
-		--seed 123 \
-		--binder-name p2 \
-		--positive-name p1 \
-		--num_iterations 10_000 \
-		--num_iter_eval 250 \
-		--batch_size 32 \
-		--validation_batch_size 1000 \
-		--feat-mask 1.0 1.0 1.0 1.0 1.0 1.0 \
-		--contact-distance 5.0 \
-		--sc-max-cutoff 1.0 \
-		--sc-min-cutoff 0.5 \
-		--pos-surf-accept-probability 1.0 \
-		$$(cat "$(word 1,$^)/stcrdab_split.csv" | grep "train" | awk -F, -v dir="$(word 1,$^)" '{ printf "%s/%s_%s%s%s%s%s ", dir, $$1, $$2, $$3, $$4, $$5, $$6 }')
-	@rm "$@/checkpoint"
-	@touch $@
 
 lint:
 	@FL_STATUS=0; PY_STATUS=0; \

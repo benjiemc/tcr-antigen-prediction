@@ -13,8 +13,6 @@ dependencies = [
     "biopython",
     "pandas",
     "scikit-learn",
-    "torch",
-    "trimesh",
 ]
 
 [project.optional-dependencies]
