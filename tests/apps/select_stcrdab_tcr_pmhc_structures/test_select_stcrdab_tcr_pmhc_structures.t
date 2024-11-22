@@ -99,3 +99,20 @@ Test crop structures
   $ diff output-crop/3qiw_CDEAB.pdb $TESTDIR/reference/crop/3qiw_CDEAB.pdb
   $ diff output-crop/7q9b_DECAB.pdb $TESTDIR/reference/crop/7q9b_DECAB.pdb
   $ diff output-crop/7q9b_IJHFG.pdb $TESTDIR/reference/crop/7q9b_IJHFG.pdb
+
+Test remove HETATMs
+  $ python -m tcr_antigen_prediction.apps.select_stcrdab_tcr_pmhc_structures \
+  > --log-level error \
+  > --seed 123 \
+  > --tcr-types abTCR \
+  > --mhc-types MH1 MH2 \
+  > --antigen-types peptide \
+  > --remove-het-atoms \
+  > -o output-no-het-atoms \
+  > $TESTDIR/data/stcrdab-mock/
+
+  $ diff output-no-het-atoms/stcrdab_split.csv $TESTDIR/reference/no-het-atoms/stcrdab_split.csv
+
+  $ diff output-no-het-atoms/3qiw_CDEAB.pdb $TESTDIR/reference/no-het-atoms/3qiw_CDEAB.pdb
+  $ diff output-no-het-atoms/7q9b_DECAB.pdb $TESTDIR/reference/no-het-atoms/7q9b_DECAB.pdb
+  $ diff output-no-het-atoms/7q9b_IJHFG.pdb $TESTDIR/reference/no-het-atoms/7q9b_IJHFG.pdb

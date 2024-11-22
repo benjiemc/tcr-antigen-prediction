@@ -9,7 +9,7 @@ import tempfile
 
 import numpy as np
 import pandas as pd
-from Bio.PDB import PDBIO, PDBParser, Select
+from Bio.PDB import PDBIO, PDBParser
 from sklearn.cluster import AgglomerativeClustering
 
 from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
@@ -26,7 +26,14 @@ from tcr_antigen_prediction.imgt_numbering import (
 )
 from tcr_antigen_prediction.missing_residues import get_alignment, get_missing_atoms, get_missing_residues, screen_chain
 from tcr_antigen_prediction.missing_residues.fix import predict_missing_residues
-from tcr_antigen_prediction.structure import crop_structure, extract_chains, get_header, get_sequence, replace_chain
+from tcr_antigen_prediction.structure import (
+    crop_structure,
+    extract_chains,
+    get_header,
+    get_sequence,
+    remove_het_atoms,
+    replace_chain,
+)
 
 logger = logging.getLogger()
 
@@ -97,6 +104,7 @@ structure_type_group.add_argument(
     action='store_true',
     help=('Crop TCR:pMHC structures to the TCR variable domain and MHC antigen binding ' 'domain.'),
 )
+structure_type_group.add_argument('--remove-het-atoms', action='store_true', help='Remove heteroatoms from structures')
 
 quality_group = parser.add_argument_group('Quality Selection')
 quality_group.add_argument(
@@ -127,16 +135,6 @@ quality_group.add_argument(
 )
 
 add_logging_arguments(parser)
-
-
-class SelectChains(Select):
-    """Select chains to output."""
-
-    def __init__(self, *chain_ids):
-        self.selected_chain_ids = chain_ids
-
-    def accept_chain(self, chain):
-        return chain.id in self.selected_chain_ids
 
 
 def screen_for_missing_residues(
@@ -667,6 +665,10 @@ def main():
         output_name = f'{row.pdb}_{row.Achain}{row.Bchain}{row.antigen_chain}{row.mhc_chain1}{row.mhc_chain2}.pdb'
         output_chains = [row.Achain, row.Bchain, row.antigen_chain, row.mhc_chain1, row.mhc_chain2]
 
+        if args.remove_het_atoms:
+            logger.debug('Removing hetero atoms')
+            structure = remove_het_atoms(structure)
+
         if args.crop_structures:
             logger.debug('Cropping structure')
             match row.mhc_type:
@@ -680,9 +682,11 @@ def main():
                         structure, (row.Achain, row.Bchain), (row.mhc_chain1, row.mhc_chain2), row.mhc_type
                     )
 
+        structure = extract_chains(structure, output_chains)
+
         io = PDBIO()
         io.set_structure(structure)
-        io.save(os.path.join(args.output, output_name), SelectChains(*output_chains))
+        io.save(os.path.join(args.output, output_name))
 
     if args.fix_structures_missing_residues:
         fix_dir.cleanup()

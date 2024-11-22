@@ -4,7 +4,7 @@ import logging
 from collections.abc import Iterable
 
 import pandas as pd
-from Bio.PDB import Chain, Model, Residue, Select, Structure
+from Bio.PDB import Chain, Model, Structure
 from Bio.SeqUtils import IUPACData
 
 from tcr_antigen_prediction.imgt_numbering import IMGT_MH1_ABD, IMGT_MH2_ABD, IMGT_VARIABLE_DOMAIN
@@ -219,9 +219,22 @@ def crop_structure(  # noqa: C901
     return cropped_structure
 
 
-class NonHetSelect(Select):
-    """Selection criteria for non het atms."""
+def remove_het_atoms(structure: Structure.Structure) -> Structure.Structure:
+    """Remove hetero atoms from structure."""
+    output_structure = Structure.Structure(structure.id)
 
-    def accept_residue(self, residue: Residue.Residue) -> int:
-        """Accept residue if it is not a het atom."""
-        return 1 if residue.id[0] == ' ' else 0
+    for model in structure:
+        new_model = Model.Model(model.id)
+
+        for chain in model:
+            new_chain = Chain.Chain(chain.id)
+
+            for res in chain:
+                if res.id[0] == ' ':
+                    new_chain.add(res.copy())
+
+            new_model.add(new_chain)
+
+        output_structure.add(new_model)
+
+    return output_structure

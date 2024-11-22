@@ -7,7 +7,7 @@ import sys
 from Bio.PDB import PDBIO, PDBParser
 
 from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
-from tcr_antigen_prediction.structure import NonHetSelect, crop_structure, extract_chains
+from tcr_antigen_prediction.structure import crop_structure, extract_chains, remove_het_atoms
 
 logger = logging.getLogger()
 
@@ -43,18 +43,14 @@ def main():
         structure, args.tcr_chains, args.mhc_chains, 'MH1' if len(args.mhc_chains) == 1 else 'MH2'
     )
 
+    if args.remove_het_atoms:
+        logger.info('Removing hetero atoms')
+        cropped_structure = remove_het_atoms(cropped_structure)
+
     logger.info('Saving structure')
     io = PDBIO()
     io.set_structure(cropped_structure)
-
-    if args.remove_het_atoms:
-        logger.info('Removing hetero atoms')
-        logger.info('Saving structure')
-        io.save(args.output, NonHetSelect())
-
-    else:
-        logger.info('Saving structure')
-        io.save(args.output)
+    io.save(args.output)
 
 
 if __name__ == '__main__':
