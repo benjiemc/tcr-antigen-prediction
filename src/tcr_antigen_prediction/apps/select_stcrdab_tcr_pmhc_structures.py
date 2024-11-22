@@ -463,7 +463,10 @@ def main():
     else:
         fix_dir_name = None
 
+    logger.info('Loading STCRDab summary')
     stcrdab_summary = pd.read_csv(os.path.join(args.stcrdab, 'db_summary.dat'), delimiter='\t')
+    logger.info('Number of structures: %d', len(stcrdab_summary))
+
     stcrdab_summary['imgt_file_path'] = stcrdab_summary['pdb'].map(
         lambda pdb_id: os.path.join(args.stcrdab, 'imgt', pdb_id + '.pdb'),
     )
@@ -471,24 +474,35 @@ def main():
         lambda pdb_id: os.path.join(args.stcrdab, 'raw', pdb_id + '.pdb'),
     )
 
-    logger.info('Selecting structures...')
+    logger.info(
+        'Selecting structures (TCRs: %s, MHCs: %s, antigens: %s)',
+        ', '.join(args.tcr_types),
+        ', '.join(args.mhc_types),
+        ', '.join(args.antigen_types),
+    )
     selected_structures = stcrdab_summary
     selected_structures = selected_structures.query('TCRtype in @args.tcr_types')
     selected_structures = selected_structures.query('mhc_type in @args.mhc_types')
     selected_structures = selected_structures.query('antigen_type in @args.antigen_types')
     selected_structures = selected_structures.copy()
 
-    logger.info('Screening Quality...')
+    logger.info('Number of structures: %d', len(selected_structures))
+
+    logger.info('Screening structures above %.2f Å resolution', args.resolution_cutoff)
     selected_structures['resolution'] = pd.to_numeric(selected_structures['resolution'], errors='coerce')
     selected_structures = selected_structures.query('resolution <= @args.resolution_cutoff')
 
+    logger.info('Number of structures: %d', len(selected_structures))
+
     if args.remove_structures_missing_residues:
-        logger.debug('Removing structures missing residues')
+        logger.info('Removing structures missing residues')
         selected_structures, structure_status = screen_for_missing_residues(
             selected_structures,
             fix_structures=args.fix_structures_missing_residues,
             fix_dir=fix_dir_name,
         )
+
+        logger.info('Number of structures: %d', len(selected_structures))
 
         if args.fix_structures_missing_residues:
             selected_structures.loc[structure_status == 'fixed', 'imgt_file_path'] = selected_structures[
@@ -575,8 +589,10 @@ def main():
         logger.info('Removing structures within %.2f Å RMSD', args.structural_similarity_cutoff)
         selected_structures = remove_similar_structures(selected_structures, args.structural_similarity_cutoff)
 
+        logger.info('Number of structures: %d', len(selected_structures))
+
     logger.info(
-        'Splitting data accoding to partions (Train: %.2f, Validation %.2f, and Test %.2f)',
+        'Splitting data according to partions (Train: %.2f, Validation %.2f, and Test %.2f)',
         args.train_split,
         args.validation_split,
         args.test_split,
@@ -664,6 +680,8 @@ def main():
         structure = pdb_parser.get_structure(row.pdb, row.imgt_file_path)
         output_name = f'{row.pdb}_{row.Achain}{row.Bchain}{row.antigen_chain}{row.mhc_chain1}{row.mhc_chain2}.pdb'
         output_chains = [row.Achain, row.Bchain, row.antigen_chain, row.mhc_chain1, row.mhc_chain2]
+
+        logger.debug('Outputting %s...', output_name)
 
         if args.remove_het_atoms:
             logger.debug('Removing hetero atoms')
