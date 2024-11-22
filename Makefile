@@ -191,8 +191,8 @@ models/TCRen: data/processed/selected-stcrdab_crop
 
 lint:
 	@FL_STATUS=0; PY_STATUS=0; \
-	flake8 src || FL_STATUS=$$?; \
-	pylint src || PY_STATUS=$$?; \
+	flake8 src tests || FL_STATUS=$$?; \
+	pylint src tests || PY_STATUS=$$?; \
 	exit $$(($$FL_STATUS | $$PY_STATUS))
 
 test:

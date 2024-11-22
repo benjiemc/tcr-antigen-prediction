@@ -38,7 +38,7 @@ class ComputeStructuralDistances(TestCase):
                                                          'beta_chain': 'E',
                                                          'antigen_chain': 'C',
                                                          'mhc_chain1': 'A',
-                                                         'mhc_chain2': 'B',},
+                                                         'mhc_chain2': 'B'},
                                                         {'alpha_chain': 'I',
                                                          'beta_chain': 'J',
                                                          'antigen_chain': 'H',
