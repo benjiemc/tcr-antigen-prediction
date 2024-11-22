@@ -190,7 +190,7 @@ def main():
                             pdb_id, alpha_chain, beta_chain, antigen_chain, mhc_chain1, mhc_chain2, eval_tcren)
 
         logger.info('Outputting pottentials to %s', args.output)
-        tcren.to_csv(args.output)
+        tcren.sort_values(['tcr_cdr_residue', 'peptide_residue']).to_csv(args.output)
 
     elif args.strategy == 'leave-one-out':
         logger.info('Loading data and finding contacting residues')
@@ -237,7 +237,7 @@ def main():
                 f"{base_output_name.split('.', 1)[0]}_LOO_{group}.{base_output_name.split('.', 1)[-1]}",
             )
             logger.info('Outputting potentials to %s', output_name)
-            tcren.to_csv(output_name)
+            tcren.sort_values(['tcr_cdr_residue', 'peptide_residue']).to_csv(output_name)
 
 
 if __name__ == '__main__':
