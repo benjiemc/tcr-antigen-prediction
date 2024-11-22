@@ -100,6 +100,7 @@ dependencies:
   - parso=0.8.4=pyhd8ed1ab_0
   - pexpect=4.9.0=pyhd8ed1ab_0
   - pickleshare=0.7.5=py_1003
+  - pip
   - pkgutil-resolve-name=1.3.10=pyhd8ed1ab_1
   - platformdirs=4.3.6=pyhd8ed1ab_0
   - prometheus_client=0.21.0=pyhd8ed1ab_0
@@ -252,7 +253,6 @@ dependencies:
       - sphinxcontrib-serializinghtml==2.0.0
       - suds-community==1.2.0
       - sympy==1.13.1
-      - tcr-antigen-prediction==0.0.0
       - tenacity==9.0.0
       - threadpoolctl==3.5.0
       - tomlkit==0.13.2
