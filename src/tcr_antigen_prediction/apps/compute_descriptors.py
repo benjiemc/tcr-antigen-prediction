@@ -20,6 +20,7 @@ import os
 import sys
 
 import numpy as np
+import torch
 
 from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
 from tcr_antigen_prediction.models import MasifPPISearch
@@ -53,18 +54,23 @@ params = {
 }
 
 
-def mask_input_feat(input_feat, mask):
+def mask_input_feat(input_feat: np.ndarray, mask: np.ndarray):
     '''Apply mask to input_feat'''
-    mymask = np.where(np.array(mask) == 0.0)[0]
+    mymask = np.where(mask == 0.0)[0]
     return np.delete(input_feat, mymask, axis=2)
 
 
-def construct_batch(c_idx, rho_wrt_center, theta_wrt_center, input_feat, mask, flip=False):
+def construct_batch(c_idx: np.ndarray,
+                    input_feat: np.ndarray,
+                    rho_wrt_center: np.ndarray,
+                    theta_wrt_center: np.ndarray,
+                    mask: np.ndarray,
+                    flip=False):
+    '''Construct a batch from the indices.'''
+    batch_input_feat = input_feat[c_idx]
     batch_rho_coords = np.expand_dims(rho_wrt_center[c_idx], 2)
     batch_theta_coords = np.expand_dims(theta_wrt_center[c_idx], 2)
-    batch_input_feat = input_feat[c_idx]
-    batch_mask = mask[c_idx]
-    batch_mask = np.expand_dims(batch_mask, 2)
+    batch_mask = np.expand_dims(mask[c_idx], 2)
 
     # Flip features and theta (except hydrophobicity)
     if flip:
@@ -80,14 +86,15 @@ def construct_batch(c_idx, rho_wrt_center, theta_wrt_center, input_feat, mask, f
     return batch_rho_coords, batch_theta_coords, batch_input_feat, batch_mask
 
 
-def compute_descriptors(learning_obj,
-                        idx,
-                        rho_wrt_center,
-                        theta_wrt_center,
-                        input_feat,
-                        mask,
-                        batch_size=100,
-                        flip=False):
+def compute_descriptors(model: torch.nn.Module,
+                        idx: np.ndarray,
+                        input_feat: np.ndarray,
+                        rho_wrt_center: np.ndarray,
+                        theta_wrt_center: np.ndarray,
+                        mask: np.ndarray,
+                        batch_size: int = 100,
+                        flip: bool = False,
+                        device: str = 'cpu'):
     all_descs = []
     num_batches = int(np.ceil(float(len(idx)) / float(batch_size)))
 
@@ -95,20 +102,11 @@ def compute_descriptors(learning_obj,
     for kk in range(num_batches):
         c_idx = idx[np.arange(kk * batch_size, min((kk + 1) * batch_size, len(idx)))]
 
-        batch_rho_coords, batch_theta_coords, batch_input_feat, batch_mask = construct_batch(
-            c_idx, rho_wrt_center, theta_wrt_center, input_feat, mask, flip=flip
-        )
+        batch = construct_batch(c_idx, input_feat, rho_wrt_center, theta_wrt_center, mask, flip=flip)
+        batch = [torch.from_numpy(item).to(device) for item in batch]
 
-        feed_dict = {
-            learning_obj.rho_coords: batch_rho_coords,
-            learning_obj.theta_coords: batch_theta_coords,
-            learning_obj.input_feat: batch_input_feat,
-            learning_obj.mask: batch_mask,
-            learning_obj.keep_prob: 1.0,
-        }
-
-        desc = learning_obj.session.run([learning_obj.global_desc], feed_dict=feed_dict)
-        desc = np.squeeze(desc)
+        desc = model(*batch)
+        desc = np.squeeze(desc.numpy())
 
         if len(desc.shape) == 1:
             desc = np.expand_dims(desc, 0)
@@ -128,15 +126,21 @@ def main() -> None:
     args = parser.parse_args()
     setup_logger(logger, args.log_level, args.log_file)
 
-    learning_obj = MasifPPISearch(
-        params['max_distance'],
-        n_thetas=16,
-        n_rhos=5,
-        n_rotations=16,
-        idx_gpu='/gpu:0',
-        feat_mask=params['feat_mask'],
-    )
-    learning_obj.saver.restore(learning_obj.session, args.model)
+    model = MasifPPISearch(params['max_distance'],
+                           n_thetas=16,
+                           n_rhos=5,
+                           n_rotations=16,
+                           feat_mask=params['feat_mask'])
+    model.load_state_dict(torch.load(args.model, weights_only=True))
+
+    if torch.cuda.is_available():
+        device = torch.device('cuda')
+
+    else:
+        logger.warning('CUDA is not avaible, running on CPU which can be slow')
+        device = torch.device('cpu')
+
+    model.to(device)
 
     if not os.path.exists(args.output):
         os.mkdir(args.output)
@@ -154,33 +158,35 @@ def main() -> None:
             os.mkdir(out_desc_dir)
 
         for pid in 'p1', 'p2':
+            input_feat = np.load(os.path.join(ppi_pair_id, pid + '_input_feat.npy'))
+            input_feat = mask_input_feat(input_feat, np.array(params['feat_mask']))
+
             rho_wrt_center = np.load(os.path.join(ppi_pair_id, pid + '_rho_wrt_center.npy'))
             theta_wrt_center = np.load(os.path.join(ppi_pair_id, pid + '_theta_wrt_center.npy'))
-
-            input_feat = np.load(os.path.join(ppi_pair_id, pid + '_input_feat.npy'))
-            input_feat = mask_input_feat(input_feat, params['feat_mask'])
 
             mask = np.load(os.path.join(ppi_pair_id, pid + '_mask.npy'))
 
             idx = np.array(range(len(rho_wrt_center)))
 
-            desc_str = compute_descriptors(learning_obj,
+            desc_str = compute_descriptors(model,
                                            idx,
+                                           input_feat,
                                            rho_wrt_center,
                                            theta_wrt_center,
-                                           input_feat,
                                            mask,
                                            batch_size=1000,
-                                           flip=False)
+                                           flip=False,
+                                           device=device)
 
-            desc_flip = compute_descriptors(learning_obj,
+            desc_flip = compute_descriptors(model,
                                             idx,
+                                            input_feat,
                                             rho_wrt_center,
                                             theta_wrt_center,
-                                            input_feat,
                                             mask,
                                             batch_size=1000,
-                                            flip=True)
+                                            flip=True,
+                                            device=device)
 
             np.save(os.path.join(out_desc_dir, f'{pid}_desc_straight.npy'), desc_str)
             np.save(os.path.join(out_desc_dir, f'{pid}_desc_flipped.npy'), desc_flip)
