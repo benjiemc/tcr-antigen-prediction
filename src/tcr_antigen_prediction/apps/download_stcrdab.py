@@ -13,6 +13,7 @@ logger = logging.getLogger()
 parser = argparse.ArgumentParser(prog=f'python -m {sys.modules[__name__].__spec__.name}',
                                  description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
+
 parser.add_argument('output', help='path to the downloaded data directory eg. some/path/stcrdab')
 
 add_logging_arguments(parser)
@@ -21,6 +22,8 @@ STCRDAB_BASE_URL = 'https://opig.stats.ox.ac.uk/webapps/stcrdab-stcrpred'
 STCRDAB_SUMMARY_FILE_URL = f'{STCRDAB_BASE_URL}/summary/all'
 STCRDAB_IMGT_STRUCTURE_BASE_URL = f'{STCRDAB_BASE_URL}/pdb/%s'
 STCRDAB_RAW_STRUCTURE_BASE_URL = f'{STCRDAB_IMGT_STRUCTURE_BASE_URL}?raw=true'
+
+TIMEOUT_LENGTH: float = 60.0
 
 
 def main():
@@ -31,7 +34,7 @@ def main():
     os.mkdir(args.output)
 
     logger.info('Downloading summary file')
-    suumary_req = requests.get(STCRDAB_SUMMARY_FILE_URL)
+    suumary_req = requests.get(STCRDAB_SUMMARY_FILE_URL, timeout=TIMEOUT_LENGTH)
     summary_file_contents = suumary_req.text
 
     with open(os.path.join(args.output, 'db_summary.dat'), 'w') as fh:
@@ -47,7 +50,7 @@ def main():
         logger.info('Downloading PDB ID: %s', pdb_id)
 
         for download_type, url in ('imgt', STCRDAB_IMGT_STRUCTURE_BASE_URL), ('raw', STCRDAB_RAW_STRUCTURE_BASE_URL):
-            pdb_req = requests.get(url % pdb_id)
+            pdb_req = requests.get(url % pdb_id, timeout=TIMEOUT_LENGTH)
 
             with open(os.path.join(args.output, download_type, pdb_id + '.pdb'), 'w') as fh:
                 fh.write(pdb_req.text)
