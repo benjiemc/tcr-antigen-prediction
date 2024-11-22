@@ -20,7 +20,7 @@ import tempfile
 from subprocess import Popen, PIPE
 
 import numpy as np
-import pymesh
+import trimesh
 from Bio.PDB import PDBParser, Selection, NeighborSearch
 from Bio.PDB.vectors import Vector, calc_angle, calc_dihedral
 from numpy.matlib import repmat
@@ -310,9 +310,11 @@ def compute_hydrophobicity(names):
 
 
 def fix_mesh(mesh, resolution=1.0, detail='normal'):
-    bbox_min, bbox_max = mesh.bbox
+    # Calculate the target length based on the detail level
+    bbox_min, bbox_max = mesh.bounds
     diag_len = np.linalg.norm(bbox_max - bbox_min)
 
+    # TODO write this as a match statement
     if detail == 'normal':
         target_len = diag_len * 5e-3
 
@@ -322,38 +324,91 @@ def fix_mesh(mesh, resolution=1.0, detail='normal'):
     elif detail == 'low':
         target_len = diag_len * 1e-2
 
+    # TODO this should be in the if statement
     target_len = resolution
 
-    mesh, _ = pymesh.remove_duplicated_vertices(mesh, 0.001)
+    mesh.update_faces(mesh.nondegenerate_faces())
 
-    count = 0
+    mesh = split_long_edges(mesh, target_len) # TODO move this into the loop?
+    num_vertices = len(mesh.vertices)
 
-    logger.info('Removing degenerated triangles')
-    mesh, _ = pymesh.remove_degenerated_triangles(mesh, 100)
-    mesh, _ = pymesh.split_long_edges(mesh, target_len)
-    num_vertices = mesh.num_vertices
+    for _ in range(10):
+        mesh = collapse_short_edges(mesh, target_len)
+        mesh = remove_obtuse_triangles(mesh, max_angle=150.0)
 
-    while True:
-        mesh, _ = pymesh.collapse_short_edges(mesh, 1e-6)
-        mesh, _ = pymesh.collapse_short_edges(mesh, target_len, preserve_feature=True)
-        mesh, _ = pymesh.remove_obtuse_triangles(mesh, 150.0, 100)
-
-        if mesh.num_vertices == num_vertices:
+        if len(mesh.vertices) == num_vertices:
+            logger.debug('Number of vertices stabilised')
             break
 
-        num_vertices = mesh.num_vertices
-        count += 1
+        num_vertices = len(mesh.vertices)
 
-        if count > 10:
-            break
+    else:
+        logger.debug('Max iterations reached')
 
-    mesh = pymesh.resolve_self_intersection(mesh)
-    mesh, _ = pymesh.remove_duplicated_faces(mesh)
-    mesh = pymesh.compute_outer_hull(mesh)
-    mesh, _ = pymesh.remove_duplicated_faces(mesh)
-    mesh, _ = pymesh.remove_obtuse_triangles(mesh, 179.0, 5)
-    mesh, _ = pymesh.remove_isolated_vertices(mesh)
-    mesh, _ = pymesh.remove_duplicated_vertices(mesh, 0.001)
+    # Handle self-intersections and isolated vertices
+    mesh = mesh.split(only_watertight=True)[0]  # Keep only the largest connected component
+    mesh.update_faces(mesh.unique_faces())
+    mesh.remove_unreferenced_vertices()
+
+    return mesh
+
+
+def split_long_edges(mesh: trimesh.Trimesh, max_length: float) -> trimesh.Trimesh:
+    '''Split edges that are longer then the max length in half and create the new faces in the mesh.'''
+    output_mesh = mesh.copy()
+    long_edges = output_mesh.edges_unique[output_mesh.edges_unique_length > max_length]
+
+    for edge in long_edges:
+        midpoint = output_mesh.vertices[edge].mean(axis=0)
+
+        midpoint_index = len(output_mesh.vertices)
+        output_mesh.vertices = np.vstack([output_mesh.vertices, midpoint])
+
+        faces_to_split = np.where(np.any(np.isin(output_mesh.faces, edge), axis=1))[0]
+
+        new_faces = []
+        for face in faces_to_split:
+            face_vertices = output_mesh.faces[face]
+            untouched_vertex = np.setdiff1d(face_vertices, edge)[0]
+
+            new_faces.append([untouched_vertex, edge[0], midpoint_index])
+            new_faces.append([untouched_vertex, edge[1], midpoint_index])
+
+        output_mesh.faces = np.delete(output_mesh.faces, faces_to_split, axis=0)
+        output_mesh.faces = np.vstack([output_mesh.faces, new_faces])
+
+    return output_mesh
+
+
+def collapse_short_edges(mesh, min_length):
+    output_mesh = mesh.copy()
+    short_edges = output_mesh.edges_unique[output_mesh.edges_unique_length < min_length]
+
+    for edge in short_edges:
+        relevant_edges1 = output_mesh.edges_unique[np.any(np.isin(output_mesh.edges_unique, edge[0]), axis=1)]
+        neighbours1 = relevant_edges1.flatten()[relevant_edges1.flatten() != edge[0]]
+        neighbours1_vertices = output_mesh.vertices[neighbours1]
+        neighbours1_distances = np.linalg.norm(neighbours1_vertices - output_mesh.vertices[edge[0]], axis=1)
+
+        relevant_edges2 = output_mesh.edges_unique[np.any(np.isin(output_mesh.edges_unique, edge[1]), axis=1)]
+        neighbours2 = relevant_edges2.flatten()[relevant_edges2.flatten() != edge[1]]
+        neighbours2_vertices = output_mesh.vertices[neighbours2]
+        neighbours2_distances = np.linalg.norm(neighbours2_vertices - output_mesh.vertices[edge[1]], axis=1)
+
+        neighbours = np.concatenate([neighbours1, neighbours2])
+        neighbours_edges = np.concatenate([np.repeat(0, len(neighbours1)), np.repeat(1, len(neighbours2))])
+        neighbours_distances = np.concatenate([neighbours1_distances, neighbours2_distances])
+
+        closet_neighbour_idx = np.argmin(neighbours_distances)
+        closet_neighbour = neighbours[closet_neighbour_idx]
+        vertex_to_replace = edge[neighbours_edges[closet_neighbour_idx]]
+
+    return output_mesh
+
+
+def remove_obtuse_triangles(mesh, max_angle=150.0):
+    obtuse_faces = [f for f in mesh.faces if mesh.face_angles(f).max() > np.radians(max_angle)]
+    mesh.remove_faces(obtuse_faces)
 
     return mesh
 

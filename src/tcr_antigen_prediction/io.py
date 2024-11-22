@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 '''Functions for inputting and outputing various file formats.'''
-import pymesh
 import numpy as np
+import trimesh
 from Bio.PDB import PDBParser
 
 from tcr_antigen_prediction.chemistry import RADII, POLAR_HYDROGENS
@@ -84,14 +84,10 @@ def read_data_from_surface(ply_fn, max_distance, max_shape_size):
           - list of shape complementarity labels (computed here).
 
     '''
-    mesh = pymesh.load_mesh(ply_fn)
+    mesh = trimesh.load(ply_fn)
 
     # Normals:
-    n1 = mesh.get_attribute('vertex_nx')
-    n2 = mesh.get_attribute('vertex_ny')
-    n3 = mesh.get_attribute('vertex_nz')
-
-    normals = np.stack([n1, n2, n3], axis=1)
+    normals = mesh.vertex_normals
 
     # Compute the angular and radial coordinates.
     rho, theta, neigh_indices, mask = compute_polar_coordinates(mesh,
@@ -242,7 +238,7 @@ def save_ply(filename,
     if faces is None:
         faces = []
 
-    mesh = pymesh.form_mesh(vertices, faces)
+    mesh = trimesh.Trimesh(vertices, faces)
 
     if normals is not None:
         n1 = normals[:, 0]
@@ -282,4 +278,4 @@ def save_ply(filename,
         mesh.add_attribute('vertex_iface')
         mesh.set_attribute('vertex_iface', iface)
 
-    pymesh.save_mesh(filename, mesh, *mesh.get_attribute_names(), use_float=True, ascii=True)
+    mesh.export(filename)

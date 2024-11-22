@@ -2,8 +2,9 @@ from unittest import TestCase
 import os
 
 import numpy as np
+import trimesh
 
-from tcr_antigen_prediction.triangulate import compute_msms
+from tcr_antigen_prediction.triangulate import compute_msms, fix_mesh
 
 TEST_DATA = 'tests/data'
 
@@ -44,3 +45,10 @@ class TestComputeMSMS(TestCase):
         self.assertEqual(areas['A_17_x_ARG_CZ_Green'], '8.5787')
         self.assertEqual(areas['A_17_x_ARG_NH1_Blue'], '20.8036')
         self.assertEqual(areas['A_1087_x_GLU_OE2_Red'], '14.7990')
+
+
+class TestFixMesh(TestCase):
+    def test(self):
+        mesh = trimesh.load(os.path.join(TEST_DATA, 'test.ply'))
+        import pdb; pdb.set_trace()
+        new_mesh = fix_mesh(mesh)

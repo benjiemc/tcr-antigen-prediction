@@ -21,7 +21,7 @@ import shutil
 import sys
 import tempfile
 
-import pymesh
+from trimesh import Trimesh
 
 from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
 from tcr_antigen_prediction.io import save_ply
@@ -79,7 +79,7 @@ def main() -> None:
         vertex_hphobicity = compute_hydrophobicity(names)
 
         logger.info('Creating mesh')
-        mesh = pymesh.form_mesh(vertices, faces)
+        mesh = Trimesh(vertices, faces)
 
         logger.debug('Regularizing mesh')
         regular_mesh = fix_mesh(mesh)

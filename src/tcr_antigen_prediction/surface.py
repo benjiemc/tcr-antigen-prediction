@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 '''Functions for creating surface representations and adding features to the surfaces.'''
-import pymesh
 import numpy as np
+import trimesh
 
 from scipy.spatial import cKDTree  # pylint: disable = no-name-in-module
 
@@ -86,21 +86,11 @@ def compute_shape_complementarity(ply_fn1, ply_fn2,
             nearest neighbor in the other protein, in 10 rings.
 
     '''
-    mesh1 = pymesh.load_mesh(ply_fn1)
+    mesh1 = trimesh.load(ply_fn1)
+    n1 = mesh1.vertex_normals
 
-    nx = mesh1.get_attribute('vertex_nx')
-    ny = mesh1.get_attribute('vertex_ny')
-    nz = mesh1.get_attribute('vertex_nz')
-
-    n1 = np.stack([nx, ny, nz], axis=1)
-
-    mesh2 = pymesh.load_mesh(ply_fn2)
-
-    nx = mesh2.get_attribute('vertex_nx')
-    ny = mesh2.get_attribute('vertex_ny')
-    nz = mesh2.get_attribute('vertex_nz')
-
-    n2 = np.stack([nx, ny, nz], axis=1)
+    mesh2 = trimesh.load(ply_fn2)
+    n2 = mesh2.vertex_normals
 
     w = sc_w
     int_cutoff = sc_interaction_cutoff
