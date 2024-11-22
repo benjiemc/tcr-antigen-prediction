@@ -48,6 +48,7 @@ rule select_stcrdab_structures:
             --mhc-class-I-tcr-contact-residues $(cut -d, -f2 {input.tcr_mhc_class_I_contacts} | sed 1d | sort | uniq | tr '\n' ' ') \
             --mhc-class-II-alpha-chain-tcr-contact-residues $(awk -F ',' '$2 == "mhc_chain1" {{ print $3 }}' {input.tcr_mhc_class_II_contacts} | sort | uniq | tr '\n' ' ') \
             --mhc-class-II-beta-chain-tcr-contact-residues $(awk -F ',' '$2 == "mhc_chain2" {{ print $3 }}' {input.tcr_mhc_class_II_contacts} | sort | uniq | tr '\n' ' ') \
+            --crop-structures \
             --remove-structures-missing-residues \
             --fix-structures-missing-residues \
             --structural-similarity-cutoff 2.0 \

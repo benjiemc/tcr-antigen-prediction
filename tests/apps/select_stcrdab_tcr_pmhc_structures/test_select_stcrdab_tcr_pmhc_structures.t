@@ -82,3 +82,20 @@ Test structural similarity cutoff
   > $TESTDIR/data/stcrdab-mock/
 
   $ diff output-structural-similarity-cutoff/stcrdab_split.csv $TESTDIR/reference/structural-similarity-cutoff/stcrdab_split.csv
+
+Test crop structures
+  $ python -m tcr_antigen_prediction.apps.select_stcrdab_tcr_pmhc_structures \
+  > --log-level error \
+  > --seed 123 \
+  > --tcr-types abTCR \
+  > --mhc-types MH1 MH2 \
+  > --antigen-types peptide \
+  > --crop-structures \
+  > -o output-crop \
+  > $TESTDIR/data/stcrdab-mock/
+
+  $ diff output-crop/stcrdab_split.csv $TESTDIR/reference/crop/stcrdab_split.csv
+
+  $ diff output-crop/3qiw_CDEAB.pdb $TESTDIR/reference/crop/3qiw_CDEAB.pdb
+  $ diff output-crop/7q9b_DECAB.pdb $TESTDIR/reference/crop/7q9b_DECAB.pdb
+  $ diff output-crop/7q9b_IJHFG.pdb $TESTDIR/reference/crop/7q9b_IJHFG.pdb

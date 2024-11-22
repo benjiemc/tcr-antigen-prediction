@@ -26,7 +26,7 @@ from tcr_antigen_prediction.imgt_numbering import (
 )
 from tcr_antigen_prediction.missing_residues import get_alignment, get_missing_atoms, get_missing_residues, screen_chain
 from tcr_antigen_prediction.missing_residues.fix import predict_missing_residues
-from tcr_antigen_prediction.structure import extract_chains, get_header, get_sequence, replace_chain
+from tcr_antigen_prediction.structure import crop_structure, extract_chains, get_header, get_sequence, replace_chain
 
 logger = logging.getLogger()
 
@@ -91,6 +91,11 @@ structure_type_group.add_argument(
     nargs='+',
     default=['peptide'],
     help=('MHC types allowed in dataset (carbohydrate, Hapten, peptide, protein, etc) ' '(Default: peptide)'),
+)
+structure_type_group.add_argument(
+    '--crop-structures',
+    action='store_true',
+    help=('Crop TCR:pMHC structures to the TCR variable domain and MHC antigen binding ' 'domain.'),
 )
 
 quality_group = parser.add_argument_group('Quality Selection')
@@ -660,13 +665,24 @@ def main():
     for _, row in dataset.iterrows():
         structure = pdb_parser.get_structure(row.pdb, row.imgt_file_path)
         output_name = f'{row.pdb}_{row.Achain}{row.Bchain}{row.antigen_chain}{row.mhc_chain1}{row.mhc_chain2}.pdb'
+        output_chains = [row.Achain, row.Bchain, row.antigen_chain, row.mhc_chain1, row.mhc_chain2]
+
+        if args.crop_structures:
+            logger.debug('Cropping structure')
+            match row.mhc_type:
+                case 'MH1':
+                    structure = crop_structure(structure, (row.Achain, row.Bchain), (row.mhc_chain1,), row.mhc_type)
+
+                    output_chains = [row.Achain, row.Bchain, row.antigen_chain, row.mhc_chain1]
+
+                case 'MH2':
+                    structure = crop_structure(
+                        structure, (row.Achain, row.Bchain), (row.mhc_chain1, row.mhc_chain2), row.mhc_type
+                    )
 
         io = PDBIO()
         io.set_structure(structure)
-        io.save(
-            os.path.join(args.output, output_name),
-            SelectChains(row.Achain, row.Bchain, row.antigen_chain, row.mhc_chain1, row.mhc_chain2),
-        )
+        io.save(os.path.join(args.output, output_name), SelectChains(*output_chains))
 
     if args.fix_structures_missing_residues:
         fix_dir.cleanup()

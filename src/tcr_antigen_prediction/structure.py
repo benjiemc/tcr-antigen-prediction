@@ -1,12 +1,17 @@
 """Functions and classes for interacting with PDB structures."""
 
+import logging
 from collections.abc import Iterable
 
 import pandas as pd
-from Bio.PDB import Chain, Model, Structure
+from Bio.PDB import Chain, Model, Residue, Select, Structure
 from Bio.SeqUtils import IUPACData
 
-PROTEIN_LETTERS: list[str] = [x.upper() for x in IUPACData.protein_letters_3to1]
+from tcr_antigen_prediction.imgt_numbering import IMGT_MH1_ABD, IMGT_MH2_ABD, IMGT_VARIABLE_DOMAIN
+
+logger = logging.getLogger(__name__)
+
+PROTEIN_LETTERS = [x.upper() for x in IUPACData.protein_letters_3to1]
 '''Amino acid one letter codes.'''
 
 
@@ -133,3 +138,90 @@ def replace_chain(structure: Structure.Structure, new_chain: Chain.Chain) -> Str
         model.add(new_chain)
 
     return output_structure
+
+
+def crop_chain(chain: Chain.Chain, numbering: set[int]) -> Chain.Chain:
+    """Crop chain based on numbering."""
+    new_chain = Chain.Chain(chain.id)
+
+    for residue in chain:
+        if residue.id[1] in numbering or residue.id[0] != ' ':
+            new_chain.add(residue.copy())
+
+    return new_chain
+
+
+def crop_structure(  # noqa: C901
+    structure: Structure.Structure,
+    tcr_chains: Iterable[str] | None = None,
+    mhc_chains: Iterable[str] | None = None,
+    mhc_type: str | None = None,
+) -> Structure.Structure:
+    """Crop TCR and MHC structures to the TCR variable domain and MHC antigen binding domain.
+
+    Args:
+        structure: structure to crop
+        tcr_chains: TCR chains to crop (optional)
+        mhc_chains: MHC chains to crop (optional)
+        mhc_type: either 'MH1' or 'MH2', required if `mhc_chains` is specified
+
+    Returns:
+        structure with chains cropped to variable domain or antigen binding domain
+
+    Raises:
+        ValueError: invalid `mhc_type` is entered or `mhc_type` is not specified and `mhc_chains` are input
+
+    """
+    if tcr_chains is None:
+        tcr_chains = []
+
+    if mhc_chains is None:
+        mhc_chains = []
+
+    mhc_numbering = None
+    if len(mhc_chains) > 0:
+        match mhc_type:
+            case 'MH1':
+                mhc_numbering = IMGT_MH1_ABD
+
+            case 'MH2':
+                mhc_numbering = IMGT_MH2_ABD
+
+            case None:
+                msg = 'MHC chains inputted but no MHC type specified'
+                raise ValueError(msg)
+
+            case _:
+                msg = f'Invalid MHC type: {mhc_type}'
+                raise ValueError(msg)
+
+    cropped_structure = Structure.Structure(structure.id)
+
+    for model in structure:
+        new_model = Model.Model(model.id)
+
+        for chain in model:
+            if chain.id in tcr_chains:
+                logger.debug('Cropping TCR chain %s', chain.id)
+                new_chain = crop_chain(chain, IMGT_VARIABLE_DOMAIN)
+
+            elif chain.id in mhc_chains:
+                logger.debug('Cropping MHC chain %s', chain.id)
+                new_chain = crop_chain(chain, mhc_numbering)
+
+            else:
+                new_chain = chain.copy()
+
+            new_model.add(new_chain)
+
+        cropped_structure.add(new_model)
+
+    return cropped_structure
+
+
+class NonHetSelect(Select):
+    """Selection criteria for non het atms."""
+
+    def accept_residue(self, residue: Residue.Residue) -> int:
+        """Accept residue if it is not a het atom."""
+        return 1 if residue.id[0] == ' ' else 0
