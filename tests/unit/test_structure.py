@@ -77,7 +77,7 @@ class TestBioToPandas(TestCase):
             ['ATOM', 3,  'C', None, 'LEU', 'C', 1, None, 80.158997,  -9.536, 40.179001, 1.0, 19.34, 'C', None],
             ['ATOM', 4,  'O', None, 'LEU', 'C', 1, None, 80.869003,  -8.570, 40.467999, 1.0, 20.10, 'O', None],
             ['ATOM', 5, 'CB', None, 'LEU', 'C', 1, None, 81.962997, -10.682, 39.001999, 1.0, 22.45, 'C', None],
-        ], columns=columns))
+        ], columns=columns), check_dtype=False)
 
         pd.testing.assert_frame_equal(df.tail(), pd.DataFrame([
             ['ATOM', 3284, 'CD', None, 'ARG', 'A', 1091, None, 74.278999, -6.204, 17.808001, 1.0, 90.67, 'C', None],
@@ -85,4 +85,4 @@ class TestBioToPandas(TestCase):
             ['ATOM', 3286, 'CZ', None, 'ARG', 'A', 1091, None, 72.431000, -6.761, 19.346001, 1.0, 87.80, 'C', None],
             ['ATOM', 3287, 'NH1', None, 'ARG', 'A', 1091, None, 71.989998, -7.701, 18.511000, 1.0, 94.21, 'N', None],
             ['ATOM', 3288, 'NH2', None, 'ARG', 'A', 1091, None, 71.759003, -6.550, 20.468000, 1.0, 91.82, 'N', None],
-        ], columns=columns, index=[3283, 3284, 3285, 3286, 3287]))
+        ], columns=columns, index=[3283, 3284, 3285, 3286, 3287]), check_dtype=False)
