@@ -197,7 +197,6 @@ lint:
 
 test:
 	@pytest tests/
-	@prysk tests/apps
 
 docs:
 	@sphinx-apidoc -f -e -o docs/source src/tcr_antigen_prediction src/**/apps/*

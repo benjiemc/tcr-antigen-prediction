@@ -233,6 +233,7 @@ dependencies:
       - pylint==3.3.1
       - pyparsing==3.2.0
       - pytest==8.3.3
+      - pytest-prysk==0.3.0
       - python-dateutil==2.9.0.post0
       - requests-cache==1.2.1
       - rich==13.9.3

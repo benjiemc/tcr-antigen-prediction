@@ -22,6 +22,7 @@ develop = [
     "pylint",
     "pytest",
     "prysk",
+    "pytest-prysk",
     "sphinx",
     "sphinx-rtd-theme",
 ]
