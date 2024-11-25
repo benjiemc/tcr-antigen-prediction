@@ -6,6 +6,9 @@ all: data models
 environment:
 	conda env create -f environment.yml
 	conda run -n tcr-antigen-prediction python -m pip install .
+	@conda_prefix=$$(conda run -n tcr-antigen-prediction conda info --json | jq .default_prefix | sed s/\"//g); \
+	python_version=$$(conda run -n tcr-antigen-prediction python --version | cut -d " " -f2 | cut -d "." -f1-2); \
+	cp -r third_party/anarci $$conda_prefix/lib/python$$python_version/site-packages
 
 data: \
 	data/processed/selected-stcrdab_crop
