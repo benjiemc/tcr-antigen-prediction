@@ -1,9 +1,9 @@
-'''Renumber TCR structure following either IMGT or Aho numbering.
+"""Renumber TCR structure following either IMGT or Aho numbering.
 
 Requirements:
     - ANARCI: https://github.com/oxpig/ANARCI
 
-'''
+"""
 import argparse
 import logging
 import sys
@@ -28,7 +28,7 @@ add_logging_arguments(parser)
 
 
 def main():
-    '''Entry point for script.'''
+    """Entry point for script."""
     args = parser.parse_args()
     setup_logger(logger, args.log_level, args.log_file)
 
@@ -54,7 +54,7 @@ def main():
                 logger.info('Chain ID %s not identified by ANARCI', chain_id)
                 continue
 
-            if len(numbering) == 2:
+            if len(numbering) == 2:  # noqa: PLR2004
                 numbering = numbering[0]
                 chain_type = chain_type[0]
 
@@ -63,7 +63,7 @@ def main():
 
             numbering = [(seq_id, insert_code) for (seq_id, insert_code), res_name in numbering if res_name != '-']
 
-            residues = [res for res in model[chain_id].get_residues()]
+            residues = list(model[chain_id].get_residues())
             num_residues_not_numbered = len(residues) - len(numbering)
 
             next_seq_id = numbering[-1][0] + 1
@@ -72,14 +72,13 @@ def main():
                 numbering.append((next_seq_id, ' '))
                 next_seq_id += 1
 
-            for (seq_id, insert_code), res in zip(numbering, residues):
+            for (seq_id, insert_code), res in zip(numbering, residues, strict=False):
                 res.id = (res.get_id(), seq_id, insert_code)
 
             chain_map.append((chain_type, chain_id))
 
     with open(args.output, 'w') as fh:
-        fh.write(('REMARK     Renumbered using IMGT numbering provided by ANARCI '
-                  '(DOI: 10.1093/bioinformatics/btv552)'))
+        fh.write('REMARK     Renumbered using IMGT numbering provided by ANARCI (DOI: 10.1093/bioinformatics/btv552)')
         fh.write('\n')
         fh.write(f"REMARK     {' '.join([f'{chain_type}CHAIN={chain_id}' for chain_type, chain_id in chain_map])}")
         fh.write('\n')

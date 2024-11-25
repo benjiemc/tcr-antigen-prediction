@@ -1,17 +1,16 @@
-'''Functions and classes for interacting with PDB structures.'''
-from typing import Iterable
+"""Functions and classes for interacting with PDB structures."""
+from collections.abc import Iterable
 
 import pandas as pd
-from Bio.PDB import Structure, Model
+from Bio.PDB import Model, Structure
 from Bio.SeqUtils import IUPACData
 
-
-PROTEIN_LETTERS: list[str] = [x.upper() for x in IUPACData.protein_letters_3to1.keys()]
+PROTEIN_LETTERS: list[str] = [x.upper() for x in IUPACData.protein_letters_3to1]
 '''Amino acid one letter codes.'''
 
 
 def get_sequence(structure: Structure.Structure, chain_id: str, residue_range: set[int] | None = None) -> str:
-    '''Get the sequence of amino acids from a biopython strcture.
+    """Get the sequence of amino acids from a biopython strcture.
 
     Args:
         structure: Biopython structure.
@@ -21,7 +20,7 @@ def get_sequence(structure: Structure.Structure, chain_id: str, residue_range: s
     Returns:
         Amino acid sequence as one-letter codes.
 
-    '''
+    """
     chain = structure[0][chain_id]
     sequence = []
 
@@ -40,7 +39,7 @@ def get_sequence(structure: Structure.Structure, chain_id: str, residue_range: s
 
 
 def get_header(pdb_contents: str) -> str:
-    '''Get the header lines from the contents of a pdb file.'''
+    """Get the header lines from the contents of a pdb file."""
     header = []
     for line in pdb_contents.split('\n'):
         record_type = line[0:6]
@@ -53,7 +52,7 @@ def get_header(pdb_contents: str) -> str:
 
 
 def extract_chains(structure: Structure.Structure, chains: Iterable[str]) -> Structure.Structure:
-    '''Get only the selected chain from a PDB structure.'''
+    """Get only the selected chain from a PDB structure."""
     new_structure = Structure.Structure(structure.id)
 
     for model in structure:
@@ -68,7 +67,7 @@ def extract_chains(structure: Structure.Structure, chains: Iterable[str]) -> Str
 
 
 def bio_to_pandas(structure: Structure.Structure) -> pd.DataFrame:
-    '''Convert a biopython structure to a pandas dataframe.'''
+    """Convert a biopython structure to a pandas dataframe."""
     records = []
 
     multiple_models = len(structure) > 1

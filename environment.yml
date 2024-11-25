@@ -175,7 +175,6 @@ dependencies:
       - docutils==0.21.2
       - easydev==0.13.2
       - filelock==3.16.1
-      - flake8==7.1.1
       - fonttools==4.54.1
       - fsspec==2024.10.0
       - gevent==24.10.3
@@ -230,7 +229,6 @@ dependencies:
       - pydantic==2.9.2
       - pydantic-core==2.23.4
       - pyflakes==3.2.0
-      - pylint==3.3.1
       - pyparsing==3.2.0
       - pytest==8.3.3
       - pytest-prysk==0.3.0
@@ -238,6 +236,7 @@ dependencies:
       - requests-cache==1.2.1
       - rich==13.9.3
       - rich-click==1.8.3
+      - ruff==0.8.0
       - scikit-learn==1.5.2
       - scipy==1.14.1
       - seaborn==0.13.2

@@ -1,4 +1,4 @@
-'''Download all of the STCRDab structures to a specified output path.'''
+"""Download all of the STCRDab structures to a specified output path."""
 import argparse
 import logging
 import os
@@ -44,7 +44,7 @@ def main():
     os.mkdir(os.path.join(args.output, 'imgt'))
     os.mkdir(os.path.join(args.output, 'raw'))
 
-    pdb_ids = sorted(list(set([line.split('\t')[0] for line in summary_file_contents.strip().split('\n')[1:]])))
+    pdb_ids = sorted({line.split('\t')[0] for line in summary_file_contents.strip().split('\n')[1:]})
 
     for pdb_id in pdb_ids:
         logger.info('Downloading PDB ID: %s', pdb_id)

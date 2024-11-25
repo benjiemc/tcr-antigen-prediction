@@ -1,4 +1,4 @@
-'''Filter TCR:pMHC structures with the same sequence (TCR CDRs and peptide) to an RMSD threshold.'''
+"""Filter TCR:pMHC structures with the same sequence (TCR CDRs and peptide) to an RMSD threshold."""
 import argparse
 import logging
 import os
@@ -29,7 +29,7 @@ add_logging_arguments(parser)
 def remove_similar_structures(df: pd.DataFrame,
                               threshold: float,
                               structures: dict[str, Structure.Structure]) -> pd.DataFrame:
-    '''Remove structures with the same CDR and peptide sequences within the RMSD threshold.'''
+    """Remove structures with the same CDR and peptide sequences within the RMSD threshold."""
     output_dfs = []
 
     for (cdr_sequence, peptide_sequence, mhc_type), group in df.groupby(['collated_cdrs',
@@ -41,19 +41,19 @@ def remove_similar_structures(df: pd.DataFrame,
 
         logger.debug('Screening TCR: %s, peptide: %s, MHC: %s', cdr_sequence, peptide_sequence, mhc_type)
 
-        group = group.sort_values('name')
-        group = group.dropna(axis='columns', how='all')
+        sorted_group = group.sort_values('name')
+        sorted_group = sorted_group.dropna(axis='columns', how='all')
 
-        group_structures = [structures[name] for name in group['name'].values]
-        chain_maps = group.filter(regex=r'\w+chain\w*').to_dict('records')
+        group_structures = [structures[name] for name in sorted_group['name'].to_numpy()]
+        chain_maps = sorted_group.filter(regex=r'\w+chain\w*').to_dict('records')
 
         distance_matrix = compute_structural_distances(group_structures, chain_maps, mhc_type)
         clusters = AgglomerativeClustering(metric='precomputed',
                                            distance_threshold=threshold,
                                            linkage='single',
                                            n_clusters=None).fit(distance_matrix).labels_
-        clusters = pd.Series(clusters, index=group.index)
-        output_dfs.append(group[~clusters.duplicated()])
+        clusters = pd.Series(clusters, index=sorted_group.index)
+        output_dfs.append(sorted_group[~clusters.duplicated()])
 
     return pd.concat(output_dfs)
 
@@ -71,7 +71,7 @@ def main():
 
     selected_structures = remove_similar_structures(summary_df, args.structural_similarity_cutoff, structures)
 
-    output = open(args.output, 'w') if args.output else sys.stdout
+    output = open(args.output, 'w') if args.output else sys.stdout  # noqa: SIM115
     selected_structures.to_csv(output, index=False)
 
     if args.output:

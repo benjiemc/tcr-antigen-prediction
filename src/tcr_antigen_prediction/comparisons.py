@@ -1,6 +1,6 @@
-'''Functions for comparing data points.'''
+"""Functions for comparing data points."""
 import numpy as np
-from Bio.PDB import Structure, Superimposer, Atom
+from Bio.PDB import Atom, Structure, Superimposer
 from Bio.SeqUtils import IUPACData
 
 from tcr_antigen_prediction.aligners import align_sequences
@@ -8,7 +8,7 @@ from tcr_antigen_prediction.imgt_numbering import IMGT_MH1_ABD, IMGT_MH2_ABD, IM
 
 
 def rmsd(coords1: np.ndarray, coords2: np.ndarray) -> float:
-    '''Calculate Root Mean Squard Deviation between two sets of coordinates.'''
+    """Calculate Root Mean Squard Deviation between two sets of coordinates."""
     diff = coords2 - coords1
     distance = np.sqrt(np.sum(diff * diff, axis=1))
 
@@ -17,7 +17,7 @@ def rmsd(coords1: np.ndarray, coords2: np.ndarray) -> float:
 
 def find_equivalent_sequences(struct1: Structure.Structure, chain_map1: dict[str, str],
                               struct2: Structure.Structure, chain_map2: dict[str, str]) -> list[tuple]:
-    '''Find equivalent residues between two structures.'''
+    """Find equivalent residues between two structures."""
     equivalent_residues = []
 
     for chain_type in set(chain_map1.keys()) & set(chain_map1.keys()):
@@ -57,11 +57,13 @@ def find_equivalent_sequences(struct1: Structure.Structure, chain_map1: dict[str
     return equivalent_residues
 
 
-def get_relevant_atoms(struct1: Structure.Structure, chain_map1: dict[str, str],
+def get_relevant_atoms(struct1: Structure.Structure, chain_map1: dict[str, str],    # noqa: C901, PLR0912
                        struct2: Structure.Structure, chain_map2: dict[str, str],
                        equivalent_residues: list[tuple],
                        mhc_type: str) -> tuple[list[Atom.Atom], list[Atom.Atom]]:
-    '''Get the relevant atoms for the TCR variable domain, antigen, and MHC binding domain.
+    """Get the relevant atoms for the TCR variable domain, antigen, and MHC binding domain.
+
+    TODO: Refactor if statements
 
     Args:
         struct1: biopython TCR:pMHC structure
@@ -76,7 +78,7 @@ def get_relevant_atoms(struct1: Structure.Structure, chain_map1: dict[str, str],
     Returns:
         two lists of relevant atoms in the structures to align or compute RMSDs from
 
-    '''
+    """
     atoms1 = []
     atoms2 = []
 
@@ -98,24 +100,25 @@ def get_relevant_atoms(struct1: Structure.Structure, chain_map1: dict[str, str],
         elif chain_map1_inv[res1[0]] == chain_map2_inv[res2[0]] == 'antigen_chain':
             relevant_atoms = True
 
-        else:
+        else:                                                                                       # noqa: PLR5501
             if mhc_type == 'MH1':
-                if chain_map1_inv[res1[0]] == chain_map2_inv[res2[0]] == 'mhc_chain1':
+                if chain_map1_inv[res1[0]] == chain_map2_inv[res2[0]] == 'mhc_chain1':              # noqa: SIM102
                     if res1[2] in IMGT_MH1_ABD and res2[2] in IMGT_MH1_ABD:
                         relevant_atoms = True
 
             elif mhc_type == 'MH2':
-                if (chain_map1_inv[res1[0]] == chain_map2_inv[res2[0]] == 'mhc_chain1'
+                if (chain_map1_inv[res1[0]] == chain_map2_inv[res2[0]] == 'mhc_chain1'              # noqa: SIM102
                         or chain_map1_inv[res1[0]] == chain_map2_inv[res2[0]] == 'mhc_chain2'):
                     if res1[1] in IMGT_MH2_ABD and res2[1] in IMGT_MH2_ABD:
                         relevant_atoms = True
 
             else:
-                raise ValueError(f'Incorrect MHC type: {mhc_type}. mhc_type should be MH1 or MH2')
+                msg = f'Incorrect MHC type: {mhc_type}. mhc_type should be MH1 or MH2'
+                raise ValueError(msg)
 
         if relevant_atoms:
-            res_atoms1 = [atom for atom in struct1[0][res1[0]][res_fixed_id].get_atoms()]
-            res_atoms2 = [atom for atom in struct2[0][res2[0]][res_mobile_id].get_atoms()]
+            res_atoms1 = list(struct1[0][res1[0]][res_fixed_id].get_atoms())
+            res_atoms2 = list(struct2[0][res2[0]][res_mobile_id].get_atoms())
 
             if len(res_atoms1) == len(res_atoms2):
                 atoms1 += res_atoms1
@@ -127,7 +130,7 @@ def get_relevant_atoms(struct1: Structure.Structure, chain_map1: dict[str, str],
 def compute_structural_distances(structures: list[Structure.Structure],
                                  chain_maps: list[dict],
                                  mhc_type: str) -> np.array:
-    '''Create a distance matrix of RMSD between the input TCR:pMHC structures.
+    """Create a distance matrix of RMSD between the input TCR:pMHC structures.
 
     The comparison is done between the TCR variable domain, peptide, and MHC antigen binding domain.
 
@@ -140,11 +143,11 @@ def compute_structural_distances(structures: list[Structure.Structure],
     Returns:
         distance matrix of the RMSD between equivalent atoms in the structures
 
-    '''
+    """
     distance_matrix = np.zeros((len(structures), len(structures)))
 
-    for i, (struct1, chain_map1) in enumerate(zip(structures[:-1], chain_maps[:-1])):
-        for j, (struct2, chain_map2) in enumerate(zip(structures[i + 1:], chain_maps[i + 1:]), i + 1):
+    for i, (struct1, chain_map1) in enumerate(zip(structures[:-1], chain_maps[:-1], strict=False)):
+        for j, (struct2, chain_map2) in enumerate(zip(structures[i + 1:], chain_maps[i + 1:], strict=False), i + 1):
             equivalent_residues = find_equivalent_sequences(struct1, chain_map1, struct2, chain_map2)
             atoms1, atoms2 = get_relevant_atoms(struct1, chain_map1, struct2, chain_map2, equivalent_residues, mhc_type)
 
@@ -163,5 +166,4 @@ def compute_structural_distances(structures: list[Structure.Structure],
 
             distance_matrix[i, j] = distance
 
-    distance_matrix = np.maximum(distance_matrix, distance_matrix.T)
-    return distance_matrix
+    return np.maximum(distance_matrix, distance_matrix.T)

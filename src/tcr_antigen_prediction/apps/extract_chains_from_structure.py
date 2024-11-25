@@ -1,9 +1,9 @@
-'''Extract chains from a PDB structue into a new PDB file.'''
+"""Extract chains from a PDB structue into a new PDB file."""
 import argparse
 import logging
 import sys
 
-from Bio.PDB import PDBParser, PDBIO
+from Bio.PDB import PDBIO, PDBParser
 
 from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
 from tcr_antigen_prediction.structure import extract_chains

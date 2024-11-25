@@ -1,4 +1,4 @@
-'''Identify the interacting pairs of TCR:pMHC molecules in a PDB file.'''
+"""Identify the interacting pairs of TCR:pMHC molecules in a PDB file."""
 import argparse
 import logging
 import re
@@ -8,7 +8,7 @@ import numpy as np
 from Bio.PDB import PDBParser
 
 from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
-from tcr_antigen_prediction.imgt_numbering import IMGT_CDR, IMGT_VARIABLE_DOMAIN, IMGT_MH1_ABD, IMGT_MH2_ABD
+from tcr_antigen_prediction.imgt_numbering import IMGT_CDR, IMGT_MH1_ABD, IMGT_MH2_ABD, IMGT_VARIABLE_DOMAIN
 from tcr_antigen_prediction.structure import get_header
 
 logger = logging.getLogger()
@@ -158,17 +158,17 @@ def main():
         relevant_mhc_chains = np.array(relevant_mhc_chains)
 
         mhc_imgt_abd = IMGT_MH1_ABD if mhc_chain_1_type == 'MH1' else IMGT_MH2_ABD
-        mhc_imgt_abd = np.array(sorted(list(mhc_imgt_abd)))
+        mhc_imgt_abd = np.array(sorted(mhc_imgt_abd))
 
-        mhc_mask = np.in1d(chains, relevant_mhc_chains)
-        mhc_abd_mask = np.in1d(residue_ids, mhc_imgt_abd) & mhc_mask
+        mhc_mask = np.isin(chains, relevant_mhc_chains)
+        mhc_abd_mask = np.isin(residue_ids, mhc_imgt_abd) & mhc_mask
         mhc_abd_coords = heavy_atom_coordinates[mhc_abd_mask]
 
         for chain_id in unidentified_chains:
             chain_mask = chains == chain_id
             chain_coords = heavy_atom_coordinates[chain_mask]
 
-            distances = distances = (
+            distances = (
                 np.sqrt(np.sum((mhc_abd_coords[:, np.newaxis, :] - chain_coords[np.newaxis, :, :]) ** 2, axis=2))
             )
             contacts = distances <= args.contact_distance
@@ -186,22 +186,22 @@ def main():
         relevant_mhc_chains = np.array(relevant_mhc_chains)
 
         mhc_imgt_abd = IMGT_MH1_ABD if mhc_chain_1_type == 'MH1' else IMGT_MH2_ABD
-        mhc_imgt_abd = np.array(sorted(list(mhc_imgt_abd)))
+        mhc_imgt_abd = np.array(sorted(mhc_imgt_abd))
 
         tcr_alpha_chain_mask = chains == alpha_chain_id
         tcr_beta_chain_mask = chains == beta_chain_id
-        cdr_mask = (np.in1d(residue_ids, np.array(sorted(list(IMGT_CDR))))
+        cdr_mask = (np.isin(residue_ids, np.array(sorted(IMGT_CDR)))
                     & (tcr_alpha_chain_mask | tcr_beta_chain_mask))
 
-        mhc_mask = np.in1d(chains, relevant_mhc_chains)
-        mhc_abd_mask = np.in1d(residue_ids, mhc_imgt_abd) & mhc_mask
+        mhc_mask = np.isin(chains, relevant_mhc_chains)
+        mhc_abd_mask = np.isin(residue_ids, mhc_imgt_abd) & mhc_mask
 
         antigen_mask = chains == antigen_chain_id
 
         cdr_coords = heavy_atom_coordinates[cdr_mask]
         antigen_coords = heavy_atom_coordinates[antigen_mask]
 
-        distances = distances = (
+        distances = (
             np.sqrt(np.sum((cdr_coords[:, np.newaxis, :] - antigen_coords[np.newaxis, :, :]) ** 2, axis=2))
         )
 

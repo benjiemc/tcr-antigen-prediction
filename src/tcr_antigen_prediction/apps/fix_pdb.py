@@ -1,9 +1,9 @@
-'''Replace HETATM records with ATOM records if they are valid residues.'''
+"""Replace HETATM records with ATOM records if they are valid residues."""
 import argparse
 import logging
 import sys
 
-from Bio.PDB import PDBParser, PDBIO
+from Bio.PDB import PDBIO, PDBParser
 
 from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
 from tcr_antigen_prediction.structure import PROTEIN_LETTERS, get_header
@@ -43,7 +43,7 @@ def main():
     io = PDBIO()
     io.set_structure(structure)
 
-    fh = open(args.output, 'w') if args.output else sys.stdout
+    fh = open(args.output, 'w') if args.output else sys.stdout  # noqa: SIM115
 
     fh.write(header)
     io.save(fh)

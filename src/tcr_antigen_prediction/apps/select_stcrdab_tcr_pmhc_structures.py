@@ -1,4 +1,4 @@
-'''Select TCR-pMHC structures from STCRDab.'''
+"""Select TCR-pMHC structures from STCRDab."""
 import argparse
 import logging
 import os
@@ -7,17 +7,19 @@ import sys
 
 import numpy as np
 import pandas as pd
-from Bio.PDB import PDBParser, PDBIO, Select
+from Bio.PDB import PDBIO, PDBParser, Select
 from sklearn.cluster import AgglomerativeClustering
 
 from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
 from tcr_antigen_prediction.comparisons import compute_structural_distances
 from tcr_antigen_prediction.imgt_numbering import IMGT_CDR1, IMGT_CDR2, IMGT_CDR3
-from tcr_antigen_prediction.missing_residues import (get_missing_atoms,
-                                                     get_missing_residues,
-                                                     screen_tcr_variable_domain,
-                                                     screen_pmhc_abd)
-from tcr_antigen_prediction.structure import get_sequence, get_header, extract_chains
+from tcr_antigen_prediction.missing_residues import (
+    get_missing_atoms,
+    get_missing_residues,
+    screen_pmhc_abd,
+    screen_tcr_variable_domain,
+)
+from tcr_antigen_prediction.structure import extract_chains, get_header, get_sequence
 
 logger = logging.getLogger()
 
@@ -68,7 +70,8 @@ add_logging_arguments(parser)
 
 
 class SelectChains(Select):
-    '''Select chains to output.'''
+    """Select chains to output."""
+
     def __init__(self, *chain_ids):
         self.selected_chain_ids = chain_ids
 
@@ -77,7 +80,7 @@ class SelectChains(Select):
 
 
 def screen_for_missing_residues(df: pd.DataFrame, stcrdab_path: str) -> pd.DataFrame:
-    '''Remove entries missing residues in the TCR variable region or pMHC antigen binding domain.'''
+    """Remove entries missing residues in the TCR variable region or pMHC antigen binding domain."""
     def check_structure(pdb_id,
                         alpha_chain_id, beta_chain_id,
                         antigen_chain_id,
@@ -91,7 +94,8 @@ def screen_for_missing_residues(df: pd.DataFrame, stcrdab_path: str) -> pd.DataF
             mhc_chains = (mhc_chain1_id, mhc_chain2_id)
 
         else:
-            raise ValueError(f"Invalid MHC type {mhc_type}. MHC type must be 'MH1' or 'MH2'")
+            msg = f"Invalid MHC type {mhc_type}. MHC type must be 'MH1' or 'MH2'"
+            raise ValueError(msg)
 
         logger.debug('Checking %s, chains: %s, and MHC type %s',
                      pdb_id, '-'.join([alpha_chain_id, beta_chain_id, antigen_chain_id, *mhc_chains]), mhc_type)
@@ -141,7 +145,7 @@ def screen_for_missing_residues(df: pd.DataFrame, stcrdab_path: str) -> pd.DataF
 
 
 def add_cdr_sequences(pdb_id: str, alpha_chain_id: str, beta_chain_id: str, stcrdab_path: str) -> pd.Series:
-    '''Add CDR sequences from structures.'''
+    """Add CDR sequences from structures."""
     structure = PDBParser().get_structure(pdb_id,
                                           os.path.join(stcrdab_path, 'imgt', pdb_id + '.pdb'))
 
@@ -153,7 +157,7 @@ def add_cdr_sequences(pdb_id: str, alpha_chain_id: str, beta_chain_id: str, stcr
 
 
 def add_peptide_sequences(pdb_id: str, antigen_chain_id: str, stcrdab_path: str) -> str:
-    '''Add peptide sequences from structures.'''
+    """Add peptide sequences from structures."""
     structure = PDBParser().get_structure(pdb_id,
                                           os.path.join(stcrdab_path, 'imgt', pdb_id + '.pdb'))
 
@@ -166,25 +170,26 @@ def add_mhc_tcr_contact_pseudo_sequences(pdb_id: str,
                                          mhc_chain_2_id: str,
                                          stcrdab_path: str,
                                          mhc_tcr_contact_residues: set[int] | tuple[set[int], set[int]]) -> str:
-    '''Add MHC-TCR contact pseudo sequences.'''
+    """Add MHC-TCR contact pseudo sequences."""
     structure = PDBParser().get_structure(pdb_id,
                                           os.path.join(stcrdab_path, 'imgt', pdb_id + '.pdb'))
 
     if mhc_type == 'MH1':
         return get_sequence(structure, mhc_chain_1_id, mhc_tcr_contact_residues)
 
-    elif mhc_type == 'MH2':
+    if mhc_type == 'MH2':
         return (get_sequence(structure, mhc_chain_1_id, mhc_tcr_contact_residues[0])
                 + get_sequence(structure, mhc_chain_2_id, mhc_tcr_contact_residues[1]))
 
-    raise ValueError(f'Invalid MHC type: {mhc_type}. Type must be MH1 or MH2.')
+    msg = f'Invalid MHC type: {mhc_type}. Type must be MH1 or MH2.'
+    raise ValueError(msg)
 
 
 def remove_similar_structures(df: pd.DataFrame, threshold: float, stcrdab_path: str) -> pd.DataFrame:
-    '''
-    Remove structures with the same CDR and peptide sequences within the RMSD threshold. The highest resolution
-    structure will be kept.
-    '''
+    """Remove structures with the same CDR and peptide sequences within the RMSD threshold.
+
+    The highest resolution structure will be kept.
+    """
     output_dfs = []
 
     for (cdr_sequence, peptide_sequence, mhc_type), group in df.groupby(['collated_cdrs',
@@ -196,14 +201,16 @@ def remove_similar_structures(df: pd.DataFrame, threshold: float, stcrdab_path: 
 
         logger.debug('Screening TCR: %s, peptide: %s, MHC: %s', cdr_sequence, peptide_sequence, mhc_type)
 
-        group = group.sort_values(['resolution', 'Achain', 'Bchain', 'antigen_chain', 'mhc_chain1', 'mhc_chain2'])
+        sorted_group = group.sort_values(
+            ['resolution', 'Achain', 'Bchain', 'antigen_chain', 'mhc_chain1', 'mhc_chain2'],
+        )
 
         pdb_parser = PDBParser(QUIET=True)
 
         structures = []
         chain_maps = []
 
-        for _, row in group.iterrows():
+        for _, row in sorted_group.iterrows():
             chain_map = {'alpha_chain': row.Achain, 'beta_chain': row.Bchain, 'antigen_chain': row.antigen_chain}
 
             if mhc_type == 'MH1':
@@ -214,7 +221,8 @@ def remove_similar_structures(df: pd.DataFrame, threshold: float, stcrdab_path: 
                 chain_map['mhc_chain2'] = row.mhc_chain2
 
             else:
-                raise ValueError(f"Invalid MHC type {mhc_type}. MHC type must be 'MH1' or 'MH2'")
+                msg = f"Invalid MHC type {mhc_type}. MHC type must be 'MH1' or 'MH2'"
+                raise ValueError(msg)
 
             logger.debug('Collecting PDB ID: %s and extracting chains %s', row.pdb, '-'.join(chain_map.values()))
 
@@ -229,8 +237,8 @@ def remove_similar_structures(df: pd.DataFrame, threshold: float, stcrdab_path: 
                                            distance_threshold=threshold,
                                            linkage='single',
                                            n_clusters=None).fit(distance_matrix).labels_
-        clusters = pd.Series(clusters, index=group.index)
-        output_dfs.append(group[~clusters.duplicated()])
+        clusters = pd.Series(clusters, index=sorted_group.index)
+        output_dfs.append(sorted_group[~clusters.duplicated()])
 
     return pd.concat(output_dfs)
 
@@ -333,16 +341,16 @@ def main():
                                   or (args.mhc_class_II_alpha_chain_tcr_contact_residues
                                       and args.mhc_class_II_beta_chain_tcr_contact_residues))
     if mhc_tcr_contacts_available:
-        mhc_i_tcr_contact_residues_range = set([
+        mhc_i_tcr_contact_residues_range = {
             int(''.join([character for character in seq_id if character.isnumeric()]))
             for seq_id in args.mhc_class_I_tcr_contact_residues
-        ])
+        }
 
         mhc_ii_tcr_contact_residues_range = (
-            set([int(''.join([character for character in seq_id if character.isnumeric()]))
-                for seq_id in args.mhc_class_II_alpha_chain_tcr_contact_residues]),
-            set([int(''.join([character for character in seq_id if character.isnumeric()]))
-                for seq_id in args.mhc_class_II_beta_chain_tcr_contact_residues]),
+            {int(''.join([character for character in seq_id if character.isnumeric()]))
+             for seq_id in args.mhc_class_II_alpha_chain_tcr_contact_residues},
+            {int(''.join([character for character in seq_id if character.isnumeric()]))
+             for seq_id in args.mhc_class_II_beta_chain_tcr_contact_residues},
         )
 
         mhc_tcr_contact_pseudo_sequences = selected_structures.apply(

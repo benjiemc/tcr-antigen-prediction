@@ -4,7 +4,7 @@ from unittest import TestCase
 import numpy as np
 from Bio.PDB import PDBParser
 
-from tcr_antigen_prediction.comparisons import rmsd, compute_structural_distances
+from tcr_antigen_prediction.comparisons import compute_structural_distances, rmsd
 
 TEST_DATA = 'tests/data'
 

@@ -3,11 +3,13 @@ from unittest import TestCase
 
 from Bio.PDB import PDBParser
 
-from tcr_antigen_prediction.missing_residues import (get_missing_residues,
-                                                     get_missing_atoms,
-                                                     trim_start_and_end,
-                                                     screen_pmhc_abd,
-                                                     screen_tcr_variable_domain)
+from tcr_antigen_prediction.missing_residues import (
+    get_missing_atoms,
+    get_missing_residues,
+    screen_pmhc_abd,
+    screen_tcr_variable_domain,
+    trim_start_and_end,
+)
 from tcr_antigen_prediction.structure import get_header
 
 TEST_DATA = 'tests/data'

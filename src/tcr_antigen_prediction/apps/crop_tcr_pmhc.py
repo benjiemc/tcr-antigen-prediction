@@ -1,9 +1,9 @@
-'''Crop TCR-pMHC to binding interface (TCR Variable domain and MHC antigen binding domain).'''
+"""Crop TCR-pMHC to binding interface (TCR Variable domain and MHC antigen binding domain)."""
 import argparse
 import logging
 import sys
 
-from Bio.PDB import PDBIO, PDBParser, Structure, Model, Chain, Select
+from Bio.PDB import PDBIO, Chain, Model, PDBParser, Select, Structure
 
 from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
 from tcr_antigen_prediction.imgt_numbering import IMGT_MH1_ABD, IMGT_MH2_ABD, IMGT_VARIABLE_DOMAIN
@@ -25,7 +25,7 @@ add_logging_arguments(parser)
 
 
 def crop_chain(chain: Chain.Chain, numbering: set[int]) -> Chain.Chain:
-    '''Crop chain based on numbering'''
+    """Crop chain based on numbering."""
     new_chain = Chain.Chain(chain.id)
 
     for residue in chain:

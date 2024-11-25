@@ -1,4 +1,4 @@
-'''Get TCR CDR sequences and peptide sequences for a TCR:pMHC structure. Structure must be IMGT numbered.'''
+"""Get TCR CDR sequences and peptide sequences for a TCR:pMHC structure. Structure must be IMGT numbered."""
 import argparse
 import logging
 import sys

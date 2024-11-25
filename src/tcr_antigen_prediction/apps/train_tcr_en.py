@@ -1,7 +1,7 @@
-'''
-Calculate the TCR energy potentials for the TCRen model. The original model was developped in this paper:
-https://www.nature.com/articles/s43588-024-00653-0.
-'''
+"""Calculate the TCR energy potentials for the TCRen model.
+
+The original model was developped in this paper: https://www.nature.com/articles/s43588-024-00653-0.
+"""
 import argparse
 import itertools
 import logging
@@ -39,7 +39,7 @@ AMINO_ACID_OLCS = list(IUPACData.protein_letters)
 
 
 def load_data(paths: list[str], summary_df: pd.DataFrame, contact_distance: float) -> pd.DataFrame:
-    '''Get interacting residues from a list of TCR:pMHC PDB structures.'''
+    """Get interacting residues from a list of TCR:pMHC PDB structures."""
     pdb_parser = PDBParser(QUIET=True)
     interacting_residues = defaultdict(list)
 
@@ -62,11 +62,11 @@ def load_data(paths: list[str], summary_df: pd.DataFrame, contact_distance: floa
         tcr_selection = (structure_df['chain_type'] == 'Achain') | (structure_df['chain_type'] == 'Bchain')
         structure_df.loc[tcr_selection, 'cdr'] = structure_df[tcr_selection]['residue_seq_id'].map(assign_cdr_number)
 
-        cdr_df = structure_df[tcr_selection & (structure_df['cdr'].notnull())]
+        cdr_df = structure_df[tcr_selection & (structure_df['cdr'].notna())]
         antigen_df = structure_df[structure_df['chain_type'] == 'antigen_chain']
 
         # TODO replace with 'cross' when updating to a newer python version
-        interaction = pd.merge(cdr_df, antigen_df, on='merge_key', suffixes=('_cdr', '_antigen'))
+        interaction = cdr_df.merge(antigen_df, on='merge_key', suffixes=('_cdr', '_antigen'))
         interaction = interaction.drop(columns=['merge_key'])
 
         coords_cdr = interaction.filter(regex=r'pos_[xyz]_cdr').to_numpy()
@@ -99,7 +99,7 @@ def load_data(paths: list[str], summary_df: pd.DataFrame, contact_distance: floa
 
 
 def fit_tcr_en(interacting_residues: pd.DataFrame) -> pd.DataFrame:
-    '''Calculate the TCRen score from a table on interacting residues.'''
+    """Calculate the TCRen score from a table on interacting residues."""
     logger.debug('Calculating observed pairing probabilities')
     p_obs = interacting_residues.value_counts(normalize=True)
     p_obs.name = 'p_obs'
@@ -116,7 +116,7 @@ def fit_tcr_en(interacting_residues: pd.DataFrame) -> pd.DataFrame:
     # TODO replace with 'cross' when updating to a newer python version
     p_a['merge_key'] = 0
     p_b['merge_key'] = 0
-    p_exp = pd.merge(p_a, p_b, on='merge_key')
+    p_exp = p_a.merge(p_b, on='merge_key')
     p_exp = p_exp.drop(columns=['merge_key'])
     p_exp = p_exp.set_index(['tcr_cdr_residue', 'peptide_residue'])
     p_exp = p_exp['proportion_x'] * p_exp['proportion_y']

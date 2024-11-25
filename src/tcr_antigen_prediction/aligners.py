@@ -1,10 +1,10 @@
-'''Functions for aligning data.'''
+"""Functions for aligning data."""
 import numpy as np
 
 
 def align_sequences(seq1: str, seq2: str,
                     match_score: float = 1.0, mismatch_score: float = -1.0, indel_score: float = -1.0) -> tuple:
-    '''Align two sequences using the Needleman-Wunch algorithm.
+    """Align two sequences using the Needleman-Wunch algorithm.
 
     See here https://en.wikipedia.org/wiki/Needleman%E2%80%93Wunsch_algorithm for more details.
 
@@ -19,7 +19,7 @@ def align_sequences(seq1: str, seq2: str,
         tuple containing the alignment (represented as a list with tuple for each pair) followed by the score given to
         the alignment.
 
-    '''
+    """
     num_cols = len(seq1) + 1
     num_rows = len(seq2) + 1
 

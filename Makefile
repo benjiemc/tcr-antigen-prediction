@@ -190,10 +190,7 @@ models/TCRen: data/processed/selected-stcrdab_crop
 		$$(cat "$^/stcrdab_split.csv" | grep "train" | awk -F, -v dir="$^" '{ printf "%s/%s_%s%s%s%s%s.pdb ", dir, $$1, $$2, $$3, $$4, $$5, $$6 }')
 
 lint:
-	@FL_STATUS=0; PY_STATUS=0; \
-	flake8 src tests || FL_STATUS=$$?; \
-	pylint src tests || PY_STATUS=$$?; \
-	exit $$(($$FL_STATUS | $$PY_STATUS))
+	@ruff check
 
 test:
 	@pytest tests/
