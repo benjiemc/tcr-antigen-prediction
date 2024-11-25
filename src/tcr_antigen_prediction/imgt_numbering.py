@@ -1,27 +1,24 @@
 '''Constants and functions for annotating sequences as CDR domains in T cell receptors.'''
-from typing import Optional
-
-
-IMGT_CDR1 = set(range(27, 38 + 1))
+IMGT_CDR1: set[int] = set(range(27, 38 + 1))
 '''IMGT residue numbers corresponding to CDR 1 domains.'''
-IMGT_CDR2 = set(range(56, 65 + 1))
+IMGT_CDR2: set[int] = set(range(56, 65 + 1))
 '''IMGT residue numbers corresponding to CDR 2 domains.'''
-IMGT_CDR3 = set(range(105, 117 + 1))
+IMGT_CDR3: set[int] = set(range(105, 117 + 1))
 '''IMGT residue numbers corresponding to CDR 3 domains.'''
-IMGT_CDR = IMGT_CDR1.union(IMGT_CDR2).union(IMGT_CDR3)
+IMGT_CDR: set[int] = IMGT_CDR1.union(IMGT_CDR2).union(IMGT_CDR3)
 '''IMGT residue numbers corresponding to all CDR domains.'''
 
-IMGT_VARIABLE_DOMAIN = set(range(1, 128 + 1))
+IMGT_VARIABLE_DOMAIN: set[int] = set(range(1, 128 + 1))
 '''Variable domain range for IMGT numbered TCR structures.'''
 
-IMGT_MH1_ABD = set(range(1, 92)) | set(range(1001, 1092))
+IMGT_MH1_ABD: set[int] = set(range(1, 92)) | set(range(1001, 1092))
 '''IMGT ranges of the antigen binding domain of MHC class I molecules.'''
 
-IMGT_MH2_ABD = set(range(1, 92))
+IMGT_MH2_ABD: set[int] = set(range(1, 92))
 '''IMGT ranges of the antigen binding domain of MHC class II molecules.'''
 
 
-def assign_cdr_number(seq_id: int) -> Optional[int]:
+def assign_cdr_number(seq_id: int) -> int | None:
     '''Assign CDR number for a sequence ID or return None if the sequence ID if the ID is not in CDR range.'''
     if seq_id in IMGT_CDR1:
         return 1

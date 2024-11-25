@@ -4,7 +4,6 @@ import logging
 import os
 import random
 import sys
-from typing import Set, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -166,7 +165,7 @@ def add_mhc_tcr_contact_pseudo_sequences(pdb_id: str,
                                          mhc_chain_1_id: str,
                                          mhc_chain_2_id: str,
                                          stcrdab_path: str,
-                                         mhc_tcr_contact_residues: Union[Set[int], Tuple[Set[int], Set[int]]]) -> str:
+                                         mhc_tcr_contact_residues: set[int] | tuple[set[int], set[int]]) -> str:
     '''Add MHC-TCR contact pseudo sequences.'''
     structure = PDBParser().get_structure(pdb_id,
                                           os.path.join(stcrdab_path, 'imgt', pdb_id + '.pdb'))

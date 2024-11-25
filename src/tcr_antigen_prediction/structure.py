@@ -1,13 +1,16 @@
 '''Functions and classes for interacting with PDB structures.'''
-from typing import Optional, Set, Iterable
+from typing import Iterable
 
 import pandas as pd
 from Bio.PDB import Structure, Model
 from Bio.SeqUtils import IUPACData
-PROTEIN_LETTERS = [x.upper() for x in IUPACData.protein_letters_3to1.keys()]
 
 
-def get_sequence(structure: Structure.Structure, chain_id: str, residue_range: Optional[Set[int]] = None) -> str:
+PROTEIN_LETTERS: list[str] = [x.upper() for x in IUPACData.protein_letters_3to1.keys()]
+'''Amino acid one letter codes.'''
+
+
+def get_sequence(structure: Structure.Structure, chain_id: str, residue_range: set[int] | None = None) -> str:
     '''Get the sequence of amino acids from a biopython strcture.
 
     Args:

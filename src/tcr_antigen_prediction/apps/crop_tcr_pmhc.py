@@ -2,7 +2,6 @@
 import argparse
 import logging
 import sys
-import typing
 
 from Bio.PDB import PDBIO, PDBParser, Structure, Model, Chain, Select
 
@@ -25,7 +24,7 @@ parser.add_argument('--remove-het-atoms', action='store_true', help='remove hete
 add_logging_arguments(parser)
 
 
-def crop_chain(chain: Chain.Chain, numbering: typing.Set[int]) -> Chain.Chain:
+def crop_chain(chain: Chain.Chain, numbering: set[int]) -> Chain.Chain:
     '''Crop chain based on numbering'''
     new_chain = Chain.Chain(chain.id)
 

@@ -1,9 +1,8 @@
 '''Helper functions and config for command line application logging.'''
 import logging
 from argparse import ArgumentParser
-from typing import Optional
 
-LOG_MAP = {
+LOG_MAP: dict[str, int] = {
     'error': logging.ERROR,
     'warning': logging.WARNING,
     'info': logging.INFO,
@@ -20,7 +19,7 @@ def add_logging_arguments(parser: ArgumentParser) -> None:
                                help='File to output logs (default is to write to stderr)')
 
 
-def setup_logger(logger, level: str = 'warning', log_file: Optional[str] = None):
+def setup_logger(logger: logging.Logger, level: str = 'warning', log_file: str | None = None) -> None:
     '''Setup logger for command line applications.
 
     Args:

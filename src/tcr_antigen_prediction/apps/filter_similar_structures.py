@@ -3,7 +3,6 @@ import argparse
 import logging
 import os
 import sys
-from typing import Dict
 
 import pandas as pd
 from Bio.PDB import PDBParser, Structure
@@ -29,7 +28,7 @@ add_logging_arguments(parser)
 
 def remove_similar_structures(df: pd.DataFrame,
                               threshold: float,
-                              structures: Dict[str, Structure.Structure]) -> pd.DataFrame:
+                              structures: dict[str, Structure.Structure]) -> pd.DataFrame:
     '''Remove structures with the same CDR and peptide sequences within the RMSD threshold.'''
     output_dfs = []
 

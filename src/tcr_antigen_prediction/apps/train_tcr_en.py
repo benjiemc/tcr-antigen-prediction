@@ -8,7 +8,6 @@ import logging
 import os
 import sys
 from collections import defaultdict
-from typing import List
 
 import numpy as np
 import pandas as pd
@@ -39,7 +38,7 @@ add_logging_arguments(parser)
 AMINO_ACID_OLCS = list(IUPACData.protein_letters)
 
 
-def load_data(paths: List[str], summary_df: pd.DataFrame, contact_distance: float) -> pd.DataFrame:
+def load_data(paths: list[str], summary_df: pd.DataFrame, contact_distance: float) -> pd.DataFrame:
     '''Get interacting residues from a list of TCR:pMHC PDB structures.'''
     pdb_parser = PDBParser(QUIET=True)
     interacting_residues = defaultdict(list)

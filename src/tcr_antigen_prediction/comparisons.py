@@ -1,6 +1,4 @@
 '''Functions for comparing data points.'''
-from typing import List, Dict, Tuple
-
 import numpy as np
 from Bio.PDB import Structure, Superimposer, Atom
 from Bio.SeqUtils import IUPACData
@@ -17,8 +15,8 @@ def rmsd(coords1: np.ndarray, coords2: np.ndarray) -> float:
     return np.sqrt(np.sum(distance * distance) / coords1.shape[0])
 
 
-def find_equivalent_sequences(struct1: Structure.Structure, chain_map1: Dict[str, str],
-                              struct2: Structure.Structure, chain_map2: Dict[str, str]):
+def find_equivalent_sequences(struct1: Structure.Structure, chain_map1: dict[str, str],
+                              struct2: Structure.Structure, chain_map2: dict[str, str]) -> list[tuple]:
     '''Find equivalent residues between two structures.'''
     equivalent_residues = []
 
@@ -59,10 +57,10 @@ def find_equivalent_sequences(struct1: Structure.Structure, chain_map1: Dict[str
     return equivalent_residues
 
 
-def get_relevant_atoms(struct1: Structure.Structure, chain_map1: Dict[str, str],
-                       struct2: Structure.Structure, chain_map2: Dict[str, str],
-                       equivalent_residues: List[Tuple],
-                       mhc_type: str) -> Tuple[List[Atom.Atom], List[Atom.Atom]]:
+def get_relevant_atoms(struct1: Structure.Structure, chain_map1: dict[str, str],
+                       struct2: Structure.Structure, chain_map2: dict[str, str],
+                       equivalent_residues: list[tuple],
+                       mhc_type: str) -> tuple[list[Atom.Atom], list[Atom.Atom]]:
     '''Get the relevant atoms for the TCR variable domain, antigen, and MHC binding domain.
 
     Args:
@@ -126,8 +124,8 @@ def get_relevant_atoms(struct1: Structure.Structure, chain_map1: Dict[str, str],
     return atoms1, atoms2
 
 
-def compute_structural_distances(structures: List[Structure.Structure],
-                                 chain_maps: List[Dict],
+def compute_structural_distances(structures: list[Structure.Structure],
+                                 chain_maps: list[dict],
                                  mhc_type: str) -> np.array:
     '''Create a distance matrix of RMSD between the input TCR:pMHC structures.
 
