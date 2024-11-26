@@ -19,9 +19,10 @@ jobs:
             activate-environment: ""
       - name: Setup environment
         run: |
-            make environment
+            pip install pulp==2.7.0 snakemake
+            snakemake environment --quiet all --cores 1
             conda run -n tcr-antigen-prediction pip install '.[develop]'
       - name: Lint package
-        run: conda run -n tcr-antigen-prediction make lint
+        run: conda run -n tcr-antigen-prediction snakemake lint --quiet all
       - name: Test package
-        run: conda run -n tcr-antigen-prediction make test
+        run: conda run -n tcr-antigen-prediction snakemake test --quiet all

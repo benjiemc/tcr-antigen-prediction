@@ -20,6 +20,9 @@ data/processed/*
 **/.pytest_cache/*
 **/*.t.err
 
+# Snakemake Files
+**/.snakemake/*
+
 # Documentation Files
 docs/public/*
 docs/source/*

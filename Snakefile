@@ -1,0 +1,250 @@
+rule environment:
+    shell:
+        """
+        conda env create -f environment.yml
+        conda run -n tcr-antigen-prediction python -m pip install .
+        conda_prefix=$(conda run -n tcr-antigen-prediction conda info --json | jq .default_prefix | sed s/\\"//g)
+        python_version=$(conda run -n tcr-antigen-prediction python --version | cut -d " " -f2 | cut -d "." -f1-2)
+        cp -r third_party/anarci $conda_prefix/lib/python$python_version/site-packages
+        """
+
+rule data:
+    input: "data/processed/selected-stcrdab_crop"
+
+rule download_stcrdab:
+    output: directory("data/raw/stcrdab")
+    shell: "python -m tcr_antigen_prediction.apps.download_stcrdab {output}"
+
+rule select_stcrdab_structures:
+    input:
+        stcrdab_path="data/raw/stcrdab",
+        tcr_mhc_class_I_contacts="data/interim/tcr_mhc_class_I_contacts.csv",
+        tcr_mhc_class_II_contacts="data/interim/tcr_mhc_class_II_contacts.csv"
+    output: directory("data/interim/selected-stcrdab")
+    shell:
+        """
+        python -m tcr_antigen_prediction.apps.select_stcrdab_tcr_pmhc_structures \
+            --seed 123 \
+            --tcr-types abTCR \
+            --mhc-types MH1 MH2 \
+            --antigen-types peptide \
+            --mhc-class-I-tcr-contact-residues $(cut -d, -f2 {input.tcr_mhc_class_I_contacts} | sed 1d | sort | uniq | tr '\n' ' ') \
+            --mhc-class-II-alpha-chain-tcr-contact-residues $(awk -F ',' '$2 == "mhc_chain1" {{ print $3 }}' {input.tcr_mhc_class_II_contacts} | sort | uniq | tr '\n' ' ') \
+            --mhc-class-II-beta-chain-tcr-contact-residues $(awk -F ',' '$2 == "mhc_chain2" {{ print $3 }}' {input.tcr_mhc_class_II_contacts} | sort | uniq | tr '\n' ' ') \
+            --remove-structures-missing-residues \
+            --structural-similarity-cutoff 2.0 \
+            -o {output} \
+            {input.stcrdab_path}
+        """
+
+rule crop_selected_structures:
+    input: "data/interim/selected-stcrdab"
+    output: directory("data/processed/selected-stcrdab_crop")
+    shell:
+        """
+        mkdir -p {output}
+        echo "Processing structures..."
+        head -n1 "{input}/stcrdab_split.csv" > "{output}/stcrdab_split.csv"
+        num_lines=$(cat "{input}/stcrdab_split.csv" | wc -l)
+        line=1
+        while [ $line -lt $num_lines ]; do \
+            line=$(expr $line + 1)
+            pdb_id=$(sed -n "${line}p" {input}/stcrdab_split.csv | cut -d ',' -f1)
+            alpha_chain=$(sed -n "${line}p" {input}/stcrdab_split.csv | cut -d ',' -f2)
+            beta_chain=$(sed -n "${line}p" {input}/stcrdab_split.csv | cut -d ',' -f3)
+            antigen_chain=$(sed -n "${line}p" {input}/stcrdab_split.csv | cut -d ',' -f4)
+            mhc_chain1=$(sed -n "${line}p" {input}/stcrdab_split.csv | cut -d ',' -f5)
+            mhc_chain2=$(sed -n "${line}p" {input}/stcrdab_split.csv | cut -d ',' -f6)
+            mhc_type=$(sed -n "${line}p" {input}/stcrdab_split.csv | cut -d ',' -f7)
+            chains="${alpha_chain}${beta_chain}${antigen_chain}${mhc_chain1}${mhc_chain2}"
+            file_name="${pdb_id}_${chains}.pdb"
+            echo "Working on ${file_name}..."
+            if [ "${mhc_type}" = "MH1" ]; then \
+                python -m tcr_antigen_prediction.apps.crop_tcr_pmhc \
+                    "{input}/${file_name}" \
+                    -o "{output}/${file_name}" \
+                    --tcr-chains $alpha_chain $beta_chain \
+                    --mhc-chains $mhc_chain1 \
+                    --antigen-chain $antigen_chain || continue
+            elif [ "${mhc_type}" = "MH2" ]; then \
+                python -m tcr_antigen_prediction.apps.crop_tcr_pmhc \
+                    "{input}/${file_name}" \
+                    -o "{output}/${file_name}" \
+                    --tcr-chains $alpha_chain $beta_chain \
+                    --mhc-chains $mhc_chain1 $mhc_chain2 \
+                    --antigen-chain $antigen_chain || continue
+            else \
+                echo "INVALID MHC TYPE"
+                continue
+            fi
+            sed -n "${line}p" "{input}/stcrdab_split.csv" >> "{output}/stcrdab_split.csv"
+            echo "Finished Structure"
+        done
+        echo "All done."
+        """
+
+rule data_external:
+    input: "data/processed/external_validation_data_selected"
+
+rule renumber_external_structures:
+    input: "data/external/ClassI_ternaries"
+    output: directory("data/interim/external_validation_data_renumbered")
+    shell:
+        """
+        mkdir -p "{output}"
+        find "{input}" -name "*.pdb" | xargs -I % bash -c 'python -m tcr_antigen_prediction.apps.renumber_tcr_pmhc_structure -o "{output}/$(basename "%")" "%"'
+        """
+
+rule fix_external_structures:
+    input: "data/interim/external_validation_data_renumbered"
+    output: directory("data/interim/external_validation_data_fix")
+    shell:
+        """
+        mkdir -p {output}
+        for file_name in "{input}"/*.pdb; do
+            file_name_base=$(basename $file_name .pdb)
+            python -m tcr_antigen_prediction.apps.fix_pdb -o "{output}/$(echo $file_name_base | tr '.' '_').pdb" "$file_name"
+        done
+        """
+
+rule identify_external_tcr_pmhc_interactions:
+    input: "data/interim/external_validation_data_fix"
+    output: directory("data/interim/external_validation_data_entities")
+    shell:
+        """
+        mkdir -p {output}
+        echo "name,Achain,Bchain,antigen_chain,mhc_chain1,mhc_chain2,mhc_type" > "{output}/structures_summary.csv"
+        for file_name in "{input}"/*; do
+            file_name_base=$(basename $file_name .pdb);
+            python -m tcr_antigen_prediction.apps.identify_tcr_pmhc_interactions -o "/tmp/$file_name_base.csv" $file_name
+            cat "/tmp/$file_name_base.csv" | sed 1d | cut -d, -f1-5 | tr ',' ' ' \
+                | xargs -I % bash -c \
+                'python -m tcr_antigen_prediction.apps.extract_chains_from_structure --chains % -o "${{3}}/${{1}}_$(echo "%" | tr -d " ").pdb" "$2"' \
+                _ $file_name_base $file_name {output} || continue
+            cat "/tmp/$file_name_base.csv" | sed 1d | xargs -I % bash -c 'echo ${{1}}_$(echo % | cut -d, -f1-5 | sed s/,//g),%' \
+            _ $file_name_base \
+            >> "{output}/structures_summary.csv"
+        done
+        """
+
+rule crop_external_structures:
+    input: "data/interim/external_validation_data_entities"
+    output: directory("data/interim/external_validation_data_entities_crop")
+    shell:
+        """
+        mkdir -p {output}
+        head -n1 "{input}/structures_summary.csv" > "{output}/structures_summary.csv"
+        num_lines=$(cat {input}/structures_summary.csv | wc -l)
+        line=1
+        while [ $line -lt $num_lines ]; do
+            line=$(expr $line + 1)
+            name=$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f1)
+            alpha_chain=$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f2)
+            beta_chain=$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f3)
+            antigen_chain=$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f4)
+            mhc_chain1=$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f5)
+            mhc_chain2=$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f6)
+            mhc_type=$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f7)
+            chains="${{alpha_chain}}${{beta_chain}}${{antigen_chain}}${{mhc_chain1}}${{mhc_chain2}}"
+            file_name="${{name}}.pdb"
+            echo "Working on $name..."
+            if [ "$alpha_chain" = "" ] || [ "$beta_chain" = "" ]; then
+                echo "Skipping entry without TCR"
+                continue
+            fi
+            if [ "$mhc_type" = "MH1" ]; then
+                python -m tcr_antigen_prediction.apps.crop_tcr_pmhc \
+                    "{input}/$file_name" \
+                    -o "{output}/$file_name" \
+                    --tcr-chains $alpha_chain $beta_chain \
+                    --mhc-chains $mhc_chain1 \
+                    --antigen-chain $antigen_chain || continue
+                echo "$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f1-5),,$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f7-)" >> "{output}/structures_summary.csv"
+            elif [ "$mhc_type" = "MH2" ]; then
+                python -m tcr_antigen_prediction.apps.crop_tcr_pmhc \
+                    "{input}/$file_name" \
+                    -o "{output}/$file_name" \
+                    --tcr-chains $alpha_chain $beta_chain \
+                    --mhc-chains $mhc_chain1 $mhc_chain2 \
+                    --antigen-chain $antigen_chain || continue
+                sed -n "${{line}}p" {input}/structures_summary.csv >> "{output}/structures_summary.csv"
+            else
+                echo "Skipping entry without MHC"
+                continue
+            fi
+        done
+        """
+
+rule get_external_structures_sequences:
+    input: "data/interim/external_validation_data_entities_crop"
+    output: "data/interim/external_validation_data_annotated_sequences.csv"
+    shell:
+        """
+        echo "$(head -n1 {input}/structures_summary.csv),CDR1alpha_sequence,CDR2alpha_sequence,CDR3alpha_sequence,CDR1beta_sequence,CDR2beta_sequence,CDR3beta_sequence,peptide_sequence" > {output}
+        num_lines=$(cat {input}/structures_summary.csv | wc -l)
+        line=1
+        while [ $line -lt $num_lines ]; do
+            line=$(expr $line + 1)
+            name=$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f1)
+            alpha_chain=$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f2)
+            beta_chain=$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f3)
+            antigen_chain=$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f4)
+            mhc_chain1=$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f5)
+            mhc_chain2=$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f6)
+            chains="${{alpha_chain}}${{beta_chain}}${{antigen_chain}}${{mhc_chain1}}${{mhc_chain2}}"
+            file_name="${{name}}.pdb"
+            output_name="/tmp/$(basename $file_name .pdb).csv"
+            python -m tcr_antigen_prediction.apps.annotate_tcr_pmhc_sequences \
+                --alpha-chain-id $alpha_chain \
+                --beta-chain-id $beta_chain \
+                --antigen-chain-id $antigen_chain \
+                -o "$output_name" \
+                "{input}/$file_name" || continue
+            echo "$(sed -n "${{line}}p" {input}/structures_summary.csv),$(cat $output_name | sed 1d)" >> {output}
+        done
+        """
+
+rule select_external_structures:
+    input:
+        data_dir="data/interim/external_validation_data_entities_crop",
+        summary_file="data/interim/external_validation_data_annotated_sequences.csv"
+    output: directory("data/processed/external_validation_data_selected")
+    shell:
+        """
+        mkdir -p {output}
+        python -m tcr_antigen_prediction.apps.filter_similar_structures -o "{output}/structures_summary.csv" --structural-similarity-cutoff 2.0 --summary-csv {input.summary_file} {input.data_dir}
+        cat "{output}/structures_summary.csv" | sed 1d | cut -d, -f1 | xargs -I % cp {input.data_dir}/%.pdb {output}/
+        """
+
+rule models:
+    input: "data", "models/TCRen"
+
+rule train_TCRen:
+    input: "data/processed/selected-stcrdab_crop"
+    output: directory("models/TCRen")
+    shell:
+        """
+        @mkdir -p {output}
+        @python -m tcr_antigen_prediction.apps.train_tcr_en \
+            -o {output}/TCRen_probabilities.csv \
+            --summary-csv "{input}/stcrdab_split.csv" \
+            $(cat "{input}/stcrdab_split.csv" | grep "train" | awk -F, -v dir="{input}" '{{ printf "%s/%s_%s%s%s%s%s.pdb ", dir, $1, $2, $3, $4, $5, $6 }}')
+        """
+
+rule lint:
+    shell:
+        """
+        ruff check
+        ruff format --check
+        """
+
+rule test:
+    shell: "pytest tests"
+
+rule docs:
+    shell:
+        """
+        sphinx-apidoc -f -e -o docs/source src/tcr_antigen_prediction src/**/apps/*
+        python docs/document_clis.py docs/source
+        sphinx-build -b html ./docs ./docs/public
+        """

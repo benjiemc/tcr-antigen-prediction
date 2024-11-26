@@ -8,6 +8,7 @@ dependencies:
   - jupyter
   - pip
   - python=3.11
+  - snakemake
   - pip:
       - biopython
       - matplotlib
