@@ -17,7 +17,7 @@ rule environment:
         """
 
 rule data:
-    input: "data/processed/selected-stcrdab_crop"
+    input: "data/processed/selected-stcrdab"
 
 rule download_stcrdab:
     output: directory("data/raw/stcrdab")
@@ -32,7 +32,7 @@ rule select_stcrdab_structures:
         stcrdab_path="data/raw/stcrdab",
         tcr_mhc_class_I_contacts="data/interim/tcr_mhc_class_I_contacts.csv",
         tcr_mhc_class_II_contacts="data/interim/tcr_mhc_class_II_contacts.csv"
-    output: directory("data/interim/selected-stcrdab")
+    output: directory("data/processed/selected-stcrdab")
     resources:
         runtime="1h",
         mem="500MB",
@@ -55,58 +55,6 @@ rule select_stcrdab_structures:
             --structural-similarity-cutoff 2.0 \
             -o {output} \
             {input.stcrdab_path}
-        """
-
-rule crop_selected_structures:
-    input: "data/interim/selected-stcrdab"
-    output: directory("data/processed/selected-stcrdab_crop")
-    resources:
-        runtime="5m",
-        mem="100MB",
-        tasks=1
-    shell:
-        """
-        mkdir -p {output}
-        echo "Processing structures..."
-        head -n1 "{input}/stcrdab_split.csv" > "{output}/stcrdab_split.csv"
-        num_lines=$(cat "{input}/stcrdab_split.csv" | wc -l)
-        line=1
-        while [ $line -lt $num_lines ]; do \
-            line=$(expr $line + 1)
-            pdb_id=$(sed -n "${line}p" {input}/stcrdab_split.csv | cut -d ',' -f1)
-            alpha_chain=$(sed -n "${line}p" {input}/stcrdab_split.csv | cut -d ',' -f2)
-            beta_chain=$(sed -n "${line}p" {input}/stcrdab_split.csv | cut -d ',' -f3)
-            antigen_chain=$(sed -n "${line}p" {input}/stcrdab_split.csv | cut -d ',' -f4)
-            mhc_chain1=$(sed -n "${line}p" {input}/stcrdab_split.csv | cut -d ',' -f5)
-            mhc_chain2=$(sed -n "${line}p" {input}/stcrdab_split.csv | cut -d ',' -f6)
-            mhc_type=$(sed -n "${line}p" {input}/stcrdab_split.csv | cut -d ',' -f7)
-            chains="${alpha_chain}${beta_chain}${antigen_chain}${mhc_chain1}${mhc_chain2}"
-            file_name="${pdb_id}_${chains}.pdb"
-            echo "Working on ${file_name}..."
-            if [ "${mhc_type}" = "MH1" ]; then \
-                python -m tcr_antigen_prediction.apps.crop_tcr_pmhc \
-                    --log-level {config[log_level]} \
-                    "{input}/${file_name}" \
-                    -o "{output}/${file_name}" \
-                    --tcr-chains $alpha_chain $beta_chain \
-                    --mhc-chains $mhc_chain1 \
-                    --antigen-chain $antigen_chain || continue
-            elif [ "${mhc_type}" = "MH2" ]; then \
-                python -m tcr_antigen_prediction.apps.crop_tcr_pmhc \
-                    --log-level {config[log_level]} \
-                    "{input}/${file_name}" \
-                    -o "{output}/${file_name}" \
-                    --tcr-chains $alpha_chain $beta_chain \
-                    --mhc-chains $mhc_chain1 $mhc_chain2 \
-                    --antigen-chain $antigen_chain || continue
-            else \
-                echo "INVALID MHC TYPE"
-                continue
-            fi
-            sed -n "${line}p" "{input}/stcrdab_split.csv" >> "{output}/stcrdab_split.csv"
-            echo "Finished Structure"
-        done
-        echo "All done."
         """
 
 rule data_external:
@@ -281,7 +229,7 @@ rule models:
     input: "data", "models/TCRen"
 
 rule train_TCRen:
-    input: "data/processed/selected-stcrdab_crop"
+    input: "data/processed/selected-stcrdab"
     output: directory("models/TCRen")
     resources:
         runtime="5m",
