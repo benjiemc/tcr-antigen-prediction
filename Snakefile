@@ -1,4 +1,8 @@
-LOG_LEVEL = 'info'
+default_config = {
+    'log_level': 'info',
+}
+
+config = {**default_config, **config}
 
 rule environment:
     shell:
@@ -15,13 +19,11 @@ rule data:
 
 rule download_stcrdab:
     output: directory("data/raw/stcrdab")
-    params:
-        log_level=LOG_LEVEL
     resources:
         runtime="20m",
         mem="500MB",
         tasks=1
-    shell: "python -m tcr_antigen_prediction.apps.download_stcrdab --log-level {params.log_level} {output}"
+    shell: "python -m tcr_antigen_prediction.apps.download_stcrdab --log-level {config[log_level]} {output}"
 
 rule select_stcrdab_structures:
     input:
@@ -29,8 +31,6 @@ rule select_stcrdab_structures:
         tcr_mhc_class_I_contacts="data/interim/tcr_mhc_class_I_contacts.csv",
         tcr_mhc_class_II_contacts="data/interim/tcr_mhc_class_II_contacts.csv"
     output: directory("data/interim/selected-stcrdab")
-    params:
-        log_level=LOG_LEVEL
     resources:
         runtime="1h",
         mem="500MB",
@@ -38,7 +38,7 @@ rule select_stcrdab_structures:
     shell:
         """
         python -m tcr_antigen_prediction.apps.select_stcrdab_tcr_pmhc_structures \
-            --log-level {params.log_level} \
+            --log-level {config[log_level]} \
             --seed 123 \
             --tcr-types abTCR \
             --mhc-types MH1 MH2 \
@@ -55,8 +55,6 @@ rule select_stcrdab_structures:
 rule crop_selected_structures:
     input: "data/interim/selected-stcrdab"
     output: directory("data/processed/selected-stcrdab_crop")
-    params:
-        log_level=LOG_LEVEL
     resources:
         runtime="5m",
         mem="100MB",
@@ -82,7 +80,7 @@ rule crop_selected_structures:
             echo "Working on ${file_name}..."
             if [ "${mhc_type}" = "MH1" ]; then \
                 python -m tcr_antigen_prediction.apps.crop_tcr_pmhc \
-                    --log-level {params.log_level} \
+                    --log-level {config[log_level]} \
                     "{input}/${file_name}" \
                     -o "{output}/${file_name}" \
                     --tcr-chains $alpha_chain $beta_chain \
@@ -90,7 +88,7 @@ rule crop_selected_structures:
                     --antigen-chain $antigen_chain || continue
             elif [ "${mhc_type}" = "MH2" ]; then \
                 python -m tcr_antigen_prediction.apps.crop_tcr_pmhc \
-                    --log-level {params.log_level} \
+                    --log-level {config[log_level]} \
                     "{input}/${file_name}" \
                     -o "{output}/${file_name}" \
                     --tcr-chains $alpha_chain $beta_chain \
@@ -112,8 +110,6 @@ rule data_external:
 rule renumber_external_structures:
     input: "data/external/ClassI_ternaries"
     output: directory("data/interim/external_validation_data_renumbered")
-    params:
-        log_level=LOG_LEVEL
     resources:
         runtime="10m",
         mem="500MB",
@@ -123,15 +119,13 @@ rule renumber_external_structures:
         mkdir -p "{output}"
         find "{input}" -name "*.pdb" | \
             xargs -I % bash -c 'python -m tcr_antigen_prediction.apps.renumber_tcr_pmhc_structure \
-                --log-level {params.log_level} \
+                --log-level {config[log_level]} \
                 -o "{output}/$(basename "%")" "%"'
         """
 
 rule fix_external_structures:
     input: "data/interim/external_validation_data_renumbered"
     output: directory("data/interim/external_validation_data_fix")
-    params:
-        log_level=LOG_LEVEL
     resources:
         runtime="10m",
         mem="500MB",
@@ -141,15 +135,13 @@ rule fix_external_structures:
         mkdir -p {output}
         for file_name in "{input}"/*.pdb; do
             file_name_base=$(basename $file_name .pdb)
-            python -m tcr_antigen_prediction.apps.fix_pdb --log-level {params.log_level} -o "{output}/$(echo $file_name_base | tr '.' '_').pdb" "$file_name"
+            python -m tcr_antigen_prediction.apps.fix_pdb --log-level {config[log_level]} -o "{output}/$(echo $file_name_base | tr '.' '_').pdb" "$file_name"
         done
         """
 
 rule identify_external_tcr_pmhc_interactions:
     input: "data/interim/external_validation_data_fix"
     output: directory("data/interim/external_validation_data_entities")
-    params:
-        log_level=LOG_LEVEL
     resources:
         runtime="10m",
         mem="1GB",
@@ -160,7 +152,7 @@ rule identify_external_tcr_pmhc_interactions:
         echo "name,Achain,Bchain,antigen_chain,mhc_chain1,mhc_chain2,mhc_type" > "{output}/structures_summary.csv"
         for file_name in "{input}"/*; do
             file_name_base=$(basename $file_name .pdb);
-            python -m tcr_antigen_prediction.apps.identify_tcr_pmhc_interactions --log-level {params.log_level} -o "/tmp/$file_name_base.csv" $file_name
+            python -m tcr_antigen_prediction.apps.identify_tcr_pmhc_interactions --log-level {config[log_level]} -o "/tmp/$file_name_base.csv" $file_name
             cat "/tmp/$file_name_base.csv" | sed 1d | cut -d, -f1-5 | tr ',' ' ' \
                 | xargs -I % bash -c \
                 'python -m tcr_antigen_prediction.apps.extract_chains_from_structure --chains % -o "${{3}}/${{1}}_$(echo "%" | tr -d " ").pdb" "$2"' \
@@ -174,8 +166,6 @@ rule identify_external_tcr_pmhc_interactions:
 rule crop_external_structures:
     input: "data/interim/external_validation_data_entities"
     output: directory("data/interim/external_validation_data_entities_crop")
-    params:
-        log_level=LOG_LEVEL
     resources:
         runtime="5m",
         mem="100mb",
@@ -204,7 +194,7 @@ rule crop_external_structures:
             fi
             if [ "$mhc_type" = "MH1" ]; then
                 python -m tcr_antigen_prediction.apps.crop_tcr_pmhc \
-                    --log-level {params.log_level} \
+                    --log-level {config[log_level]} \
                     "{input}/$file_name" \
                     -o "{output}/$file_name" \
                     --tcr-chains $alpha_chain $beta_chain \
@@ -213,7 +203,7 @@ rule crop_external_structures:
                 echo "$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f1-5),,$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f7-)" >> "{output}/structures_summary.csv"
             elif [ "$mhc_type" = "MH2" ]; then
                 python -m tcr_antigen_prediction.apps.crop_tcr_pmhc \
-                    --log-level {params.log_level} \
+                    --log-level {config[log_level]} \
                     "{input}/$file_name" \
                     -o "{output}/$file_name" \
                     --tcr-chains $alpha_chain $beta_chain \
@@ -230,8 +220,6 @@ rule crop_external_structures:
 rule get_external_structures_sequences:
     input: "data/interim/external_validation_data_entities_crop"
     output: "data/interim/external_validation_data_annotated_sequences.csv"
-    params:
-        log_level=LOG_LEVEL
     resources:
         runtime="5m",
         mem="100MB",
@@ -253,7 +241,7 @@ rule get_external_structures_sequences:
             file_name="${{name}}.pdb"
             output_name="/tmp/$(basename $file_name .pdb).csv"
             python -m tcr_antigen_prediction.apps.annotate_tcr_pmhc_sequences \
-                --log-level {params.log_level} \
+                --log-level {config[log_level]} \
                 --alpha-chain-id $alpha_chain \
                 --beta-chain-id $beta_chain \
                 --antigen-chain-id $antigen_chain \
@@ -268,8 +256,6 @@ rule select_external_structures:
         data_dir="data/interim/external_validation_data_entities_crop",
         summary_file="data/interim/external_validation_data_annotated_sequences.csv"
     output: directory("data/processed/external_validation_data_selected")
-    params:
-        log_level=LOG_LEVEL
     resources:
         runtime="10m",
         mem="1GB",
@@ -278,7 +264,7 @@ rule select_external_structures:
         """
         mkdir -p {output}
         python -m tcr_antigen_prediction.apps.filter_similar_structures \
-            --log-level {params.log_level} \
+            --log-level {config[log_level]} \
             --structural-similarity-cutoff 2.0 \
             --summary-csv {input.summary_file} \
             -o "{output}/structures_summary.csv" \
@@ -292,8 +278,6 @@ rule models:
 rule train_TCRen:
     input: "data/processed/selected-stcrdab_crop"
     output: directory("models/TCRen")
-    params:
-        log_level=LOG_LEVEL
     resources:
         runtime="5m",
         mem="1GB",
@@ -302,7 +286,7 @@ rule train_TCRen:
         """
         @mkdir -p {output}
         @python -m tcr_antigen_prediction.apps.train_tcr_en \
-            --log-level {params.log_level} \
+            --log-level {config[log_level]} \
             -o {output}/TCRen_probabilities.csv \
             --summary-csv "{input}/stcrdab_split.csv" \
             $(cat "{input}/stcrdab_split.csv" | grep "train" | awk -F, -v dir="{input}" '{{ printf "%s/%s_%s%s%s%s%s.pdb ", dir, $1, $2, $3, $4, $5, $6 }}')
