@@ -13,6 +13,10 @@ rule data:
 
 rule download_stcrdab:
     output: directory("data/raw/stcrdab")
+    resources:
+        runtime="20m",
+        mem="500MB",
+        tasks=1
     shell: "python -m tcr_antigen_prediction.apps.download_stcrdab {output}"
 
 rule select_stcrdab_structures:
@@ -21,6 +25,10 @@ rule select_stcrdab_structures:
         tcr_mhc_class_I_contacts="data/interim/tcr_mhc_class_I_contacts.csv",
         tcr_mhc_class_II_contacts="data/interim/tcr_mhc_class_II_contacts.csv"
     output: directory("data/interim/selected-stcrdab")
+    resources:
+        runtime="1h",
+        mem="500MB",
+        tasks=1
     shell:
         """
         python -m tcr_antigen_prediction.apps.select_stcrdab_tcr_pmhc_structures \
@@ -40,6 +48,10 @@ rule select_stcrdab_structures:
 rule crop_selected_structures:
     input: "data/interim/selected-stcrdab"
     output: directory("data/processed/selected-stcrdab_crop")
+    resources:
+        runtime="5m",
+        mem="100MB",
+        tasks=1
     shell:
         """
         mkdir -p {output}
@@ -89,6 +101,10 @@ rule data_external:
 rule renumber_external_structures:
     input: "data/external/ClassI_ternaries"
     output: directory("data/interim/external_validation_data_renumbered")
+    resources:
+        runtime="10m",
+        mem="500MB",
+        tasks=1
     shell:
         """
         mkdir -p "{output}"
@@ -98,6 +114,10 @@ rule renumber_external_structures:
 rule fix_external_structures:
     input: "data/interim/external_validation_data_renumbered"
     output: directory("data/interim/external_validation_data_fix")
+    resources:
+        runtime="10m",
+        mem="500MB",
+        tasks=1
     shell:
         """
         mkdir -p {output}
@@ -110,6 +130,10 @@ rule fix_external_structures:
 rule identify_external_tcr_pmhc_interactions:
     input: "data/interim/external_validation_data_fix"
     output: directory("data/interim/external_validation_data_entities")
+    resources:
+        runtime="10m",
+        mem="1GB",
+        tasks=1
     shell:
         """
         mkdir -p {output}
@@ -130,6 +154,10 @@ rule identify_external_tcr_pmhc_interactions:
 rule crop_external_structures:
     input: "data/interim/external_validation_data_entities"
     output: directory("data/interim/external_validation_data_entities_crop")
+    resources:
+        runtime="5m",
+        mem="100mb",
+        tasks=1
     shell:
         """
         mkdir -p {output}
@@ -178,6 +206,10 @@ rule crop_external_structures:
 rule get_external_structures_sequences:
     input: "data/interim/external_validation_data_entities_crop"
     output: "data/interim/external_validation_data_annotated_sequences.csv"
+    resources:
+        runtime="5m",
+        mem="100MB",
+        tasks=1
     shell:
         """
         echo "$(head -n1 {input}/structures_summary.csv),CDR1alpha_sequence,CDR2alpha_sequence,CDR3alpha_sequence,CDR1beta_sequence,CDR2beta_sequence,CDR3beta_sequence,peptide_sequence" > {output}
@@ -209,6 +241,10 @@ rule select_external_structures:
         data_dir="data/interim/external_validation_data_entities_crop",
         summary_file="data/interim/external_validation_data_annotated_sequences.csv"
     output: directory("data/processed/external_validation_data_selected")
+    resources:
+        runtime="10m",
+        mem="1GB",
+        tasks=1
     shell:
         """
         mkdir -p {output}
@@ -222,6 +258,10 @@ rule models:
 rule train_TCRen:
     input: "data/processed/selected-stcrdab_crop"
     output: directory("models/TCRen")
+    resources:
+        runtime="5m",
+        mem="1GB",
+        tasks=1
     shell:
         """
         @mkdir -p {output}
