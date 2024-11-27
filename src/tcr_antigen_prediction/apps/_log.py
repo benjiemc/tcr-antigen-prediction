@@ -1,4 +1,5 @@
 """Helper functions and config for command line application logging."""
+
 import logging
 from argparse import ArgumentParser
 
@@ -13,10 +14,13 @@ LOG_MAP: dict[str, int] = {
 def add_logging_arguments(parser: ArgumentParser) -> None:
     """Add logging arguments to parser."""
     logging_group = parser.add_argument_group('Logging', 'Options for logging')
-    logging_group.add_argument('--log-level', choices=['debug', 'info', 'warning', 'error'], default='warning',
-                               help="Level to log messages at (Default: 'warning')")
-    logging_group.add_argument('--log-file', default=None,
-                               help='File to output logs (default is to write to stderr)')
+    logging_group.add_argument(
+        '--log-level',
+        choices=['debug', 'info', 'warning', 'error'],
+        default='warning',
+        help="Level to log messages at (Default: 'warning')",
+    )
+    logging_group.add_argument('--log-file', default=None, help='File to output logs (default is to write to stderr)')
 
 
 def setup_logger(logger: logging.Logger, level: str = 'warning', log_file: str | None = None) -> None:

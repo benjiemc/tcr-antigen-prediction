@@ -1,4 +1,5 @@
 """Functions for comparing data points."""
+
 import numpy as np
 from Bio.PDB import Atom, Structure, Superimposer
 from Bio.SeqUtils import IUPACData
@@ -15,8 +16,9 @@ def rmsd(coords1: np.ndarray, coords2: np.ndarray) -> float:
     return np.sqrt(np.sum(distance * distance) / coords1.shape[0])
 
 
-def find_equivalent_sequences(struct1: Structure.Structure, chain_map1: dict[str, str],
-                              struct2: Structure.Structure, chain_map2: dict[str, str]) -> list[tuple]:
+def find_equivalent_sequences(
+    struct1: Structure.Structure, chain_map1: dict[str, str], struct2: Structure.Structure, chain_map2: dict[str, str]
+) -> list[tuple]:
     """Find equivalent residues between two structures."""
     equivalent_residues = []
 
@@ -42,14 +44,22 @@ def find_equivalent_sequences(struct1: Structure.Structure, chain_map1: dict[str
 
             else:
                 if res1 == res2:
-                    equivalent_residues.append(((chain_map1[chain_type],
-                                                residues1[index1].get_resname(),
-                                                residues1[index1].id[1],
-                                                residues1[index1].id[2].rstrip()),
-                                                (chain_map2[chain_type],
-                                                residues2[index2].get_resname(),
-                                                residues2[index2].id[1],
-                                                residues2[index2].id[2].rstrip())))
+                    equivalent_residues.append(
+                        (
+                            (
+                                chain_map1[chain_type],
+                                residues1[index1].get_resname(),
+                                residues1[index1].id[1],
+                                residues1[index1].id[2].rstrip(),
+                            ),
+                            (
+                                chain_map2[chain_type],
+                                residues2[index2].get_resname(),
+                                residues2[index2].id[1],
+                                residues2[index2].id[2].rstrip(),
+                            ),
+                        )
+                    )
 
                 index1 += 1
                 index2 += 1
@@ -57,10 +67,14 @@ def find_equivalent_sequences(struct1: Structure.Structure, chain_map1: dict[str
     return equivalent_residues
 
 
-def get_relevant_atoms(struct1: Structure.Structure, chain_map1: dict[str, str],    # noqa: C901, PLR0912
-                       struct2: Structure.Structure, chain_map2: dict[str, str],
-                       equivalent_residues: list[tuple],
-                       mhc_type: str) -> tuple[list[Atom.Atom], list[Atom.Atom]]:
+def get_relevant_atoms(  # noqa: C901, PLR0912
+    struct1: Structure.Structure,
+    chain_map1: dict[str, str],
+    struct2: Structure.Structure,
+    chain_map2: dict[str, str],
+    equivalent_residues: list[tuple],
+    mhc_type: str,
+) -> tuple[list[Atom.Atom], list[Atom.Atom]]:
     """Get the relevant atoms for the TCR variable domain, antigen, and MHC binding domain.
 
     TODO: Refactor if statements
@@ -91,24 +105,26 @@ def get_relevant_atoms(struct1: Structure.Structure, chain_map1: dict[str, str],
 
         relevant_atoms = False
 
-        if ((chain_map1_inv[res1[0]] == chain_map2_inv[res2[0]] == 'alpha_chain')
-                or (chain_map1_inv[res1[0]] == chain_map2_inv[res2[0]] == 'beta_chain')):
-
+        if (chain_map1_inv[res1[0]] == chain_map2_inv[res2[0]] == 'alpha_chain') or (
+            chain_map1_inv[res1[0]] == chain_map2_inv[res2[0]] == 'beta_chain'
+        ):
             if res1[2] in IMGT_VARIABLE_DOMAIN and res2[2] in IMGT_VARIABLE_DOMAIN:
                 relevant_atoms = True
 
         elif chain_map1_inv[res1[0]] == chain_map2_inv[res2[0]] == 'antigen_chain':
             relevant_atoms = True
 
-        else:                                                                                       # noqa: PLR5501
+        else:  # noqa: PLR5501
             if mhc_type == 'MH1':
-                if chain_map1_inv[res1[0]] == chain_map2_inv[res2[0]] == 'mhc_chain1':              # noqa: SIM102
+                if chain_map1_inv[res1[0]] == chain_map2_inv[res2[0]] == 'mhc_chain1':  # noqa: SIM102
                     if res1[2] in IMGT_MH1_ABD and res2[2] in IMGT_MH1_ABD:
                         relevant_atoms = True
 
             elif mhc_type == 'MH2':
-                if (chain_map1_inv[res1[0]] == chain_map2_inv[res2[0]] == 'mhc_chain1'              # noqa: SIM102
-                        or chain_map1_inv[res1[0]] == chain_map2_inv[res2[0]] == 'mhc_chain2'):
+                if (  # noqa: SIM102
+                    chain_map1_inv[res1[0]] == chain_map2_inv[res2[0]] == 'mhc_chain1'
+                    or chain_map1_inv[res1[0]] == chain_map2_inv[res2[0]] == 'mhc_chain2'
+                ):
                     if res1[1] in IMGT_MH2_ABD and res2[1] in IMGT_MH2_ABD:
                         relevant_atoms = True
 
@@ -127,9 +143,9 @@ def get_relevant_atoms(struct1: Structure.Structure, chain_map1: dict[str, str],
     return atoms1, atoms2
 
 
-def compute_structural_distances(structures: list[Structure.Structure],
-                                 chain_maps: list[dict],
-                                 mhc_type: str) -> np.array:
+def compute_structural_distances(
+    structures: list[Structure.Structure], chain_maps: list[dict], mhc_type: str
+) -> np.array:
     """Create a distance matrix of RMSD between the input TCR:pMHC structures.
 
     The comparison is done between the TCR variable domain, peptide, and MHC antigen binding domain.
@@ -147,7 +163,7 @@ def compute_structural_distances(structures: list[Structure.Structure],
     distance_matrix = np.zeros((len(structures), len(structures)))
 
     for i, (struct1, chain_map1) in enumerate(zip(structures[:-1], chain_maps[:-1], strict=False)):
-        for j, (struct2, chain_map2) in enumerate(zip(structures[i + 1:], chain_maps[i + 1:], strict=False), i + 1):
+        for j, (struct2, chain_map2) in enumerate(zip(structures[i + 1 :], chain_maps[i + 1 :], strict=False), i + 1):
             equivalent_residues = find_equivalent_sequences(struct1, chain_map1, struct2, chain_map2)
             atoms1, atoms2 = get_relevant_atoms(struct1, chain_map1, struct2, chain_map2, equivalent_residues, mhc_type)
 
@@ -156,13 +172,13 @@ def compute_structural_distances(structures: list[Structure.Structure],
             super_imposer.set_atoms(atoms1, atoms2)
             super_imposer.apply(struct2_aligned.get_atoms())
 
-            atoms1, atoms2 = get_relevant_atoms(struct1, chain_map1,
-                                                struct2_aligned, chain_map2,
-                                                equivalent_residues,
-                                                mhc_type)
+            atoms1, atoms2 = get_relevant_atoms(
+                struct1, chain_map1, struct2_aligned, chain_map2, equivalent_residues, mhc_type
+            )
 
-            distance = rmsd(np.array([atom.get_coord() for atom in atoms1]),
-                            np.array([atom.get_coord() for atom in atoms2]))
+            distance = rmsd(
+                np.array([atom.get_coord() for atom in atoms1]), np.array([atom.get_coord() for atom in atoms2])
+            )
 
             distance_matrix[i, j] = distance
 

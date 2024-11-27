@@ -1,4 +1,5 @@
 """Replace HETATM records with ATOM records if they are valid residues."""
+
 import argparse
 import logging
 import sys
@@ -10,9 +11,11 @@ from tcr_antigen_prediction.structure import PROTEIN_LETTERS, get_header
 
 logger = logging.getLogger()
 
-parser = argparse.ArgumentParser(prog=f'python -m {sys.modules[__name__].__spec__.name}',
-                                 description=__doc__,
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+parser = argparse.ArgumentParser(
+    prog=f'python -m {sys.modules[__name__].__spec__.name}',
+    description=__doc__,
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+)
 
 parser.add_argument('structure', help='path to pdb file')
 parser.add_argument('--output', '-o', help='path to output pdb file')

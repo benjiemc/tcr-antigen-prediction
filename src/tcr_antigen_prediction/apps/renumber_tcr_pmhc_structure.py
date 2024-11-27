@@ -4,6 +4,7 @@ Requirements:
     - ANARCI: https://github.com/oxpig/ANARCI
 
 """
+
 import argparse
 import logging
 import sys
@@ -17,9 +18,11 @@ from tcr_antigen_prediction.structure import get_header
 
 logger = logging.getLogger()
 
-parser = argparse.ArgumentParser(prog=f'python -m {sys.modules[__name__].__spec__.name}',
-                                 description=__doc__,
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+parser = argparse.ArgumentParser(
+    prog=f'python -m {sys.modules[__name__].__spec__.name}',
+    description=__doc__,
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+)
 
 parser.add_argument('structure', help='path to the pdb structure file')
 parser.add_argument('--output', '-o', help='name of output structure file')
@@ -40,9 +43,14 @@ def main():
         structure = pdb_parser.get_structure('', fh)
 
     for model in structure:
-        sequences = {chain.id: [IUPACData.protein_letters_3to1[res.get_resname().title()]
-                                for res in chain if res.get_resname().title() in IUPACData.protein_letters_3to1]
-                     for chain in model}
+        sequences = {
+            chain.id: [
+                IUPACData.protein_letters_3to1[res.get_resname().title()]
+                for res in chain
+                if res.get_resname().title() in IUPACData.protein_letters_3to1
+            ]
+            for chain in model
+        }
         sequences = {chain: ''.join(sequence) for chain, sequence in sequences.items()}
 
         chain_map = []
@@ -58,8 +66,11 @@ def main():
                 numbering = numbering[0]
                 chain_type = chain_type[0]
 
-                logger.warning(('Multiple possible chain annotations found for chain id %s. '
-                                'Defaulting to first (%sCHAIN)'), chain_id, chain_type)
+                logger.warning(
+                    ('Multiple possible chain annotations found for chain id %s. ' 'Defaulting to first (%sCHAIN)'),
+                    chain_id,
+                    chain_type,
+                )
 
             numbering = [(seq_id, insert_code) for (seq_id, insert_code), res_name in numbering if res_name != '-']
 

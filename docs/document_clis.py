@@ -10,11 +10,13 @@ app_names = []
 
 for app in cli_apps:
     app_name = app.strip('src/').replace('/', '.').rstrip('.py')
-    app_doc = subprocess.run(['python', '-m', app_name, '--help'],  # noqa: S603, S607
-                             stdout=subprocess.PIPE,
-                             stderr=None,
-                             text=True,
-                             check=True).stdout
+    app_doc = subprocess.run(  # noqa: S603
+        ['python', '-m', app_name, '--help'],  # noqa: S607
+        stdout=subprocess.PIPE,
+        stderr=None,
+        text=True,
+        check=True,
+    ).stdout
 
     with open(os.path.join(sys.argv[1], app_name + '.rst'), 'w') as fh:
         fh.write(app_name)
@@ -28,12 +30,9 @@ for app in cli_apps:
 
     app_names.append(app_name)
 
-apps_contents = ('Command Line Applications\n'
-                 '=========================\n'
-                 '\n'
-                 '.. toctree::\n'
-                 '   :maxdepth: 1\n'
-                 '\n') + '\n'.join(['   ' + name for name in sorted(app_names)])
+apps_contents = (
+    'Command Line Applications\n' '=========================\n' '\n' '.. toctree::\n' '   :maxdepth: 1\n' '\n'
+) + '\n'.join(['   ' + name for name in sorted(app_names)])
 
 with open(os.path.join(sys.argv[1], 'apps.rst'), 'w') as fh:
     fh.write(apps_contents)

@@ -1,4 +1,5 @@
 """Download all of the STCRDab structures to a specified output path."""
+
 import argparse
 import logging
 import os
@@ -10,9 +11,11 @@ from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
 
 logger = logging.getLogger()
 
-parser = argparse.ArgumentParser(prog=f'python -m {sys.modules[__name__].__spec__.name}',
-                                 description=__doc__,
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+parser = argparse.ArgumentParser(
+    prog=f'python -m {sys.modules[__name__].__spec__.name}',
+    description=__doc__,
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+)
 
 parser.add_argument('output', help='path to the downloaded data directory eg. some/path/stcrdab')
 

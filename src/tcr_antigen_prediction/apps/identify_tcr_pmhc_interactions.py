@@ -1,4 +1,5 @@
 """Identify the interacting pairs of TCR:pMHC molecules in a PDB file."""
+
 import argparse
 import logging
 import re
@@ -13,13 +14,19 @@ from tcr_antigen_prediction.structure import get_header
 
 logger = logging.getLogger()
 
-parser = argparse.ArgumentParser(prog=f'python -m {sys.modules[__name__].__spec__.name}',
-                                 description=__doc__,
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+parser = argparse.ArgumentParser(
+    prog=f'python -m {sys.modules[__name__].__spec__.name}',
+    description=__doc__,
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+)
 
 parser.add_argument('structure', help='path to pdb structure')
-parser.add_argument('--contact-distance', type=float, default=5.0,
-                    help='distance to consider two chains part of the same complex (Default: 5.0)')
+parser.add_argument(
+    '--contact-distance',
+    type=float,
+    default=5.0,
+    help='distance to consider two chains part of the same complex (Default: 5.0)',
+)
 parser.add_argument('--output', '-o', help='path to output csv file')
 
 add_logging_arguments(parser)
@@ -37,8 +44,9 @@ def main():
         pdb_parser = PDBParser(QUIET=True)
         structure = pdb_parser.get_structure('', fh)
 
-    chain_maps = {chain_id: chain_type
-                  for chain_type, chain_id in re.findall(r'(\w+)CHAINS?=(\w+)', header, flags=re.MULTILINE)}
+    chain_maps = {
+        chain_id: chain_type for chain_type, chain_id in re.findall(r'(\w+)CHAINS?=(\w+)', header, flags=re.MULTILINE)
+    }
 
     # Get relevant atom coordinates
     heavy_atom_coordinates = []
@@ -50,8 +58,9 @@ def main():
             for res in chain:
                 # Only consider TCR variable domains or MHC antigen binding domains
                 if chain.id in chain_maps:
-                    if ((chain_maps[chain.id] == 'A' or chain_maps[chain.id] == 'B')
-                            and res.id[1] not in IMGT_VARIABLE_DOMAIN):
+                    if (chain_maps[chain.id] == 'A' or chain_maps[chain.id] == 'B') and res.id[
+                        1
+                    ] not in IMGT_VARIABLE_DOMAIN:
                         continue
 
                     if chain_maps[chain.id] == 'MH1' and res.id[1] not in IMGT_MH1_ABD:
@@ -81,7 +90,7 @@ def main():
     interacting_chains = {}
 
     for chain_id in chain_ids:
-        chain_idxs, = np.where(chains == chain_id)
+        (chain_idxs,) = np.where(chains == chain_id)
         chain_coords = heavy_atom_coordinates[chain_idxs]
 
         other_chains_mask = np.ones(len(heavy_atom_coordinates), dtype=bool)
@@ -90,16 +99,17 @@ def main():
         other_chain_coords = heavy_atom_coordinates[other_chains_mask]
         other_chain_ids = chains[other_chains_mask]
 
-        distances = (
-            np.sqrt(np.sum((chain_coords[:, np.newaxis, :] - other_chain_coords[np.newaxis, :, :]) ** 2, axis=2))
+        distances = np.sqrt(
+            np.sum((chain_coords[:, np.newaxis, :] - other_chain_coords[np.newaxis, :, :]) ** 2, axis=2)
         )
         contacts = distances <= args.contact_distance
         contacting_other_coords = np.max(contacts, axis=0)
 
         contacting_other_chains = np.unique(other_chain_ids[contacting_other_coords]).tolist()
 
-        interacting_chains[(chain_id,
-                            chain_maps[chain_id])] = [(id_, chain_maps[id_]) for id_ in contacting_other_chains]
+        interacting_chains[(chain_id, chain_maps[chain_id])] = [
+            (id_, chain_maps[id_]) for id_ in contacting_other_chains
+        ]
 
     # Separate complexes
     alpha_chains = [(chain_id, chain_type) for chain_id, chain_type in interacting_chains if chain_type == 'A']
@@ -107,9 +117,9 @@ def main():
 
     for chain_id, chain_type in alpha_chains:
         alpha_chain_interactions = interacting_chains[(chain_id, chain_type)]
-        possible_beta_chains = [(chain_id, chain_type)
-                                for chain_id, chain_type in alpha_chain_interactions
-                                if chain_type == 'B']
+        possible_beta_chains = [
+            (chain_id, chain_type) for chain_id, chain_type in alpha_chain_interactions if chain_type == 'B'
+        ]
 
         if len(possible_beta_chains) == 1:
             tcrs.append(((chain_id, chain_type), possible_beta_chains[0]))
@@ -132,9 +142,9 @@ def main():
     for chain_id, chain_type in mhc_chain_1s:
         mhc_chain2_type = 'B2M' if chain_type == 'MH1' else 'GB'
         chain_interactions = interacting_chains[(chain_id, chain_type)]
-        possible_mhc_chain_2_interactions = [(chain_id, chain_type)
-                                             for chain_id, chain_type in chain_interactions
-                                             if chain_type == mhc_chain2_type]
+        possible_mhc_chain_2_interactions = [
+            (chain_id, chain_type) for chain_id, chain_type in chain_interactions if chain_type == mhc_chain2_type
+        ]
 
         if len(possible_mhc_chain_2_interactions) == 1:
             mhcs.append(((chain_id, chain_type), possible_mhc_chain_2_interactions[0]))
@@ -168,8 +178,8 @@ def main():
             chain_mask = chains == chain_id
             chain_coords = heavy_atom_coordinates[chain_mask]
 
-            distances = (
-                np.sqrt(np.sum((mhc_abd_coords[:, np.newaxis, :] - chain_coords[np.newaxis, :, :]) ** 2, axis=2))
+            distances = np.sqrt(
+                np.sum((mhc_abd_coords[:, np.newaxis, :] - chain_coords[np.newaxis, :, :]) ** 2, axis=2)
             )
             contacts = distances <= args.contact_distance
 
@@ -190,8 +200,7 @@ def main():
 
         tcr_alpha_chain_mask = chains == alpha_chain_id
         tcr_beta_chain_mask = chains == beta_chain_id
-        cdr_mask = (np.isin(residue_ids, np.array(sorted(IMGT_CDR)))
-                    & (tcr_alpha_chain_mask | tcr_beta_chain_mask))
+        cdr_mask = np.isin(residue_ids, np.array(sorted(IMGT_CDR))) & (tcr_alpha_chain_mask | tcr_beta_chain_mask)
 
         mhc_mask = np.isin(chains, relevant_mhc_chains)
         mhc_abd_mask = np.isin(residue_ids, mhc_imgt_abd) & mhc_mask
@@ -201,9 +210,7 @@ def main():
         cdr_coords = heavy_atom_coordinates[cdr_mask]
         antigen_coords = heavy_atom_coordinates[antigen_mask]
 
-        distances = (
-            np.sqrt(np.sum((cdr_coords[:, np.newaxis, :] - antigen_coords[np.newaxis, :, :]) ** 2, axis=2))
-        )
+        distances = np.sqrt(np.sum((cdr_coords[:, np.newaxis, :] - antigen_coords[np.newaxis, :, :]) ** 2, axis=2))
 
         contacts = distances <= args.contact_distance
 

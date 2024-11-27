@@ -1,4 +1,5 @@
 """Constants and functions for annotating sequences as CDR domains in T cell receptors."""
+
 IMGT_CDR1: set[int] = set(range(27, 38 + 1))
 '''IMGT residue numbers corresponding to CDR 1 domains.'''
 IMGT_CDR2: set[int] = set(range(56, 65 + 1))

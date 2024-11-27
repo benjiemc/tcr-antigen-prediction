@@ -1,4 +1,5 @@
 """Filter TCR:pMHC structures with the same sequence (TCR CDRs and peptide) to an RMSD threshold."""
+
 import argparse
 import logging
 import os
@@ -13,28 +14,34 @@ from tcr_antigen_prediction.comparisons import compute_structural_distances
 
 logger = logging.getLogger()
 
-parser = argparse.ArgumentParser(prog=f'python -m {sys.modules[__name__].__spec__.name}',
-                                 description=__doc__,
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+parser = argparse.ArgumentParser(
+    prog=f'python -m {sys.modules[__name__].__spec__.name}',
+    description=__doc__,
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+)
 
 parser.add_argument('structures', help='path to directory containing structures')
 parser.add_argument('--output', '-o', help='path to output csv')
 parser.add_argument('--summary-csv', required=True, help='path to summary csv file')
-parser.add_argument('--structural-similarity-cutoff', required=True, type=float,
-                    help='RMSD threshold for structures with the same CDR and peptide sequences (in Å)')
+parser.add_argument(
+    '--structural-similarity-cutoff',
+    required=True,
+    type=float,
+    help='RMSD threshold for structures with the same CDR and peptide sequences (in Å)',
+)
 
 add_logging_arguments(parser)
 
 
-def remove_similar_structures(df: pd.DataFrame,
-                              threshold: float,
-                              structures: dict[str, Structure.Structure]) -> pd.DataFrame:
+def remove_similar_structures(
+    df: pd.DataFrame, threshold: float, structures: dict[str, Structure.Structure]
+) -> pd.DataFrame:
     """Remove structures with the same CDR and peptide sequences within the RMSD threshold."""
     output_dfs = []
 
-    for (cdr_sequence, peptide_sequence, mhc_type), group in df.groupby(['collated_cdrs',
-                                                                         'peptide_sequence',
-                                                                         'mhc_type']):
+    for (cdr_sequence, peptide_sequence, mhc_type), group in df.groupby(
+        ['collated_cdrs', 'peptide_sequence', 'mhc_type']
+    ):
         if len(group) == 1:
             output_dfs.append(group)
             continue
@@ -48,10 +55,13 @@ def remove_similar_structures(df: pd.DataFrame,
         chain_maps = sorted_group.filter(regex=r'\w+chain\w*').to_dict('records')
 
         distance_matrix = compute_structural_distances(group_structures, chain_maps, mhc_type)
-        clusters = AgglomerativeClustering(metric='precomputed',
-                                           distance_threshold=threshold,
-                                           linkage='single',
-                                           n_clusters=None).fit(distance_matrix).labels_
+        clusters = (
+            AgglomerativeClustering(
+                metric='precomputed', distance_threshold=threshold, linkage='single', n_clusters=None
+            )
+            .fit(distance_matrix)
+            .labels_
+        )
         clusters = pd.Series(clusters, index=sorted_group.index)
         output_dfs.append(sorted_group[~clusters.duplicated()])
 
@@ -66,8 +76,10 @@ def main():
     summary_df['collated_cdrs'] = summary_df.filter(regex='cdr|CDR').apply('-'.join, axis=1)
 
     pdb_parser = PDBParser(QUIET=True)
-    structures = {name: pdb_parser.get_structure(name, os.path.join(args.structures, name + '.pdb'))
-                  for name in summary_df['name'].tolist()}
+    structures = {
+        name: pdb_parser.get_structure(name, os.path.join(args.structures, name + '.pdb'))
+        for name in summary_df['name'].tolist()
+    }
 
     selected_structures = remove_similar_structures(summary_df, args.structural_similarity_cutoff, structures)
 

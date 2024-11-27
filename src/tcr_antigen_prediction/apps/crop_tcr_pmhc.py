@@ -1,4 +1,5 @@
 """Crop TCR-pMHC to binding interface (TCR Variable domain and MHC antigen binding domain)."""
+
 import argparse
 import logging
 import sys
@@ -10,9 +11,11 @@ from tcr_antigen_prediction.imgt_numbering import IMGT_MH1_ABD, IMGT_MH2_ABD, IM
 
 logger = logging.getLogger()
 
-parser = argparse.ArgumentParser(prog=f'python -m {sys.modules[__name__].__spec__.name}',
-                                 description=__doc__,
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+parser = argparse.ArgumentParser(
+    prog=f'python -m {sys.modules[__name__].__spec__.name}',
+    description=__doc__,
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+)
 
 parser.add_argument('structure', help='path to the pdb')
 parser.add_argument('--output', '-o', required=True, help='path to the output pdb')

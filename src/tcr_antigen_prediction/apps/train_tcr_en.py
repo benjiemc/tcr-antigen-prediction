@@ -2,6 +2,7 @@
 
 The original model was developped in this paper: https://www.nature.com/articles/s43588-024-00653-0.
 """
+
 import argparse
 import itertools
 import logging
@@ -20,18 +21,31 @@ from tcr_antigen_prediction.structure import bio_to_pandas
 
 logger = logging.getLogger()
 
-parser = argparse.ArgumentParser(prog=f'python -m {sys.modules[__name__].__spec__.name}',
-                                 description=__doc__,
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+parser = argparse.ArgumentParser(
+    prog=f'python -m {sys.modules[__name__].__spec__.name}',
+    description=__doc__,
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+)
 parser.add_argument('training_data', nargs='+', help='paths to training data for model')
-parser.add_argument('--strategy', choices=['regular', 'leave-one-out'], default='regular',
-                    help="training strategy employed to train the model (Default: 'regular')")
-parser.add_argument('--validation-data', nargs='+',
-                    help="path to validation data if validation is desired after fitting the model in 'regular' mode")
+parser.add_argument(
+    '--strategy',
+    choices=['regular', 'leave-one-out'],
+    default='regular',
+    help="training strategy employed to train the model (Default: 'regular')",
+)
+parser.add_argument(
+    '--validation-data',
+    nargs='+',
+    help="path to validation data if validation is desired after fitting the model in 'regular' mode",
+)
 parser.add_argument('--summary-csv', required=True, help='path to summary csv file for the structures')
 parser.add_argument('--output', '-o', required=True, help='path to output csv(s)')
-parser.add_argument('--contact-distance', default=5.0, type=float,
-                    help='threshold for contact distance between heavy atoms (Default: 5.0 Å)')
+parser.add_argument(
+    '--contact-distance',
+    default=5.0,
+    type=float,
+    help='threshold for contact distance between heavy atoms (Default: 5.0 Å)',
+)
 
 add_logging_arguments(parser)
 
@@ -74,10 +88,16 @@ def load_data(paths: list[str], summary_df: pd.DataFrame, contact_distance: floa
 
         interaction['distance'] = np.sqrt(np.sum((coords_cdr - coords_antigen) ** 2, axis=1))
         contacts = interaction[interaction['distance'] <= contact_distance]
-        residue_contacts = contacts.drop_duplicates([
-            'chain_id_cdr', 'residue_seq_id_cdr', 'residue_insert_code_cdr',
-            'chain_id_antigen', 'residue_seq_id_antigen', 'residue_insert_code_antigen',
-        ])
+        residue_contacts = contacts.drop_duplicates(
+            [
+                'chain_id_cdr',
+                'residue_seq_id_cdr',
+                'residue_insert_code_cdr',
+                'chain_id_antigen',
+                'residue_seq_id_antigen',
+                'residue_insert_code_antigen',
+            ]
+        )
 
         interacting_residues['pdb'] += [row['pdb']] * len(residue_contacts)
         interacting_residues['Achain'] += [row['Achain']] * len(residue_contacts)
@@ -88,12 +108,22 @@ def load_data(paths: list[str], summary_df: pd.DataFrame, contact_distance: floa
 
         interacting_residues['group_id'] += [row['group_id']] * len(residue_contacts)
 
-        interacting_residues['tcr_cdr_residue'] += residue_contacts['residue_name_cdr'].str.title().map(
-            IUPACData.protein_letters_3to1,
-        ).tolist()
-        interacting_residues['peptide_residue'] += residue_contacts['residue_name_antigen'].str.title().map(
-            IUPACData.protein_letters_3to1,
-        ).tolist()
+        interacting_residues['tcr_cdr_residue'] += (
+            residue_contacts['residue_name_cdr']
+            .str.title()
+            .map(
+                IUPACData.protein_letters_3to1,
+            )
+            .tolist()
+        )
+        interacting_residues['peptide_residue'] += (
+            residue_contacts['residue_name_antigen']
+            .str.title()
+            .map(
+                IUPACData.protein_letters_3to1,
+            )
+            .tolist()
+        )
 
     return pd.DataFrame.from_dict(interacting_residues)
 
@@ -169,24 +199,40 @@ def main():
             logger.info('Loading data and finding contacting residues')
             evaluation_data = load_data(args.validation_data, summary_df, args.contact_distance)
 
-            evaluation_tcr_ens = evaluation_data.merge(
-                tcren.reset_index(),
-                how='left',
-            ).groupby(
-                ['pdb', 'Achain', 'Bchain', 'antigen_chain', 'mhc_chain1', 'mhc_chain2'],
-                dropna=False,
-            )['tcren'].sum()
+            evaluation_tcr_ens = (
+                evaluation_data.merge(
+                    tcren.reset_index(),
+                    how='left',
+                )
+                .groupby(
+                    ['pdb', 'Achain', 'Bchain', 'antigen_chain', 'mhc_chain1', 'mhc_chain2'],
+                    dropna=False,
+                )['tcren']
+                .sum()
+            )
 
-            for (pdb_id,
-                 alpha_chain,
-                 beta_chain,
-                 antigen_chain,
-                 mhc_chain1,
-                 mhc_chain2), eval_tcren in evaluation_tcr_ens.items():
-                logger.info(('Evaluating '
-                             'pdb=%s, Achain=%s, Bchain=%s, antigen_chain=%s, mhc_chain1=%s, mhc_chain2=%s: '
-                             'TCRen=%f'),
-                            pdb_id, alpha_chain, beta_chain, antigen_chain, mhc_chain1, mhc_chain2, eval_tcren)
+            for (
+                pdb_id,
+                alpha_chain,
+                beta_chain,
+                antigen_chain,
+                mhc_chain1,
+                mhc_chain2,
+            ), eval_tcren in evaluation_tcr_ens.items():
+                logger.info(
+                    (
+                        'Evaluating '
+                        'pdb=%s, Achain=%s, Bchain=%s, antigen_chain=%s, mhc_chain1=%s, mhc_chain2=%s: '
+                        'TCRen=%f'
+                    ),
+                    pdb_id,
+                    alpha_chain,
+                    beta_chain,
+                    antigen_chain,
+                    mhc_chain1,
+                    mhc_chain2,
+                    eval_tcren,
+                )
 
         logger.info('Outputting pottentials to %s', args.output)
         tcren.sort_values(['tcr_cdr_residue', 'peptide_residue']).to_csv(args.output)
@@ -209,25 +255,40 @@ def main():
             tcren = fit_tcr_en(training_data[['tcr_cdr_residue', 'peptide_residue']])
 
             logger.info('Evaluating leave-one-out group: %d', group)
-            evaluation_tcr_ens = evaluation_data.merge(
-                tcren.reset_index(),
-                how='left',
-            ).groupby(
-                ['pdb', 'Achain', 'Bchain', 'antigen_chain', 'mhc_chain1', 'mhc_chain2'],
-                dropna=False,
-            )['tcren'].sum()
+            evaluation_tcr_ens = (
+                evaluation_data.merge(
+                    tcren.reset_index(),
+                    how='left',
+                )
+                .groupby(
+                    ['pdb', 'Achain', 'Bchain', 'antigen_chain', 'mhc_chain1', 'mhc_chain2'],
+                    dropna=False,
+                )['tcren']
+                .sum()
+            )
 
-            for (pdb_id,
-                 alpha_chain,
-                 beta_chain,
-                 antigen_chain,
-                 mhc_chain1,
-                 mhc_chain2), eval_tcren in evaluation_tcr_ens.items():
+            for (
+                pdb_id,
+                alpha_chain,
+                beta_chain,
+                antigen_chain,
+                mhc_chain1,
+                mhc_chain2,
+            ), eval_tcren in evaluation_tcr_ens.items():
                 logger.info(
-                    ('Evaluating group_id=%d, '
-                     'pdb=%s, Achain=%s, Bchain=%s, antigen_chain=%s, mhc_chain1=%s, mhc_chain2=%s: '
-                     'TCRen=%f'),
-                    group, pdb_id, alpha_chain, beta_chain, antigen_chain, mhc_chain1, mhc_chain2, eval_tcren,
+                    (
+                        'Evaluating group_id=%d, '
+                        'pdb=%s, Achain=%s, Bchain=%s, antigen_chain=%s, mhc_chain1=%s, mhc_chain2=%s: '
+                        'TCRen=%f'
+                    ),
+                    group,
+                    pdb_id,
+                    alpha_chain,
+                    beta_chain,
+                    antigen_chain,
+                    mhc_chain1,
+                    mhc_chain2,
+                    eval_tcren,
                 )
 
             base_output_name = os.path.basename(args.output)

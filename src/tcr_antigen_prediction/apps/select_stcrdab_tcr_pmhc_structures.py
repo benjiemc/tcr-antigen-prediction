@@ -1,4 +1,5 @@
 """Select TCR-pMHC structures from STCRDab."""
+
 import argparse
 import logging
 import os
@@ -23,48 +24,87 @@ from tcr_antigen_prediction.structure import extract_chains, get_header, get_seq
 
 logger = logging.getLogger()
 
-parser = argparse.ArgumentParser(prog=f'python -m {sys.modules[__name__].__spec__.name}',
-                                 description=__doc__,
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+parser = argparse.ArgumentParser(
+    prog=f'python -m {sys.modules[__name__].__spec__.name}',
+    description=__doc__,
+    formatter_class=argparse.RawDescriptionHelpFormatter,
+)
 
 parser.add_argument('stcrdab', help='path to the STCRDab')
 
 parser.add_argument('--output', '-o', help='output path')
 parser.add_argument('--seed', default=None, type=int, help='random seed for data splitting')
-parser.add_argument('--mhc-class-I-tcr-contact-residues', nargs='+', default=[],
-                    help='list of IMGT residue codes that are in contact positions on the MHC class I molecules')
-parser.add_argument('--mhc-class-II-alpha-chain-tcr-contact-residues', nargs='+', default=[],
-                    help='list of IMGT residue codes that are in contact positions on the MHC class II alpha-chain')
-parser.add_argument('--mhc-class-II-beta-chain-tcr-contact-residues', nargs='+', default=[],
-                    help='list of IMGT residue codes that are in contact positions on the MHC class II beta-chain')
+parser.add_argument(
+    '--mhc-class-I-tcr-contact-residues',
+    nargs='+',
+    default=[],
+    help='list of IMGT residue codes that are in contact positions on the MHC class I molecules',
+)
+parser.add_argument(
+    '--mhc-class-II-alpha-chain-tcr-contact-residues',
+    nargs='+',
+    default=[],
+    help='list of IMGT residue codes that are in contact positions on the MHC class II alpha-chain',
+)
+parser.add_argument(
+    '--mhc-class-II-beta-chain-tcr-contact-residues',
+    nargs='+',
+    default=[],
+    help='list of IMGT residue codes that are in contact positions on the MHC class II beta-chain',
+)
 
 data_split_group = parser.add_argument_group('Data Splits')
-data_split_group.add_argument('--train-split', type=float, default=0.70,
-                              help='proportion of data to assign to training (Default: 0.70)')
-data_split_group.add_argument('--validation-split', type=float, default=0.15,
-                              help='proportion of data to assign to validation (Default: 0.15)')
-data_split_group.add_argument('--test-split', type=float, default=0.15,
-                              help='proportion of data to assign to testing (Default: 0.15)')
-data_split_group.add_argument('--pdb-ids-to-exclude', nargs='+', default=None,
-                              help='PDB IDs to exclude from the validation/testing data splits')
+data_split_group.add_argument(
+    '--train-split', type=float, default=0.70, help='proportion of data to assign to training (Default: 0.70)'
+)
+data_split_group.add_argument(
+    '--validation-split', type=float, default=0.15, help='proportion of data to assign to validation (Default: 0.15)'
+)
+data_split_group.add_argument(
+    '--test-split', type=float, default=0.15, help='proportion of data to assign to testing (Default: 0.15)'
+)
+data_split_group.add_argument(
+    '--pdb-ids-to-exclude', nargs='+', default=None, help='PDB IDs to exclude from the validation/testing data splits'
+)
 
 structure_type_group = parser.add_argument_group('Structure Types')
-structure_type_group.add_argument('--tcr-types', nargs='+', default=['abTCR'],
-                                  help='TCR types allowed in dataset (abTCR and/or gdTCR) (Default: abTCR)')
-structure_type_group.add_argument('--mhc-types', nargs='+', default=['MH1'],
-                                  help='MHC types allowed in dataset (CD1, GA, GB, MH1, MH2, MR1) (Default: MH1)')
-structure_type_group.add_argument('--antigen-types', nargs='+', default=['peptide'],
-                                  help=('MHC types allowed in dataset (carbohydrate, Hapten, peptide, protein, etc) '
-                                        '(Default: peptide)'))
+structure_type_group.add_argument(
+    '--tcr-types',
+    nargs='+',
+    default=['abTCR'],
+    help='TCR types allowed in dataset (abTCR and/or gdTCR) (Default: abTCR)',
+)
+structure_type_group.add_argument(
+    '--mhc-types',
+    nargs='+',
+    default=['MH1'],
+    help='MHC types allowed in dataset (CD1, GA, GB, MH1, MH2, MR1) (Default: MH1)',
+)
+structure_type_group.add_argument(
+    '--antigen-types',
+    nargs='+',
+    default=['peptide'],
+    help=('MHC types allowed in dataset (carbohydrate, Hapten, peptide, protein, etc) ' '(Default: peptide)'),
+)
 
 quality_group = parser.add_argument_group('Quality Selection')
-quality_group.add_argument('--resolution-cutoff', type=float, default=3.50,
-                           help='maximum resolution allowed (Default: 3.50)')
-quality_group.add_argument('--remove-structures-missing-residues', action='store_true',
-                           help=('Remove TCR:pMHC structures with missing residues in the TCR variable region or '
-                                 'pMHC antigen binding domain (including peptide)'))
-quality_group.add_argument('--structural-similarity-cutoff', type=float, default=None,
-                           help='RMSD threshold for structures with the same CDR and peptide sequences (Default: None)')
+quality_group.add_argument(
+    '--resolution-cutoff', type=float, default=3.50, help='maximum resolution allowed (Default: 3.50)'
+)
+quality_group.add_argument(
+    '--remove-structures-missing-residues',
+    action='store_true',
+    help=(
+        'Remove TCR:pMHC structures with missing residues in the TCR variable region or '
+        'pMHC antigen binding domain (including peptide)'
+    ),
+)
+quality_group.add_argument(
+    '--structural-similarity-cutoff',
+    type=float,
+    default=None,
+    help='RMSD threshold for structures with the same CDR and peptide sequences (Default: None)',
+)
 
 add_logging_arguments(parser)
 
@@ -81,12 +121,10 @@ class SelectChains(Select):
 
 def screen_for_missing_residues(df: pd.DataFrame, stcrdab_path: str) -> pd.DataFrame:
     """Remove entries missing residues in the TCR variable region or pMHC antigen binding domain."""
-    def check_structure(pdb_id,
-                        alpha_chain_id, beta_chain_id,
-                        antigen_chain_id,
-                        mhc_chain1_id, mhc_chain2_id,
-                        mhc_type):
 
+    def check_structure(
+        pdb_id, alpha_chain_id, beta_chain_id, antigen_chain_id, mhc_chain1_id, mhc_chain2_id, mhc_type
+    ):
         if mhc_type == 'MH1':
             mhc_chains = (mhc_chain1_id,)
 
@@ -97,8 +135,12 @@ def screen_for_missing_residues(df: pd.DataFrame, stcrdab_path: str) -> pd.DataF
             msg = f"Invalid MHC type {mhc_type}. MHC type must be 'MH1' or 'MH2'"
             raise ValueError(msg)
 
-        logger.debug('Checking %s, chains: %s, and MHC type %s',
-                     pdb_id, '-'.join([alpha_chain_id, beta_chain_id, antigen_chain_id, *mhc_chains]), mhc_type)
+        logger.debug(
+            'Checking %s, chains: %s, and MHC type %s',
+            pdb_id,
+            '-'.join([alpha_chain_id, beta_chain_id, antigen_chain_id, *mhc_chains]),
+            mhc_type,
+        )
 
         raw_file_path = os.path.join(stcrdab_path, 'raw', pdb_id + '.pdb')
         imgt_file_path = os.path.join(stcrdab_path, 'imgt', pdb_id + '.pdb')
@@ -114,30 +156,23 @@ def screen_for_missing_residues(df: pd.DataFrame, stcrdab_path: str) -> pd.DataF
         missing_residues = get_missing_residues(header)
 
         try:
-            return (screen_tcr_variable_domain(structure,
-                                               raw_structure,
-                                               (alpha_chain_id, beta_chain_id),
-                                               missing_residues,
-                                               missing_atoms)
-                    and screen_pmhc_abd(structure,
-                                        raw_structure,
-                                        antigen_chain_id,
-                                        mhc_chains,
-                                        mhc_type,
-                                        missing_residues,
-                                        missing_atoms))
+            return screen_tcr_variable_domain(
+                structure, raw_structure, (alpha_chain_id, beta_chain_id), missing_residues, missing_atoms
+            ) and screen_pmhc_abd(
+                structure, raw_structure, antigen_chain_id, mhc_chains, mhc_type, missing_residues, missing_atoms
+            )
         except KeyError:
-            logger.warning('Chain ID not found in raw structure of %s and chains %s',
-                           pdb_id,
-                           '-'.join([alpha_chain_id, beta_chain_id, antigen_chain_id, *mhc_chains]))
+            logger.warning(
+                'Chain ID not found in raw structure of %s and chains %s',
+                pdb_id,
+                '-'.join([alpha_chain_id, beta_chain_id, antigen_chain_id, *mhc_chains]),
+            )
             return False
 
     valid_structures = df.apply(
-        lambda row: check_structure(row.pdb,
-                                    row.Achain, row.Bchain,
-                                    row.antigen_chain,
-                                    row.mhc_chain1, row.mhc_chain2,
-                                    row.mhc_type),
+        lambda row: check_structure(
+            row.pdb, row.Achain, row.Bchain, row.antigen_chain, row.mhc_chain1, row.mhc_chain2, row.mhc_type
+        ),
         axis=1,
     )
 
@@ -146,40 +181,42 @@ def screen_for_missing_residues(df: pd.DataFrame, stcrdab_path: str) -> pd.DataF
 
 def add_cdr_sequences(pdb_id: str, alpha_chain_id: str, beta_chain_id: str, stcrdab_path: str) -> pd.Series:
     """Add CDR sequences from structures."""
-    structure = PDBParser().get_structure(pdb_id,
-                                          os.path.join(stcrdab_path, 'imgt', pdb_id + '.pdb'))
+    structure = PDBParser().get_structure(pdb_id, os.path.join(stcrdab_path, 'imgt', pdb_id + '.pdb'))
 
-    sequences = {f'cdr_{chain_type[0]}{cdr_num}': get_sequence(structure, chain_id, numbering)
-                 for chain_type, chain_id in (('alpha_chain', alpha_chain_id), ('beta_chain', beta_chain_id))
-                 for cdr_num, numbering in ((1, IMGT_CDR1), (2, IMGT_CDR2), (3, IMGT_CDR3))}
+    sequences = {
+        f'cdr_{chain_type[0]}{cdr_num}': get_sequence(structure, chain_id, numbering)
+        for chain_type, chain_id in (('alpha_chain', alpha_chain_id), ('beta_chain', beta_chain_id))
+        for cdr_num, numbering in ((1, IMGT_CDR1), (2, IMGT_CDR2), (3, IMGT_CDR3))
+    }
 
     return pd.Series(sequences).sort_index()
 
 
 def add_peptide_sequences(pdb_id: str, antigen_chain_id: str, stcrdab_path: str) -> str:
     """Add peptide sequences from structures."""
-    structure = PDBParser().get_structure(pdb_id,
-                                          os.path.join(stcrdab_path, 'imgt', pdb_id + '.pdb'))
+    structure = PDBParser().get_structure(pdb_id, os.path.join(stcrdab_path, 'imgt', pdb_id + '.pdb'))
 
     return get_sequence(structure, antigen_chain_id)
 
 
-def add_mhc_tcr_contact_pseudo_sequences(pdb_id: str,
-                                         mhc_type: str,
-                                         mhc_chain_1_id: str,
-                                         mhc_chain_2_id: str,
-                                         stcrdab_path: str,
-                                         mhc_tcr_contact_residues: set[int] | tuple[set[int], set[int]]) -> str:
+def add_mhc_tcr_contact_pseudo_sequences(
+    pdb_id: str,
+    mhc_type: str,
+    mhc_chain_1_id: str,
+    mhc_chain_2_id: str,
+    stcrdab_path: str,
+    mhc_tcr_contact_residues: set[int] | tuple[set[int], set[int]],
+) -> str:
     """Add MHC-TCR contact pseudo sequences."""
-    structure = PDBParser().get_structure(pdb_id,
-                                          os.path.join(stcrdab_path, 'imgt', pdb_id + '.pdb'))
+    structure = PDBParser().get_structure(pdb_id, os.path.join(stcrdab_path, 'imgt', pdb_id + '.pdb'))
 
     if mhc_type == 'MH1':
         return get_sequence(structure, mhc_chain_1_id, mhc_tcr_contact_residues)
 
     if mhc_type == 'MH2':
-        return (get_sequence(structure, mhc_chain_1_id, mhc_tcr_contact_residues[0])
-                + get_sequence(structure, mhc_chain_2_id, mhc_tcr_contact_residues[1]))
+        return get_sequence(structure, mhc_chain_1_id, mhc_tcr_contact_residues[0]) + get_sequence(
+            structure, mhc_chain_2_id, mhc_tcr_contact_residues[1]
+        )
 
     msg = f'Invalid MHC type: {mhc_type}. Type must be MH1 or MH2.'
     raise ValueError(msg)
@@ -192,9 +229,9 @@ def remove_similar_structures(df: pd.DataFrame, threshold: float, stcrdab_path: 
     """
     output_dfs = []
 
-    for (cdr_sequence, peptide_sequence, mhc_type), group in df.groupby(['collated_cdrs',
-                                                                         'peptide_sequence',
-                                                                         'mhc_type']):
+    for (cdr_sequence, peptide_sequence, mhc_type), group in df.groupby(
+        ['collated_cdrs', 'peptide_sequence', 'mhc_type']
+    ):
         if len(group) == 1:
             output_dfs.append(group)
             continue
@@ -233,10 +270,13 @@ def remove_similar_structures(df: pd.DataFrame, threshold: float, stcrdab_path: 
             chain_maps.append(chain_map)
 
         distance_matrix = compute_structural_distances(structures, chain_maps, mhc_type)
-        clusters = AgglomerativeClustering(metric='precomputed',
-                                           distance_threshold=threshold,
-                                           linkage='single',
-                                           n_clusters=None).fit(distance_matrix).labels_
+        clusters = (
+            AgglomerativeClustering(
+                metric='precomputed', distance_threshold=threshold, linkage='single', n_clusters=None
+            )
+            .fit(distance_matrix)
+            .labels_
+        )
         clusters = pd.Series(clusters, index=sorted_group.index)
         output_dfs.append(sorted_group[~clusters.duplicated()])
 
@@ -337,9 +377,9 @@ def main():
     )
     peptide_sequences.name = 'peptide_sequence'
 
-    mhc_tcr_contacts_available = (args.mhc_class_I_tcr_contact_residues
-                                  or (args.mhc_class_II_alpha_chain_tcr_contact_residues
-                                      and args.mhc_class_II_beta_chain_tcr_contact_residues))
+    mhc_tcr_contacts_available = args.mhc_class_I_tcr_contact_residues or (
+        args.mhc_class_II_alpha_chain_tcr_contact_residues and args.mhc_class_II_beta_chain_tcr_contact_residues
+    )
     if mhc_tcr_contacts_available:
         mhc_i_tcr_contact_residues_range = {
             int(''.join([character for character in seq_id if character.isnumeric()]))
@@ -347,10 +387,14 @@ def main():
         }
 
         mhc_ii_tcr_contact_residues_range = (
-            {int(''.join([character for character in seq_id if character.isnumeric()]))
-             for seq_id in args.mhc_class_II_alpha_chain_tcr_contact_residues},
-            {int(''.join([character for character in seq_id if character.isnumeric()]))
-             for seq_id in args.mhc_class_II_beta_chain_tcr_contact_residues},
+            {
+                int(''.join([character for character in seq_id if character.isnumeric()]))
+                for seq_id in args.mhc_class_II_alpha_chain_tcr_contact_residues
+            },
+            {
+                int(''.join([character for character in seq_id if character.isnumeric()]))
+                for seq_id in args.mhc_class_II_beta_chain_tcr_contact_residues
+            },
         )
 
         mhc_tcr_contact_pseudo_sequences = selected_structures.apply(
@@ -366,31 +410,47 @@ def main():
         )
         mhc_tcr_contact_pseudo_sequences.name = 'mhc_tcr_contact_pseudo_sequence'
 
-        selected_structures = pd.concat([selected_structures,
-                                         cdr_sequences,
-                                         peptide_sequences.to_frame(),
-                                         mhc_tcr_contact_pseudo_sequences.to_frame()], axis='columns')
+        selected_structures = pd.concat(
+            [
+                selected_structures,
+                cdr_sequences,
+                peptide_sequences.to_frame(),
+                mhc_tcr_contact_pseudo_sequences.to_frame(),
+            ],
+            axis='columns',
+        )
 
     else:
-        selected_structures = pd.concat([selected_structures,
-                                         cdr_sequences,
-                                         peptide_sequences.to_frame()], axis='columns')
+        selected_structures = pd.concat(
+            [selected_structures, cdr_sequences, peptide_sequences.to_frame()], axis='columns'
+        )
 
-    selected_structures['collated_cdrs'] = (selected_structures['cdr_a1'] + '-'
-                                            + selected_structures['cdr_a2'] + '-'
-                                            + selected_structures['cdr_a3'] + '-'
-                                            + selected_structures['cdr_b1'] + '-'
-                                            + selected_structures['cdr_b2'] + '-'
-                                            + selected_structures['cdr_b3'])
+    selected_structures['collated_cdrs'] = (
+        selected_structures['cdr_a1']
+        + '-'
+        + selected_structures['cdr_a2']
+        + '-'
+        + selected_structures['cdr_a3']
+        + '-'
+        + selected_structures['cdr_b1']
+        + '-'
+        + selected_structures['cdr_b2']
+        + '-'
+        + selected_structures['cdr_b3']
+    )
 
     if args.structural_similarity_cutoff:
         logger.info('Removing structures within %.2f Å RMSD', args.structural_similarity_cutoff)
-        selected_structures = remove_similar_structures(selected_structures,
-                                                        args.structural_similarity_cutoff,
-                                                        args.stcrdab)
+        selected_structures = remove_similar_structures(
+            selected_structures, args.structural_similarity_cutoff, args.stcrdab
+        )
 
-    logger.info('Splitting data accoding to partions (Train: %.2f, Validation %.2f, and Test %.2f)',
-                args.train_split, args.validation_split, args.test_split)
+    logger.info(
+        'Splitting data accoding to partions (Train: %.2f, Validation %.2f, and Test %.2f)',
+        args.train_split,
+        args.validation_split,
+        args.test_split,
+    )
 
     peptide_groups = selected_structures.groupby('peptide_sequence')
 
@@ -409,25 +469,28 @@ def main():
 
     separated_groups = merge_groups(groups)
 
-    separated_groups_data = [pd.concat([list(peptide_groups)[idx][1] for idx in group], axis=0)
-                             for group in separated_groups]
+    separated_groups_data = [
+        pd.concat([list(peptide_groups)[idx][1] for idx in group], axis=0) for group in separated_groups
+    ]
 
     logger.debug('Adding group IDs')
     for group_id, group in enumerate(separated_groups_data, 1):
         group['group_id'] = group_id
 
-    exclude_group_idxs = [
-        idx for idx, group in enumerate(separated_groups_data) if group['pdb'].isin(args.pdb_ids_to_exclude).any()
-    ] if args.pdb_ids_to_exclude is not None else None
+    exclude_group_idxs = (
+        [idx for idx, group in enumerate(separated_groups_data) if group['pdb'].isin(args.pdb_ids_to_exclude).any()]
+        if args.pdb_ids_to_exclude is not None
+        else None
+    )
 
     separated_idx_size = [(idx, len(df)) for idx, df in enumerate(separated_groups_data)]
 
-    train_idxs, val_idxs, test_idxs = split_groups_multiple_proportions(separated_idx_size,
-                                                                        (args.train_split,
-                                                                         args.validation_split,
-                                                                         args.test_split),
-                                                                        exclude_group_idxs,
-                                                                        exclude_split=0)  # training split
+    train_idxs, val_idxs, test_idxs = split_groups_multiple_proportions(
+        separated_idx_size,
+        (args.train_split, args.validation_split, args.test_split),
+        exclude_group_idxs,
+        exclude_split=0,
+    )  # training split
 
     dataset = pd.DataFrame()
     for split_name, idxs in (('train', train_idxs), ('validation', val_idxs), ('test', test_idxs)):
@@ -447,11 +510,17 @@ def main():
     if not os.path.exists(args.output):
         os.mkdir(args.output)
 
-    output_columns = ['pdb',
-                      'Achain', 'Bchain',
-                      'antigen_chain',
-                      'mhc_chain1', 'mhc_chain2', 'mhc_type',
-                      'peptide_sequence', 'collated_cdrs']
+    output_columns = [
+        'pdb',
+        'Achain',
+        'Bchain',
+        'antigen_chain',
+        'mhc_chain1',
+        'mhc_chain2',
+        'mhc_type',
+        'peptide_sequence',
+        'collated_cdrs',
+    ]
 
     if mhc_tcr_contacts_available:
         output_columns.append('mhc_tcr_contact_pseudo_sequence')
@@ -467,8 +536,10 @@ def main():
 
         io = PDBIO()
         io.set_structure(structure)
-        io.save(os.path.join(args.output, output_name),
-                SelectChains(row.Achain, row.Bchain, row.antigen_chain, row.mhc_chain1, row.mhc_chain2))
+        io.save(
+            os.path.join(args.output, output_name),
+            SelectChains(row.Achain, row.Bchain, row.antigen_chain, row.mhc_chain1, row.mhc_chain2),
+        )
 
 
 if __name__ == '__main__':

@@ -194,6 +194,7 @@ models/TCRen: data/processed/selected-stcrdab_crop
 
 lint:
 	@ruff check
+	@ruff format --check
 
 test:
 	@pytest tests/
