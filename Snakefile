@@ -37,10 +37,12 @@ rule select_stcrdab_structures:
         runtime="1h",
         mem="500MB",
         tasks=1
+    log: "data/logs/select_stcrdab_tcr_pmhc_structures.log"
     shell:
         """
         python -m tcr_antigen_prediction.apps.select_stcrdab_tcr_pmhc_structures \
             --log-level {config[log_level]} \
+            --log-file {log} \
             --seed 123 \
             --tcr-types abTCR \
             --mhc-types MH1 MH2 \
@@ -54,7 +56,7 @@ rule select_stcrdab_structures:
             --fix-structures-missing-residues \
             --structural-similarity-cutoff 2.0 \
             -o {output} \
-            {input.stcrdab_path}
+            {input.stcrdab_path} 2> {log}
         """
 
 rule data_external:
