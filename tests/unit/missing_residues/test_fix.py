@@ -4,15 +4,9 @@ from unittest import TestCase
 import numpy as np
 from Bio.PDB import PDBParser
 
-from tcr_antigen_prediction.missing_residues.fix import get_ranges, predict_missing_residues
+from tcr_antigen_prediction.missing_residues.fix import predict_missing_residues
 
 TEST_DATA_DIR = 'tests/data'
-
-
-class TestGetRanges(TestCase):
-    def test(self):
-        template = '--PWT----L----L-V-------'
-        self.assertEqual(get_ranges(template), [(1, 2), (6, 9), (11, 14), (16, 16), (18, 24)])
 
 
 class TestPredictMissingResidues(TestCase):
@@ -207,7 +201,31 @@ class TestPredictMissingResidues(TestCase):
             ('V', 'V'),
         ]
 
-        fixed_chain = predict_missing_residues(alignment, structure, 'B')
+        missing_residues = [
+            '1:B',
+            '2:B',
+            '103:B',
+            '104:B',
+            '105:B',
+            '106:B',
+            '108:B',
+            '109:B',
+            '110:B',
+            '111:B',
+            '113:B',
+            '131:B',
+            '132:B',
+            '133:B',
+            '162:B',
+            '163:B',
+            '164:B',
+            '165:B',
+            '166:B',
+            '167:B',
+            '168:B',
+        ]
+
+        fixed_chain = predict_missing_residues(alignment, structure, missing_residues, [], 'B')
 
         self.assertEqual(fixed_chain.id, 'B')
 

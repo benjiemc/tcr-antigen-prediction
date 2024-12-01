@@ -69,6 +69,7 @@ Test fixing structures missing reisdues
 
   $ diff output-fixed-missing-residues/stcrdab_split.csv $TESTDIR/reference/fixed-missing-residues/stcrdab_split.csv
   $ diff output-fixed-missing-residues/3qiw_CDEAB.pdb $TESTDIR/reference/fixed-missing-residues/3qiw_CDEAB.pdb
+  $ diff output-fixed-missing-residues/6v19_DECAB.pdb $TESTDIR/reference/fixed-missing-residues/6v19_DECAB.pdb
 
 Test structural similarity cutoff
   $ python -m tcr_antigen_prediction.apps.select_stcrdab_tcr_pmhc_structures \

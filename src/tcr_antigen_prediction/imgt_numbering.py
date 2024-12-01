@@ -54,7 +54,6 @@ def assign_cdr_number(seq_id: int) -> int | None:
 
 def renumber_chain(chain: Chain.Chain) -> Chain.Chain:
     """Renumber a chain following IMGT conventions."""
-    chain = chain.copy()
     residues = list(chain.get_residues())
 
     sequence = ''.join(
@@ -87,7 +86,10 @@ def renumber_chain(chain: Chain.Chain) -> Chain.Chain:
         numbering.append((next_seq_id, ' '))
         next_seq_id += 1
 
+    output_chain = Chain.Chain(chain.id)
     for (seq_id, insert_code), res in zip(numbering, residues, strict=False):
-        res.id = (res.get_id(), seq_id, insert_code)
+        new_res = res.copy()
+        new_res.id = (new_res.id[0], seq_id, insert_code)
+        output_chain.add(new_res)
 
-    return chain
+    return output_chain

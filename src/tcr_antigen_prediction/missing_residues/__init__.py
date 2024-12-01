@@ -3,10 +3,13 @@
 import logging
 import re
 
+import numpy as np
+import pandas as pd
 from Bio.PDB import Structure
 from Bio.SeqUtils import IUPACData
 
 from tcr_antigen_prediction.aligners import align_sequences
+from tcr_antigen_prediction.chemistry import RESIDUE_ATOMS
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -18,18 +21,184 @@ def get_missing_residues(header: str) -> list[dict]:
     """
     lines = re.findall(r'^REMARK 465\s+\w?\s+(\w{3}) (\w)\s+(\d+)(\w)?', header, flags=re.MULTILINE)
     return [
-        {'residue_name': res_name, 'chain_id': chain, 'residue_seq_id': int(seq_id), 'residue_insert_code': insert_id}
+        {
+            'residue_name': res_name,
+            'chain_id': chain,
+            'residue_seq_id': int(seq_id),
+            'residue_insert_code': insert_id if insert_id else None,
+        }
         for res_name, chain, seq_id, insert_id in lines
     ]
 
 
 def get_missing_atoms(header: str) -> list[dict]:
     """Extract residues with missing atoms from the header of a pdb file."""
-    lines = re.findall(r'^REMARK 470\s+\w?\s+(\w{3}) (\w)\s+(\d+)(\w)?', header, flags=re.MULTILINE)
+    lines = re.findall(r'^REMARK 470\s+\w?\s+(\w{3}) (\w)\s+(\d+)(\w)?\s+(\w+(?: +\w+)*)', header, re.MULTILINE)
     return [
-        {'residue_name': res_name, 'chain_id': chain, 'residue_seq_id': int(seq_id), 'residue_insert_code': insert_id}
-        for res_name, chain, seq_id, insert_id in lines
+        {
+            'residue_name': res_name,
+            'chain_id': chain,
+            'residue_seq_id': int(seq_id),
+            'residue_insert_code': insert_id if insert_id else None,
+            'atoms': atoms.split(),
+        }
+        for res_name, chain, seq_id, insert_id, atoms in lines
     ]
+
+
+def annotate_with_missing_residues(structure_df: pd.DataFrame, missing_residues: list[dict]) -> pd.DataFrame:
+    """Add missing residue information to the structure dataframe."""
+    structure_df = structure_df.copy()
+
+    # Move any HETATMS to the end of the chain (sometimes these are separated to the end of the file)
+    structure_df = structure_df.sort_values(['chain_id', 'atom_number']).reset_index(drop=True)
+    smallest_atom_number = structure_df['atom_number'].min()
+    structure_df['atom_number'] = range(smallest_atom_number, smallest_atom_number + len(structure_df))
+
+    chains = structure_df['chain_id'].unique()
+
+    for missing_residue in missing_residues:
+        chain_before = structure_df[
+            (structure_df['chain_id'] == missing_residue['chain_id'])
+            & (structure_df['residue_seq_id'] < missing_residue['residue_seq_id'])
+        ]
+
+        if len(chain_before) > 0:
+            atom_number_before = chain_before.iloc[-1]['atom_number']
+
+        else:
+            chain_idx = np.where(chains == missing_residue['chain_id'])[0][0]
+            if chain_idx == 0:
+                atom_number_before = 0
+
+            else:
+                atom_number_before = structure_df[structure_df['chain_id'] == chains[chain_idx - 1]].iloc[-1][
+                    'atom_number'
+                ]
+
+        df_before = structure_df[structure_df['atom_number'] <= atom_number_before].copy()
+
+        chain_after = structure_df[
+            (structure_df['chain_id'] == missing_residue['chain_id'])
+            & (structure_df['residue_seq_id'] > missing_residue['residue_seq_id'])
+        ]
+
+        if len(chain_after) > 0:
+            atom_number_after = chain_after.iloc[0]['atom_number']
+
+        else:
+            chain_idx = np.where(chains == missing_residue['chain_id'])[0][0]
+            if chain_idx == len(chains) - 1:
+                atom_number_after = np.inf
+
+            else:
+                atom_number_after = structure_df[structure_df['chain_id'] == chains[chain_idx + 1]].iloc[0][
+                    'atom_number'
+                ]
+
+        df_after = structure_df[structure_df['atom_number'] >= atom_number_after].copy()
+
+        missing_residue_df = pd.DataFrame(
+            [
+                {
+                    'record_type': 'ATOM',
+                    'atom_number': i + (atom_number_before + 1),
+                    'atom_name': atom_name,
+                    'element': atom_name[0],
+                    'missing': True,
+                    **missing_residue,
+                }
+                for i, atom_name in enumerate(sorted(RESIDUE_ATOMS[missing_residue['residue_name']]))
+            ],
+        )
+
+        offset = (missing_residue_df.iloc[-1]['atom_number'] + 1) - atom_number_after
+        if offset > 0:
+            df_after['atom_number'] += offset
+
+        structure_df = pd.concat([df_before, missing_residue_df, df_after]).reset_index(drop=True)
+
+    structure_df['missing'] = structure_df['missing'].fillna(value=False)
+    return structure_df
+
+
+def annotate_with_missing_atoms(structure_df: pd.DataFrame, missing_atoms: list[dict]) -> pd.DataFrame:
+    """Add missing atom information information to the structure data frame."""
+    structure_df = structure_df.copy()
+
+    for residue_missing_atoms in missing_atoms:
+        if residue_missing_atoms['residue_insert_code'] is not None:
+            atom_number_before = structure_df[
+                (structure_df['chain_id'] == residue_missing_atoms['chain_id'])
+                & (structure_df['residue_seq_id'] == residue_missing_atoms['residue_seq_id'])
+                & (structure_df['residue_insert_code'] == residue_missing_atoms['residue_insert_code'])
+            ].iloc[-1]['atom_number']
+
+        else:
+            atom_number_before = structure_df[
+                (structure_df['chain_id'] == residue_missing_atoms['chain_id'])
+                & (structure_df['residue_seq_id'] == residue_missing_atoms['residue_seq_id'])
+                & pd.isna(structure_df['residue_insert_code'])
+            ].iloc[-1]['atom_number']
+
+        df_before = structure_df[structure_df['atom_number'] <= atom_number_before].copy()
+        df_after = structure_df[structure_df['atom_number'] > atom_number_before].copy()
+
+        atom_number_after = df_after.iloc[0]['atom_number']
+
+        missing_atoms_df = pd.DataFrame(
+            [
+                {
+                    'record_type': 'ATOM',
+                    'atom_number': i + (atom_number_before + 1),
+                    'atom_name': atom_name,
+                    'alt_loc': None,
+                    'element': atom_name[0],
+                    'missing': True,
+                    **{key: val for key, val in residue_missing_atoms.items() if key != 'atoms'},
+                }
+                for i, atom_name in enumerate(residue_missing_atoms['atoms'])
+            ],
+        )
+
+        offset = (missing_atoms_df.iloc[-1]['atom_number'] + 1) - atom_number_after
+        if offset > 0:
+            df_after['atom_number'] += offset
+
+        structure_df = pd.concat([df_before, missing_atoms_df, df_after]).reset_index(drop=True)
+
+    structure_df['missing'] = structure_df['missing'].fillna(value=False)
+
+    return structure_df
+
+
+def annotate_with_missing_entities(
+    structure_df: pd.DataFrame,
+    missing_residues: list[dict],
+    missing_atoms: list[dict],
+) -> pd.DataFrame:
+    """Add the missing entities information to the structure data frame.
+
+    This function does not modify the original data frame. There is a new boolean column called 'missing' created in the
+    output data frame. The atom numbering may change if space was not left for the missing atoms in the original PDB
+    structure.
+
+    Args:
+        structure_df: pandas data frame with structure information
+        missing_residues: missing residue information taken from PDB header
+        missing_atoms: missing atom information taken from PBD header
+
+    Returns:
+        new data frame with filled out missing residues and atoms with an additional column called 'missing'
+
+    """
+    structure_df = structure_df.copy()
+    structure_df['missing'] = False
+
+    structure_df = annotate_with_missing_residues(structure_df, missing_residues)
+    structure_df = annotate_with_missing_atoms(structure_df, missing_atoms)
+
+    return structure_df
 
 
 def compare_sequences_for_missing(
@@ -154,17 +323,29 @@ def screen_chain(
     ]
 
     raw_sequence_info = [
-        [IUPACData.protein_letters_3to1[res.get_resname().title()], res.id[1], res.id[2].strip(), 'not-missing']
+        [
+            IUPACData.protein_letters_3to1[res.get_resname().title()],
+            res.id[1],
+            res.id[2].strip() if res.id[2].strip() else None,
+            'not-missing',
+        ]
         for res in raw_structure[0][chain_id].get_residues()
         if res.id[0] == ' '
     ]
     imgt_sequence_info = [
-        [IUPACData.protein_letters_3to1[res.get_resname().title()], res.id[1], res.id[2].rstrip()]
+        [
+            IUPACData.protein_letters_3to1[res.get_resname().title()],
+            res.id[1],
+            res.id[2].strip() if res.id[2].strip() else None,
+        ]
         for res in structure[0][chain_id].get_residues()
         if res.id[0] == ' '
     ]
 
-    combined_raw_residues = sorted(missing_residues_on_chain + raw_sequence_info, key=lambda res: (res[1], res[2]))
+    combined_raw_residues = sorted(
+        missing_residues_on_chain + raw_sequence_info,
+        key=lambda res: (res[1], res[2] if res[2] is not None else ''),
+    )
 
     if trim_ends:
         combined_raw_residues = trim_start_and_end(combined_raw_residues)

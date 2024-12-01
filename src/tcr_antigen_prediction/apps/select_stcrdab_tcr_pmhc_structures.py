@@ -9,7 +9,7 @@ import tempfile
 
 import numpy as np
 import pandas as pd
-from Bio.PDB import PDBIO, PDBParser
+from Bio.PDB import PDBIO, PDBParser, Structure
 from sklearn.cluster import AgglomerativeClustering
 
 from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
@@ -24,9 +24,16 @@ from tcr_antigen_prediction.imgt_numbering import (
     IMGT_MH2_ABD,
     renumber_chain,
 )
-from tcr_antigen_prediction.missing_residues import get_alignment, get_missing_atoms, get_missing_residues, screen_chain
+from tcr_antigen_prediction.missing_residues import (
+    annotate_with_missing_entities,
+    get_alignment,
+    get_missing_atoms,
+    get_missing_residues,
+    screen_chain,
+)
 from tcr_antigen_prediction.missing_residues.fix import predict_missing_residues
 from tcr_antigen_prediction.structure import (
+    bio_to_pandas,
     crop_structure,
     extract_chains,
     get_header,
@@ -137,6 +144,55 @@ quality_group.add_argument(
 add_logging_arguments(parser)
 
 
+def fix_structure(
+    structure: Structure.Structure,
+    raw_structure: Structure.Structure,
+    missing_residues: list[dict],
+    missing_atoms: list[dict],
+    chain_id: str,
+) -> Structure.Structure:
+    """Fix structure with missing residues or atoms on chain."""
+    raw_structure_df = bio_to_pandas(raw_structure)
+    raw_structure_df = annotate_with_missing_entities(raw_structure_df, missing_residues, missing_atoms)
+
+    chain_df = raw_structure_df[raw_structure_df['chain_id'] == chain_id].query("record_type == 'ATOM'").copy()
+
+    residue_numbering = chain_df[['residue_seq_id', 'residue_insert_code']].drop_duplicates()
+    residue_numbering['res_num'] = range(1, len(residue_numbering) + 1)
+    chain_df = chain_df.merge(residue_numbering, how='left', on=['residue_seq_id', 'residue_insert_code'])
+
+    chain_missing_residues = chain_df.groupby('res_num').filter(lambda group: group['missing'].all())
+    chain_missing_residues = chain_missing_residues.drop_duplicates('res_num')
+
+    missing_residue_selection = chain_missing_residues.apply(
+        lambda row: f"{row['res_num']}:{row['chain_id']}",
+        axis=1,
+    ).tolist()
+
+    chain_missing_atoms = chain_df.groupby('res_num').filter(
+        lambda group: group['missing'].any() and not group['missing'].all(),
+    )
+    chain_missing_atoms = chain_missing_atoms[chain_missing_atoms['missing']]
+    missing_atom_selection = chain_missing_atoms.apply(
+        lambda row: f"{row['atom_name']}:{row['res_num']}:{row['chain_id']}",
+        axis=1,
+    )
+
+    alignment = get_alignment(structure, raw_structure, chain_id, missing_residues)
+
+    new_chain = predict_missing_residues(
+        alignment,
+        structure,
+        missing_residue_selection,
+        missing_atom_selection,
+        chain_id,
+    )
+    new_chain = renumber_chain(new_chain)
+    structure = replace_chain(structure, new_chain)
+
+    return structure
+
+
 def screen_for_missing_residues(
     df: pd.DataFrame, *, fix_structures: bool = False, fix_dir: str | None = None
 ) -> pd.DataFrame:
@@ -206,11 +262,13 @@ def screen_for_missing_residues(
 
                     if fix_structures:
                         logger.debug('Fixing chain')
-                        alignment = get_alignment(structure, raw_structure, tcr_chain_id, missing_residues)
-
-                        new_chain = predict_missing_residues(alignment, structure, tcr_chain_id)
-                        new_chain = renumber_chain(new_chain)
-                        structure = replace_chain(structure, new_chain)
+                        structure = fix_structure(
+                            structure,
+                            raw_structure,
+                            missing_residues,
+                            missing_atoms,
+                            tcr_chain_id,
+                        )
 
                         fixed = True
 
@@ -233,15 +291,13 @@ def screen_for_missing_residues(
 
                     if fix_structures:
                         logger.debug('Fixing chain')
-                        alignment = get_alignment(structure, raw_structure, mhc_chain_id, missing_residues)
-
-                        new_chain = predict_missing_residues(alignment, structure, mhc_chain_id)
-                        new_chain = renumber_chain(new_chain)
-                        structure = replace_chain(structure, new_chain)
-
-                        io = PDBIO()
-                        io.set_structure(structure)
-                        io.save(os.path.join(fix_dir, os.path.basename(imgt_file_path)))
+                        structure = fix_structure(
+                            structure,
+                            raw_structure,
+                            missing_residues,
+                            missing_atoms,
+                            mhc_chain_id,
+                        )
 
                         fixed = True
 

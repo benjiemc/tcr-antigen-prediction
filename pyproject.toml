@@ -42,6 +42,7 @@ ignore = ["COM812",     # Allow missing trailing comma: not recommended to be us
           "PLR0913",    # no maximum number of arguments for a function
           "PT009",      # allow unit test style asserts
           "PTH",        # ignore recommendations for pathlib
+          "RET504",     # Allow extra assignment to variable to improve readability
           "TD",         # allow TODOs, FIXMEs, etc
           "UP015"]      # allow explicit file modes
 
