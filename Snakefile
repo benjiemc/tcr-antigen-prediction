@@ -78,24 +78,8 @@ rule renumber_external_structures:
                 -o "{output}/$(basename "%")" "%"'
         """
 
-rule fix_external_structures:
-    input: "data/interim/external_validation_data_renumbered"
-    output: directory("data/interim/external_validation_data_fix")
-    resources:
-        runtime="10m",
-        mem="500MB",
-        tasks=1
-    shell:
-        """
-        mkdir -p {output}
-        for file_name in "{input}"/*.pdb; do
-            file_name_base=$(basename $file_name .pdb)
-            python -m tcr_antigen_prediction.apps.fix_pdb --log-level {config[log_level]} -o "{output}/$(echo $file_name_base | tr '.' '_').pdb" "$file_name"
-        done
-        """
-
 rule identify_external_tcr_pmhc_interactions:
-    input: "data/interim/external_validation_data_fix"
+    input: "data/interim/external_validation_data_renumbered"
     output: directory("data/interim/external_validation_data_entities")
     resources:
         runtime="10m",
