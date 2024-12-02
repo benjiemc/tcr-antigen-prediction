@@ -272,7 +272,7 @@ def get_alignment(
 
 
 def trim_start_and_end(annotated_raw_sequence: list[list]) -> list[list]:
-    """Remove missing resiudes at start and end of the sequence."""
+    """Remove missing residues at start and end of the sequence."""
     start_index = 0
     for res in annotated_raw_sequence:
         if res[3] != 'missing':
