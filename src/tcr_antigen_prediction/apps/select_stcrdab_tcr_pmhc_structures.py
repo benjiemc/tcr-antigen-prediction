@@ -187,7 +187,7 @@ def fix_structure(
         missing_atom_selection,
         chain_id,
     )
-    new_chain = renumber_chain(new_chain)
+    new_chain, _ = renumber_chain(new_chain)
     structure = replace_chain(structure, new_chain)
 
     return structure

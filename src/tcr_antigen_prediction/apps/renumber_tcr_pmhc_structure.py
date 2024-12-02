@@ -9,11 +9,10 @@ import argparse
 import logging
 import sys
 
-import anarci
-from Bio.PDB import PDBIO, PDBParser
-from Bio.SeqUtils import IUPACData
+from Bio.PDB import PDBIO, Model, PDBParser, Structure
 
 from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
+from tcr_antigen_prediction.imgt_numbering import renumber_chain
 from tcr_antigen_prediction.structure import get_header
 
 logger = logging.getLogger()
@@ -42,51 +41,24 @@ def main():
         pdb_parser = PDBParser(QUIET=True)
         structure = pdb_parser.get_structure('', fh)
 
+    chain_map = []
+    output_structure = Structure.Structure('otuput')
     for model in structure:
-        sequences = {
-            chain.id: [
-                IUPACData.protein_letters_3to1[res.get_resname().title()]
-                for res in chain
-                if res.get_resname().title() in IUPACData.protein_letters_3to1
-            ]
-            for chain in model
-        }
-        sequences = {chain: ''.join(sequence) for chain, sequence in sequences.items()}
+        new_model = Model.Model(model.id)
 
-        chain_map = []
+        for chain in model:
+            try:
+                renumbered_chain, chain_type = renumber_chain(chain)
 
-        for chain_id, sequence in sequences.items():
-            numbering, chain_type = anarci.number(sequence)
+            except ValueError:
+                logger.debug('Chain ID %s not identified by ANARCI', chain.id)
+                new_model.add(chain.copy())
 
-            if not numbering:
-                logger.info('Chain ID %s not identified by ANARCI', chain_id)
-                continue
+            else:
+                chain_map.append((chain_type, chain.id))
+                new_model.add(renumbered_chain)
 
-            if len(numbering) == 2:  # noqa: PLR2004
-                numbering = numbering[0]
-                chain_type = chain_type[0]
-
-                logger.warning(
-                    ('Multiple possible chain annotations found for chain id %s. ' 'Defaulting to first (%sCHAIN)'),
-                    chain_id,
-                    chain_type,
-                )
-
-            numbering = [(seq_id, insert_code) for (seq_id, insert_code), res_name in numbering if res_name != '-']
-
-            residues = list(model[chain_id].get_residues())
-            num_residues_not_numbered = len(residues) - len(numbering)
-
-            next_seq_id = numbering[-1][0] + 1
-
-            for _ in range(num_residues_not_numbered):
-                numbering.append((next_seq_id, ' '))
-                next_seq_id += 1
-
-            for (seq_id, insert_code), res in zip(numbering, residues, strict=False):
-                res.id = (res.get_id(), seq_id, insert_code)
-
-            chain_map.append((chain_type, chain_id))
+        output_structure.add(new_model)
 
     with open(args.output, 'w') as fh:
         fh.write('REMARK     Renumbered using IMGT numbering provided by ANARCI (DOI: 10.1093/bioinformatics/btv552)')
@@ -99,7 +71,7 @@ def main():
             fh.write('\n')
 
         io = PDBIO()
-        io.set_structure(structure)
+        io.set_structure(output_structure)
         io.save(fh)
 
 

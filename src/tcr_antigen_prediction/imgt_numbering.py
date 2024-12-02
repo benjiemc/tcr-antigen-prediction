@@ -52,8 +52,19 @@ def assign_cdr_number(seq_id: int) -> int | None:
     return None
 
 
-def renumber_chain(chain: Chain.Chain) -> Chain.Chain:
-    """Renumber a chain following IMGT conventions."""
+def renumber_chain(chain: Chain.Chain) -> tuple[Chain.Chain, str]:
+    """Renumber a chain following IMGT conventions.
+
+    Args:
+        chain: input chain
+
+    Returns:
+        tuple with the new chain with imgt numbering and the type of chain identified by anarci
+
+    Raises:
+        ValueError: if chain cannot be identified by ANARCI
+
+    """
     residues = list(chain.get_residues())
 
     sequence = ''.join(
@@ -92,4 +103,4 @@ def renumber_chain(chain: Chain.Chain) -> Chain.Chain:
         new_res.id = (new_res.id[0], seq_id, insert_code)
         output_chain.add(new_res)
 
-    return output_chain
+    return output_chain, chain_type
