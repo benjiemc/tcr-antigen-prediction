@@ -4,7 +4,12 @@ from unittest import TestCase
 import numpy as np
 from Bio.PDB import PDBParser
 
-from tcr_antigen_prediction.comparisons import compute_structural_distances, rmsd
+from tcr_antigen_prediction.comparisons import (
+    compute_structural_distances,
+    find_equivalent_sequences,
+    get_relevant_atoms,
+    rmsd,
+)
 
 TEST_DATA = 'tests/data'
 
@@ -21,6 +26,22 @@ class TestRmsd(TestCase):
         arr2 = np.zeros((10, 3))
 
         self.assertAlmostEqual(rmsd(arr1, arr2), 0.00)
+
+
+class TestGetRelevantAtoms(TestCase):
+    def test_hydrogens(self):
+        pdb_parser = PDBParser(QUIET=True)
+        struct1 = pdb_parser.get_structure('', os.path.join(TEST_DATA, '5jzi.pdb'))
+        struct2 = pdb_parser.get_structure('', os.path.join(TEST_DATA, '5yxn.pdb'))
+
+        chain_map1 = {'alpha_chain': 'I', 'beta_chain': 'J', 'antigen_chain': 'H', 'mhc_chain1': 'F'}
+        chain_map2 = {'alpha_chain': 'A', 'beta_chain': 'B', 'antigen_chain': 'I', 'mhc_chain1': 'C'}
+
+        equivalent_residues = find_equivalent_sequences(struct1, chain_map1, struct2, chain_map2)
+        relevant_atoms = get_relevant_atoms(struct1, chain_map1, struct2, chain_map2, equivalent_residues, 'MH1')
+
+        self.assertEqual(len(relevant_atoms[0]), 3335)
+        self.assertEqual(len(relevant_atoms[1]), 3335)
 
 
 class ComputeStructuralDistances(TestCase):

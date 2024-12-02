@@ -5,6 +5,7 @@ from Bio.PDB import Atom, Structure, Superimposer
 from Bio.SeqUtils import IUPACData
 
 from tcr_antigen_prediction.aligners import align_sequences
+from tcr_antigen_prediction.chemistry import HEAVY_ATOMS
 from tcr_antigen_prediction.imgt_numbering import IMGT_MH1_ABD, IMGT_MH2_ABD, IMGT_VARIABLE_DOMAIN
 
 
@@ -133,8 +134,10 @@ def get_relevant_atoms(  # noqa: C901, PLR0912
                 raise ValueError(msg)
 
         if relevant_atoms:
-            res_atoms1 = list(struct1[0][res1[0]][res_fixed_id].get_atoms())
-            res_atoms2 = list(struct2[0][res2[0]][res_mobile_id].get_atoms())
+            res_atoms1 = [atom for atom in struct1[0][res1[0]][res_fixed_id].get_atoms() if atom.element in HEAVY_ATOMS]
+            res_atoms2 = [
+                atom for atom in struct2[0][res2[0]][res_mobile_id].get_atoms() if atom.element in HEAVY_ATOMS
+            ]
 
             if len(res_atoms1) == len(res_atoms2):
                 atoms1 += res_atoms1
