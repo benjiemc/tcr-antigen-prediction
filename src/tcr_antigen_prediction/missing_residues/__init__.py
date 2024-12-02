@@ -144,7 +144,7 @@ def annotate_with_missing_atoms(structure_df: pd.DataFrame, missing_atoms: list[
         df_before = structure_df[structure_df['atom_number'] <= atom_number_before].copy()
         df_after = structure_df[structure_df['atom_number'] > atom_number_before].copy()
 
-        atom_number_after = df_after.iloc[0]['atom_number']
+        atom_number_after = df_after.iloc[0]['atom_number'] if len(df_after) > 0 else np.inf
 
         missing_atoms_df = pd.DataFrame(
             [
