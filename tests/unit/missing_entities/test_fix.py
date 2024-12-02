@@ -4,7 +4,7 @@ from unittest import TestCase
 import numpy as np
 from Bio.PDB import PDBParser
 
-from tcr_antigen_prediction.missing_residues.fix import predict_missing_residues
+from tcr_antigen_prediction.missing_entities.fix import predict_missing_residues
 
 TEST_DATA_DIR = 'tests/data'
 

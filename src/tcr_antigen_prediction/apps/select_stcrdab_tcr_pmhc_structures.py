@@ -24,14 +24,14 @@ from tcr_antigen_prediction.imgt_numbering import (
     IMGT_MH2_ABD,
     renumber_chain,
 )
-from tcr_antigen_prediction.missing_residues import (
+from tcr_antigen_prediction.missing_entities import (
     annotate_with_missing_entities,
     get_alignment,
     get_missing_atoms,
     get_missing_residues,
     screen_chain,
 )
-from tcr_antigen_prediction.missing_residues.fix import predict_missing_residues
+from tcr_antigen_prediction.missing_entities.fix import predict_missing_residues
 from tcr_antigen_prediction.structure import (
     bio_to_pandas,
     crop_structure,

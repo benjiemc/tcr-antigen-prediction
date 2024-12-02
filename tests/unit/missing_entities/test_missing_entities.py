@@ -6,7 +6,7 @@ import pandas as pd
 from Bio.PDB import PDBParser
 
 from tcr_antigen_prediction.imgt_numbering import IMGT_MH2_ABD, IMGT_VARIABLE_DOMAIN
-from tcr_antigen_prediction.missing_residues import (
+from tcr_antigen_prediction.missing_entities import (
     annotate_with_missing_entities,
     get_missing_atoms,
     get_missing_residues,

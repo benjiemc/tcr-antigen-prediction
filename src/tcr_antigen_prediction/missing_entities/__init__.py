@@ -1,4 +1,4 @@
-"""Functions for adding missing residue information to sequences."""
+"""Functions for adding missing atom and residue information to sequences."""
 
 import logging
 import re
