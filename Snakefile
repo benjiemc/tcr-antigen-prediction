@@ -231,6 +231,14 @@ rule train_TCRen:
             $(cat "{input}/stcrdab_split.csv" | grep "train" | awk -F, -v dir="{input}" '{{ printf "%s/%s_%s%s%s%s%s.pdb ", dir, $1, $2, $3, $4, $5, $6 }}')
         """
 
+rule run_data_summary_notebook:
+    input: "data/processed/selected-stcrdab", "data/logs/select_stcrdab_tcr_pmhc_structures.log"
+    resources:
+        runtime="5m",
+        mem="1GB",
+        tasks=1
+    notebook: "notebooks/data_summary.ipynb"
+
 rule lint:
     shell:
         """

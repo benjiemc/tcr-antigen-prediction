@@ -68,7 +68,8 @@ multiline-quotes = "single"
 "notebooks/*" = ["D101",    # ignore class docs in notebooks
                  "D102",    # ignore methods docs in notebooks
                  "D103",    # ignore function docs in notebooks
-                 "D107"]    # ignore constructor docs in notebooks
+                 "D107",    # ignore constructor docs in notebooks
+                 "T201"]    # Allow print statements in notebooks
 "tests/*" = ["ANN",       # ignore type annotations in tests
              "D100",      # ignore module docs in tests
              "D101",      # ignore class docs in tests

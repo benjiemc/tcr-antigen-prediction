@@ -14,7 +14,11 @@ dependencies:
   - pip:
       - biopython
       - matplotlib
+      - networkx
       - numpy
+      - openchord
       - pandas
+      - plotly
+      - pyxdameraulevenshtein
       - seaborn
       - snakemake-executor-plugin-slurm
