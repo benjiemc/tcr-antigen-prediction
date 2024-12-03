@@ -712,7 +712,13 @@ def main():
     if not os.path.exists(args.output):
         os.mkdir(args.output)
 
+    dataset['path'] = dataset.apply(
+        lambda row: f'{row.pdb}_{row.Achain}{row.Bchain}{row.antigen_chain}{row.mhc_chain1}{row.mhc_chain2}.pdb',
+        axis=1,
+    )
+
     output_columns = [
+        'path',
         'pdb',
         'Achain',
         'Bchain',
@@ -734,10 +740,9 @@ def main():
     pdb_parser = PDBParser()
     for _, row in dataset.iterrows():
         structure = pdb_parser.get_structure(row.pdb, row.imgt_file_path)
-        output_name = f'{row.pdb}_{row.Achain}{row.Bchain}{row.antigen_chain}{row.mhc_chain1}{row.mhc_chain2}.pdb'
         output_chains = [row.Achain, row.Bchain, row.antigen_chain, row.mhc_chain1, row.mhc_chain2]
 
-        logger.debug('Outputting %s...', output_name)
+        logger.debug('Outputting %s...', row.path)
 
         if args.remove_het_atoms:
             logger.debug('Removing hetero atoms')
@@ -760,7 +765,7 @@ def main():
 
         io = PDBIO()
         io.set_structure(structure)
-        io.save(os.path.join(args.output, output_name))
+        io.save(os.path.join(args.output, row.path))
 
     if args.fix_structures_missing_residues:
         fix_dir.cleanup()
