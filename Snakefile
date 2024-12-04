@@ -17,7 +17,7 @@ rule environment:
         """
 
 rule data:
-    input: "data/processed/selected-stcrdab"
+    input: "data/processed/selected-stcrdab", "data/processed/tcr_pmhc_contacts.csv"
 
 rule download_stcrdab:
     output: directory("data/raw/stcrdab")
@@ -57,6 +57,25 @@ rule select_stcrdab_structures:
             --structural-similarity-cutoff 2.0 \
             -o {output} \
             {input.stcrdab_path} 2> {log}
+        """
+
+rule create_contact_maps:
+    input: "data/processed/selected-stcrdab"
+    output: "data/processed/tcr_pmhc_contacts.csv"
+    resources:
+        runtime="10m",
+        mem="500MB",
+        tasks=1
+    shell:
+        """
+        python -m tcr_antigen_prediction.apps.create_contact_maps \
+            --log-level {config[log_level]} \
+            --tcr-norm relative_pos_centre \
+            --mhc-norm imgt_number \
+            --peptide-norm relative_pos_centre \
+            -o {output} \
+            --summary-csv {input}/stcrdab_split.csv \
+            {input}/*.pdb \
         """
 
 rule data_external:
