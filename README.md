@@ -2,7 +2,7 @@
 
 Models and methods for predicting TCR antigen specificity.
 
-# Installation and Setup
+## Installation and Setup
 
 To install this project, first clone the repo:
 
