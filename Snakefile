@@ -269,6 +269,14 @@ rule run_data_summary_notebook:
         tasks=1
     notebook: "notebooks/data_summary.ipynb"
 
+rule run_visualise_tcr_pmhc_contact_maps_notebook:
+    input: "data/processed/tcr_pmhc_contacts.csv"
+    resources:
+        runtime="5m",
+        mem="1GB",
+        tasks=1
+    notebook: "notebooks/visualise_tcr_pmhc_contact_maps.ipynb"
+
 rule lint:
     shell:
         """
