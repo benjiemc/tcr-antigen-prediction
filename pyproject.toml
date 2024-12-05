@@ -19,6 +19,7 @@ dependencies = [
 [project.optional-dependencies]
 develop = [
     "myst-parser",
+    "nbsphinx",
     "pytest",
     "prysk",
     "pytest-prysk",
