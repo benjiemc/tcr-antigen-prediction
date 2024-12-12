@@ -78,6 +78,11 @@ rule create_contact_maps:
             {input}/*.pdb \
         """
 
+rule get_mhc_pseudo_sequence_imgt_numbers:
+    input: "data/processed/tcr_pmhc_contacts.csv"
+    output: "data/interim/mhc_pseudo_seq_imgt_positions.json"
+    shell: "python -m tcr_antigen_prediction.apps.get_mhc_pseudo_sequence_imgt_numbers --log-level {config[log_level]} -o {output} {input}"
+
 rule data_external:
     input: "data/processed/external_validation_data_selected"
 
