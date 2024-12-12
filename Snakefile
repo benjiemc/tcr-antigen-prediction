@@ -17,7 +17,10 @@ rule environment:
         """
 
 rule data:
-    input: "data/processed/selected-stcrdab", "data/processed/tcr_pmhc_contacts.csv"
+    input:
+        "data/processed/selected-stcrdab",
+        "data/processed/tcr_pmhc_contacts.csv",
+        "data/processed/nettcr.h5"
 
 rule download_stcrdab:
     output: directory("data/raw/stcrdab")
@@ -86,6 +89,18 @@ rule get_mhc_pseudo_sequence_imgt_numbers:
     input: "data/processed/tcr_pmhc_contacts.csv"
     output: "data/interim/mhc_pseudo_seq_imgt_positions.json"
     shell: "python -m tcr_antigen_prediction.apps.get_mhc_pseudo_sequence_imgt_numbers --log-level {config[log_level]} -o {output} {input}"
+
+rule process_net_tcr_data:
+    input:
+        "data/external/nettcr_2_2_full_dataset.csv",
+        "data/external/hla_sequences",
+        "data/interim/mhc_pseudo_seq_imgt_positions.json"
+    output: "data/processed/nettcr.h5"
+    resources:
+        runtime="15m",
+        mem="2GB",
+        tasks=1
+    notebook: "notebooks/exploring_and_processing_net_tcr_data.ipynb"
 
 rule data_external:
     input: "data/processed/external_validation_data_selected"

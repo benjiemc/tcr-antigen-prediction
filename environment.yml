@@ -5,6 +5,7 @@ channels:
   - conda-forge
   - nodefaults
 dependencies:
+  - h5py
   - hmmer
   - jupyter
   - modeller
