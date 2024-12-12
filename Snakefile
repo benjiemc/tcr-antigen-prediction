@@ -27,6 +27,10 @@ rule download_stcrdab:
         tasks=1
     shell: "python -m tcr_antigen_prediction.apps.download_stcrdab --log-level {config[log_level]} {output}"
 
+rule download_net_tcr_data:
+    output: "data/external/nettcr_2_2_full_dataset.csv"
+    shell: "wget -O {output} https://raw.githubusercontent.com/mnielLab/NetTCR-2.2/refs/heads/main/data/nettcr_2_2_full_dataset.csv"
+
 rule select_stcrdab_structures:
     input:
         stcrdab_path="data/raw/stcrdab",
