@@ -3,7 +3,7 @@ channels:
   - bioconda
   - salilab
   - conda-forge
-  - defaults
+  - nodefaults
 dependencies:
   - hmmer
   - jupyter
