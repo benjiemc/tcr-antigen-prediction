@@ -11,6 +11,10 @@ jobs:
         with:
             auto-activate-base: true
             activate-environment: ""
+      - name: Install mamba
+        run: |
+          conda config --add channels conda-forge
+          conda install mamba
       - name: Setup environment
         run: |
             pip install pulp==2.7.0 snakemake
@@ -18,8 +22,8 @@ jobs:
             ssh-add - <<< "${{ secrets.ANARCI_TCR_PMHC_SSH_KEY }}"
             export KEY_MODELLER=${{ secrets.MODELLER_KEY }}
             snakemake environment --quiet all --cores 1
-            conda run -n tcr-antigen-prediction pip install '.[develop]'
+            mamba run -n tcr-antigen-prediction pip install '.[develop]'
       - name: Lint package
-        run: conda run -n tcr-antigen-prediction snakemake lint --quiet all
+        run: mamba run -n tcr-antigen-prediction snakemake lint --quiet all
       - name: Test package
-        run: conda run -n tcr-antigen-prediction snakemake test --quiet all
+        run: mamba run -n tcr-antigen-prediction snakemake test --quiet all

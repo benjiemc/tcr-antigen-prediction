@@ -7,13 +7,13 @@ config = {**default_config, **config}
 rule environment:
     shell:
         """
-        conda env create -f environment.yml
-        conda run -n tcr-antigen-prediction python -m pip install .
+        mamba env create -f environment.yml
+        mamba run -n tcr-antigen-prediction python -m pip install .
         git submodule init
         git submodule update --recursive
-        conda_prefix=$(conda run -n tcr-antigen-prediction conda info --json | jq .default_prefix | sed s/\\"//g)
-        python_version=$(conda run -n tcr-antigen-prediction python --version | cut -d " " -f2 | cut -d "." -f1-2)
-        cp -r third_party/anarci $conda_prefix/lib/python$python_version/site-packages
+        mamba_prefix=$(mamba run -n tcr-antigen-prediction mamba info --json | jq '."env location"' | sed s/\\"//g)
+        python_version=$(mamba run -n tcr-antigen-prediction python --version | cut -d " " -f2 | cut -d "." -f1-2)
+        cp -r third_party/anarci $mamba_prefix/lib/python$python_version/site-packages
         """
 
 rule data:

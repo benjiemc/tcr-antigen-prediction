@@ -21,33 +21,33 @@ cd tcr-antigen-prediction/
 >
 > Alternatively, the use of MODELLER can be manually disabled in the workflow steps.
 
-[Conda](https://docs.conda.io/projects/conda/en/latest/user-guide/getting-started.html) and [Snakemake](https://snakemake.readthedocs.io/en/stable/) are used to setup and manage the dependencies and workflows in this project. At a minimum, Conda is required to install the dependencies for the project (a version of Snakemake will be installed as a dependency).
+[Mamba](https://mamba.readthedocs.io/en/latest/index.html) and [Snakemake](https://snakemake.readthedocs.io/en/stable/) are used to setup and manage the dependencies and workflows in this project. At a minimum, Mamba is required to install the dependencies for the project (a version of Snakemake will be installed as a dependency).
 
-If **both Conda and Snakemake are installed**, simply run:
+If **both Mamba and Snakemake are installed**, simply run:
 
 ```
 snakemake environment
 ```
 
-To create the tcr-antigen-prediction conda environment.
+To create the tcr-antigen-prediction mamba environment.
 
-If **only conda is installed**, manually run the following steps to install the project dependencies (including Snakemake):
+If **only mamba is installed**, manually run the following steps to install the project dependencies (including Snakemake):
 
 ```
-conda env create -f environment.yml
-conda run -n tcr-antigen-prediction python -m pip install .
+mamba env create -f environment.yml
+mamba run -n tcr-antigen-prediction python -m pip install .
 
 git submodules init
 git submodule update --recursive
-conda_prefix=$(conda run -n tcr-antigen-prediction conda info --json | jq .default_prefix | sed s/\"//g)
-python_version=$(conda run -n tcr-antigen-prediction python --version | cut -d " " -f2 | cut -d "." -f1-2)
-cp -r third_party/anarci $conda_prefix/lib/python$python_version/site-packages
+mamba_prefix=$(mamba run -n tcr-antigen-prediction mamba info --json | jq '."env location"' | sed s/\"//g)
+python_version=$(mamba run -n tcr-antigen-prediction python --version | cut -d " " -f2 | cut -d "." -f1-2)
+cp -r third_party/anarci $mamba_prefix/lib/python$python_version/site-packages
 ```
 
 The environment can then be activated:
 
 ```
-conda activate tcr-antigen-prediction
+mamba activate tcr-antigen-prediction
 ```
 
 ### Installing for Development
