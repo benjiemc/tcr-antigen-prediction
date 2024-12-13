@@ -11,9 +11,6 @@ from tcr_antigen_prediction.imgt_numbering import IMGT_MH1_ABD, IMGT_MH2_ABD, IM
 
 logger = logging.getLogger(__name__)
 
-PROTEIN_LETTERS = [x.upper() for x in IUPACData.protein_letters_3to1]
-'''Amino acid one letter codes.'''
-
 
 def get_sequence(structure: Structure.Structure, chain_id: str, residue_range: set[int] | None = None) -> str:
     """Get the sequence of amino acids from a biopython strcture.
