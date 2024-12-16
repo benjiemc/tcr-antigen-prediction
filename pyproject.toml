@@ -14,6 +14,7 @@ dependencies = [
     "numpy",
     "pandas",
     "scikit-learn",
+    "torch",
 ]
 
 [project.optional-dependencies]
@@ -36,6 +37,7 @@ exclude = ["third_party"]
 select = ["ALL"]
 extend-select = ["E501"]
 ignore = ["COM812",     # Allow missing trailing comma: not recommended to be used with the formatter
+          "D107",       # do not require __init__ methods to have a docstring
           "D203",       # one-blank-line-before-class: ignoring because it clashes with D211
           "D213",       # multi-line-summary-second-line: ignoring because it clashes with D212
           "FIX",        # allow TODOs, FIXMEs, etc
