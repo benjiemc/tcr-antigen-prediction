@@ -37,6 +37,9 @@ IMGT_MH1_ABD: set[int] = set(range(1, 92)) | set(range(1001, 1092))
 IMGT_MH2_ABD: set[int] = set(range(1, 92))
 '''IMGT ranges of the antigen binding domain of MHC class II molecules.'''
 
+MHC_I_IMGT_BETA_HELIX_START = 1000
+'''Start of the beta helix of class I molecules.'''
+
 
 def assign_cdr_number(seq_id: int) -> int | None:
     """Assign CDR number for a sequence ID or return None if the sequence ID if the ID is not in CDR range."""
@@ -50,6 +53,24 @@ def assign_cdr_number(seq_id: int) -> int | None:
         return 3
 
     return None
+
+
+def assign_helix(mhc_type: str, chain_type: str, resi: str) -> str:
+    """Assign an MHC residue as being either part of the 'alpha' helix or 'beta' helix.
+
+    The assignment happens regardless of class I versus class II.
+
+    """
+    match mhc_type:
+        case 'MH1':
+            return (
+                'alpha'
+                if int(''.join([char for char in resi if char.isnumeric()])) < MHC_I_IMGT_BETA_HELIX_START
+                else 'beta'
+            )
+
+        case 'MH2':
+            return 'alpha' if chain_type == 'mhc_chain1' else 'beta'
 
 
 def renumber_chain(chain: Chain.Chain) -> tuple[Chain.Chain, str]:

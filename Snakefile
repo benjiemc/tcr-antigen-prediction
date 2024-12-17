@@ -20,7 +20,8 @@ rule data:
     input:
         "data/processed/selected-stcrdab",
         "data/processed/tcr_pmhc_contacts.csv",
-        "data/processed/nettcr.h5"
+        "data/processed/nettcr.h5",
+        "data/processed/contact_maps.h5"
 
 rule download_stcrdab:
     output: directory("data/raw/stcrdab")
@@ -293,13 +294,14 @@ rule run_data_summary_notebook:
         tasks=1
     notebook: "notebooks/data_summary.ipynb"
 
-rule run_visualise_tcr_pmhc_contact_maps_notebook:
-    input: "data/processed/tcr_pmhc_contacts.csv"
+rule run_process_and_visualise_tcr_pmhc_contact_maps_notebook:
+    input: "data/processed/tcr_pmhc_contacts.csv", "data/interim/mhc_pseudo_seq_imgt_positions.json"
+    output: "data/processed/contact_maps.h5"
     resources:
         runtime="5m",
         mem="1GB",
         tasks=1
-    notebook: "notebooks/visualise_tcr_pmhc_contact_maps.ipynb"
+    notebook: "notebooks/process_and_visualise_tcr_pmhc_contact_maps.ipynb"
 
 rule lint:
     shell:

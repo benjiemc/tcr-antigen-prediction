@@ -10,6 +10,7 @@ import sys
 import pandas as pd
 
 from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
+from tcr_antigen_prediction.imgt_numbering import assign_helix
 
 logger = logging.getLogger()
 
@@ -29,26 +30,6 @@ parser.add_argument(
 )
 
 add_logging_arguments(parser)
-
-MHC_I_IMGT_BETA_HELIX_START = 1000
-
-
-def assign_helix(mhc_type: str, chain_type: str, resi: str) -> str:
-    """Assign an MHC residue as being either part of the 'alpha' helix or 'beta' helix.
-
-    The assignment happens regardless of class I versus class II.
-
-    """
-    match mhc_type:
-        case 'MH1':
-            return (
-                'alpha'
-                if int(''.join([char for char in resi if char.isnumeric()])) < MHC_I_IMGT_BETA_HELIX_START
-                else 'beta'
-            )
-
-        case 'MH2':
-            return 'alpha' if chain_type == 'mhc_chain1' else 'beta'
 
 
 def main():
