@@ -256,7 +256,7 @@ rule select_external_structures:
         """
 
 rule models:
-    input: "data", "models/TCRen"
+    input: "data", "models/TCRen", "models/TCRContactMapPredictor"
 
 rule train_TCRen:
     input: "data/processed/selected-stcrdab"
@@ -273,6 +273,26 @@ rule train_TCRen:
             -o {output}/TCRen_probabilities.csv \
             --summary-csv "{input}/stcrdab_split.csv" \
             $(cat "{input}/stcrdab_split.csv" | grep "train" | awk -F, -v dir="{input}" '{{ printf "%s/%s_%s%s%s%s%s.pdb ", dir, $1, $2, $3, $4, $5, $6 }}')
+        """
+
+rule train_TCRContactMapPredictor:
+    input:
+        data="data/processed/nettcr.h5",
+        contact_maps="data/processed/contact_maps.h5"
+    output: directory("models/TCRContactMapPredictor")
+    log: "data/logs/train_tcr_contact_map_predictor.log"
+    resources:
+        runtime="1h",
+        mem="5GB",
+        tasks=1
+    shell:
+        """
+        python -m tcr_antigen_prediction.apps.train_tcr_contact_map_predictor \
+            --log-level {config[log_level]} \
+            --log-file {log} \
+            -o {output} \
+            --contact-maps {input.contact_maps} \
+            {input.data}
         """
 
 rule run_identify_contact_residues_notebook:
