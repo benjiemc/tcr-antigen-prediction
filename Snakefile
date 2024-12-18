@@ -323,6 +323,14 @@ rule run_process_and_visualise_tcr_pmhc_contact_maps_notebook:
         tasks=1
     notebook: "notebooks/process_and_visualise_tcr_pmhc_contact_maps.ipynb"
 
+rule run_visualising_and_evaluating_tcr_contact_map_predictor_training_notebook:
+    input: "data/logs/train_tcr_contact_map_predictor.log"
+    resources:
+        runtime="1m",
+        mem="500MB",
+        tasks=1
+    notebook: "notebooks/visualising_and_evaluating_tcr_contact_map_predictor_training.ipynb"
+
 rule lint:
     shell:
         """
