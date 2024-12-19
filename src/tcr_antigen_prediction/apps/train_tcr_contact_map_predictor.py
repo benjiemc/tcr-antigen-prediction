@@ -69,12 +69,6 @@ training_params.add_argument(
 
 validation_params = parser.add_argument_group('Validation Parameters')
 validation_params.add_argument(
-    '--num-folds',
-    type=int,
-    default=5,
-    help='Number of cross validation folds during training (Default: 5)',
-)
-validation_params.add_argument(
     '--eval-interval',
     type=int,
     default=500,
@@ -85,33 +79,6 @@ validation_params.add_argument(
 )
 
 add_logging_arguments(parser)
-
-
-def split_indices(
-    indices: np.ndarray,
-    num_folds: int = 5,
-    rng: np.random.Generator | None = None,
-) -> tuple[np.ndarray]:
-    """Split data into k-folds randomly."""
-    if rng is None:
-        rng = np.random.default_rng()
-
-    indices_copy = indices.copy()
-    rng.shuffle(indices_copy)
-
-    num_per_fold = len(indices) // num_folds
-    folds = []
-
-    for i in range(num_folds):
-        fold_start = i * num_per_fold
-
-        if i < num_folds - 1:
-            folds.append(indices_copy[fold_start : fold_start + num_per_fold])
-
-        else:
-            folds.append(indices_copy[fold_start:])
-
-    return tuple(folds)
 
 
 def evaluate_model(
@@ -223,7 +190,7 @@ def main():
         mhc_pseudo_sequences = fh['mhc_pseudo_sequence'][:]
 
         labels = fh['label'][:]
-        # TODO implement split on peptide_numbers = fh['peptide_numbers'][:]
+        folds = fh['fold'][:]
 
     indices = np.arange(len(cdr_1as))
 
@@ -231,12 +198,11 @@ def main():
         logger.info('Creating %s', args.output)
         os.mkdir(args.output)
 
-    folds = split_indices(indices, args.num_folds, random_generator)
-
-    for fold_idx, validation_indices in enumerate(folds, 1):
+    for fold_idx in np.unique(folds):
         logger.info('Starting fold %d', fold_idx)
 
-        training_indices = np.concatenate([folds[idx] for idx in range(len(folds)) if (idx + 1) != fold_idx])
+        training_indices = indices[folds != fold_idx]
+        validation_indices = indices[folds == fold_idx]
 
         logger.debug('Number of training data points: %d', len(training_indices))
         logger.debug('Number of validation data points: %d', len(validation_indices))

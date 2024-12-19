@@ -1,7 +1,6 @@
 Test training model.
   $ python -m tcr_antigen_prediction.apps.train_tcr_contact_map_predictor \
   > --seed 123 \
-  > --num-folds 2 \
   > --batch-size 1 \
   > --num-epochs 1 \
   > --eval-interval 1 \
