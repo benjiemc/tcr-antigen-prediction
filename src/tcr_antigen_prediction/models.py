@@ -35,8 +35,8 @@ class TCRContactMapPredictor(nn.Module):
 
     def __init__(
         self,
-        cdr_peptide_contact_maps: tuple[torch.Tensor],
-        cdr_mhc_contact_maps: tuple[torch.Tensor],
+        cdr_peptide_contact_maps: tuple[torch.Tensor] | None = None,
+        cdr_mhc_contact_maps: tuple[torch.Tensor] | None = None,
         *,
         cdr_1_length: int = 8,
         cdr_2_length: int = 8,
@@ -48,6 +48,24 @@ class TCRContactMapPredictor(nn.Module):
         learn_contact_maps: bool = False,
     ) -> None:
         super().__init__()
+
+        if cdr_peptide_contact_maps is None:
+            cdr_peptide_contact_maps = tuple(
+                [
+                    torch.ones((cdr_length, peptide_length), dtype=torch.float32) / (cdr_length * peptide_length)
+                    for _ in range(2)
+                    for cdr_length in (cdr_1_length, cdr_2_length, cdr_3_length)
+                ]
+            )
+
+        if cdr_mhc_contact_maps is None:
+            cdr_mhc_contact_maps = tuple(
+                [
+                    torch.ones((cdr_length, mhc_length), dtype=torch.float32) / (cdr_length * mhc_length)
+                    for _ in range(2)
+                    for cdr_length in (cdr_1_length, cdr_2_length, cdr_3_length)
+                ]
+            )
 
         self.cdr_peptide_contact_maps = nn.ParameterList(
             [nn.Parameter(contact_map, requires_grad=learn_contact_maps) for contact_map in cdr_peptide_contact_maps],
