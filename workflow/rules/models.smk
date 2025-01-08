@@ -1,5 +1,9 @@
 rule models:
-    input: "models/TCRen", "models/TCRContactMapPredictor", "models/TCRContactMapPredictor_sequence_only"
+    input:
+        "models/TCRen",
+        "models/TCRContactMapPredictor",
+        "models/TCRContactMapPredictor_sequence_only",
+        "models/ConfidencePredictor"
 
 rule train_TCRen:
     input: "data/processed/selected-stcrdab"
@@ -52,5 +56,20 @@ rule train_TCRContactMapPredictor_sequence_only:
             --log-level {config[log_level]} \
             --log-file {log} \
             -o {output} \
+        """
+
+rule train_confidence_predictor:
+    input: "data/processed/nettcr.h5"
+    output: directory("models/ConfidencePredictor")
+    resources:
+        runtime="1h",
+        mem="20GB",
+        tasks=1
+    shell:
+        """
+        mkdir -p {output}
+        python -m tcr_antigen_prediction.models.apps.train_confidence_predictor \
+            --log-level {config[log_level]} \
+            -o {output}/model.onnx \
             {input}
         """

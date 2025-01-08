@@ -19,6 +19,7 @@ dependencies:
       - matplotlib
       - networkx
       - numpy
+      - onnxruntime
       - openchord
       - pandas
       - plotly
