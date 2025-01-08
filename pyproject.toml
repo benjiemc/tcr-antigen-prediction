@@ -17,6 +17,8 @@ dependencies = [
     "pyxdameraulevenshtein",
     "requests",
     "scikit-learn",
+    "scipy",
+    "skl2onnx",
     "stitchr",
     "tidytcells",
     "torch",
