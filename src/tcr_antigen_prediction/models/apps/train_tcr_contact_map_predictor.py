@@ -157,25 +157,30 @@ def main():
     else:
         random_generator = np.random.default_rng()
 
-    logger.info('Loading contact maps from %s', args.contact_maps)
-    with h5py.File(args.contact_maps) as fh:
-        cdr_peptide_contact_maps = (
-            torch.tensor(fh['cdr_peptide']['cdr_1a'][:], dtype=torch.float32),
-            torch.tensor(fh['cdr_peptide']['cdr_2a'][:], dtype=torch.float32),
-            torch.tensor(fh['cdr_peptide']['cdr_3a'][:], dtype=torch.float32),
-            torch.tensor(fh['cdr_peptide']['cdr_1b'][:], dtype=torch.float32),
-            torch.tensor(fh['cdr_peptide']['cdr_2b'][:], dtype=torch.float32),
-            torch.tensor(fh['cdr_peptide']['cdr_3b'][:], dtype=torch.float32),
-        )
+    if args.contact_maps:
+        logger.info('Loading contact maps from %s', args.contact_maps)
+        with h5py.File(args.contact_maps) as fh:
+            cdr_peptide_contact_maps = (
+                torch.tensor(fh['cdr_peptide']['cdr_1a'][:], dtype=torch.float32),
+                torch.tensor(fh['cdr_peptide']['cdr_2a'][:], dtype=torch.float32),
+                torch.tensor(fh['cdr_peptide']['cdr_3a'][:], dtype=torch.float32),
+                torch.tensor(fh['cdr_peptide']['cdr_1b'][:], dtype=torch.float32),
+                torch.tensor(fh['cdr_peptide']['cdr_2b'][:], dtype=torch.float32),
+                torch.tensor(fh['cdr_peptide']['cdr_3b'][:], dtype=torch.float32),
+            )
 
-        cdr_mhc_contact_maps = (
-            torch.tensor(fh['cdr_mhc']['cdr_1a'][:], dtype=torch.float32),
-            torch.tensor(fh['cdr_mhc']['cdr_2a'][:], dtype=torch.float32),
-            torch.tensor(fh['cdr_mhc']['cdr_3a'][:], dtype=torch.float32),
-            torch.tensor(fh['cdr_mhc']['cdr_1b'][:], dtype=torch.float32),
-            torch.tensor(fh['cdr_mhc']['cdr_2b'][:], dtype=torch.float32),
-            torch.tensor(fh['cdr_mhc']['cdr_3b'][:], dtype=torch.float32),
-        )
+            cdr_mhc_contact_maps = (
+                torch.tensor(fh['cdr_mhc']['cdr_1a'][:], dtype=torch.float32),
+                torch.tensor(fh['cdr_mhc']['cdr_2a'][:], dtype=torch.float32),
+                torch.tensor(fh['cdr_mhc']['cdr_3a'][:], dtype=torch.float32),
+                torch.tensor(fh['cdr_mhc']['cdr_1b'][:], dtype=torch.float32),
+                torch.tensor(fh['cdr_mhc']['cdr_2b'][:], dtype=torch.float32),
+                torch.tensor(fh['cdr_mhc']['cdr_3b'][:], dtype=torch.float32),
+            )
+
+    else:
+        cdr_peptide_contact_maps = None
+        cdr_mhc_contact_maps = None
 
     logger.info('Loading training data from %s', args.training_data)
     with h5py.File(args.training_data) as fh:
