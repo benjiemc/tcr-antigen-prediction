@@ -1,5 +1,5 @@
 rule models:
-    input: "data", "models/TCRen", "models/TCRContactMapPredictor"
+    input: "models/TCRen", "models/TCRContactMapPredictor"
 
 rule train_TCRen:
     input: "data/processed/selected-stcrdab"
