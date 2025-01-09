@@ -31,7 +31,7 @@ for app in cli_apps:
     app_names.append(app_name)
 
 apps_contents = (
-    'Command Line Applications\n' '=========================\n' '\n' '.. toctree::\n' '   :maxdepth: 1\n' '\n'
+    'Command Line Applications\n=========================\n\n.. toctree::\n   :maxdepth: 1\n\n'
 ) + '\n'.join(['   ' + name for name in sorted(app_names)])
 
 with open(os.path.join(sys.argv[1], 'apps.rst'), 'w') as fh:

@@ -104,12 +104,12 @@ structure_type_group.add_argument(
     '--antigen-types',
     nargs='+',
     default=['peptide'],
-    help=('MHC types allowed in dataset (carbohydrate, Hapten, peptide, protein, etc) ' '(Default: peptide)'),
+    help=('MHC types allowed in dataset (carbohydrate, Hapten, peptide, protein, etc) (Default: peptide)'),
 )
 structure_type_group.add_argument(
     '--crop-structures',
     action='store_true',
-    help=('Crop TCR:pMHC structures to the TCR variable domain and MHC antigen binding ' 'domain.'),
+    help=('Crop TCR:pMHC structures to the TCR variable domain and MHC antigen binding domain.'),
 )
 structure_type_group.add_argument('--remove-het-atoms', action='store_true', help='Remove heteroatoms from structures')
 

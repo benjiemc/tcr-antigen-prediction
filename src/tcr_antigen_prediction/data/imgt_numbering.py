@@ -103,7 +103,7 @@ def renumber_chain(chain: Chain.Chain) -> tuple[Chain.Chain, str]:
         chain_type = chain_type[0]
 
         logger.warning(
-            ('Multiple possible chain annotations found for chain id %s. ' 'Defaulting to first: %sCHAIN'),
+            ('Multiple possible chain annotations found for chain id %s. Defaulting to first: %sCHAIN'),
             chain.id,
             chain_type,
         )
