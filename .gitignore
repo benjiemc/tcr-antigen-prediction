@@ -24,6 +24,7 @@ data/logs/*
 
 # Snakemake Files
 **/.snakemake/*
+**/.snakemake_timestamp
 
 # Documentation Files
 docs/public/*
