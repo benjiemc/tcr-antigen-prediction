@@ -268,7 +268,7 @@ rule train_TCRen:
     shell:
         """
         @mkdir -p {output}
-        @python -m tcr_antigen_prediction.apps.train_tcr_en \
+        @python -m tcr_antigen_prediction.models.apps.train_tcr_en \
             --log-level {config[log_level]} \
             -o {output}/TCRen_probabilities.csv \
             --summary-csv "{input}/stcrdab_split.csv" \
@@ -287,7 +287,7 @@ rule train_TCRContactMapPredictor:
         tasks=1
     shell:
         """
-        python -m tcr_antigen_prediction.apps.train_tcr_contact_map_predictor \
+        python -m tcr_antigen_prediction.models.apps.train_tcr_contact_map_predictor \
             --log-level {config[log_level]} \
             --log-file {log} \
             -o {output} \
