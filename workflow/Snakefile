@@ -1,0 +1,40 @@
+default_config = {
+    'log_level': 'info',
+}
+
+config = {**default_config, **config}
+
+include: "rules/data.smk"
+include: "rules/models.smk"
+include: "rules/notebooks.smk"
+
+rule environment:
+    shell:
+        """
+        mamba env create -f environment.yml
+        mamba run -n tcr-antigen-prediction python -m pip install .
+        git submodule init
+        git submodule update --recursive
+        mamba_prefix=$(mamba run -n tcr-antigen-prediction mamba info --json | jq '."env location"' | sed s/\\"//g)
+        python_version=$(mamba run -n tcr-antigen-prediction python --version | cut -d " " -f2 | cut -d "." -f1-2)
+        cp -r third_party/anarci $mamba_prefix/lib/python$python_version/site-packages
+        """
+
+rule lint:
+    shell:
+        """
+        ruff check
+        ruff format --check
+        """
+
+rule test:
+    shell: "pytest tests"
+
+rule docs:
+    shell:
+        """
+        sphinx-apidoc -f -e -o docs/source src/tcr_antigen_prediction $(find src -name *.py -path "src/**/apps/*")
+        python docs/document_clis.py docs/source
+        python docs/document_notebooks.py notebooks docs/source
+        sphinx-build -b html ./docs ./docs/public
+        """
