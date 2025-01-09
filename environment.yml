@@ -10,6 +10,7 @@ dependencies:
   - jupyter
   - modeller
   - pip
+  - pygraphviz
   - python=3.11
   - snakemake
   - pip:
