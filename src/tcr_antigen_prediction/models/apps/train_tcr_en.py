@@ -16,8 +16,8 @@ from Bio.PDB import PDBParser
 from Bio.SeqUtils import IUPACData
 
 from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
-from tcr_antigen_prediction.imgt_numbering import assign_cdr_number
-from tcr_antigen_prediction.structure import bio_to_pandas
+from tcr_antigen_prediction.data.imgt_numbering import assign_cdr_number
+from tcr_antigen_prediction.data.structure import bio_to_pandas
 
 logger = logging.getLogger()
 

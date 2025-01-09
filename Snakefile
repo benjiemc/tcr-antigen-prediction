@@ -29,7 +29,7 @@ rule download_stcrdab:
         runtime="20m",
         mem="500MB",
         tasks=1
-    shell: "python -m tcr_antigen_prediction.apps.download_stcrdab --log-level {config[log_level]} {output}"
+    shell: "python -m tcr_antigen_prediction.data.apps.download_stcrdab --log-level {config[log_level]} {output}"
 
 rule download_net_tcr_data:
     output: "data/external/nettcr_2_2_full_dataset.csv"
@@ -48,7 +48,7 @@ rule select_stcrdab_structures:
     log: "data/logs/select_stcrdab_tcr_pmhc_structures.log"
     shell:
         """
-        python -m tcr_antigen_prediction.apps.select_stcrdab_tcr_pmhc_structures \
+        python -m tcr_antigen_prediction.data.apps.select_stcrdab_tcr_pmhc_structures \
             --log-level {config[log_level]} \
             --log-file {log} \
             --seed 123 \
@@ -76,7 +76,7 @@ rule create_contact_maps:
         tasks=1
     shell:
         """
-        python -m tcr_antigen_prediction.apps.create_contact_maps \
+        python -m tcr_antigen_prediction.data.apps.create_contact_maps \
             --log-level {config[log_level]} \
             --tcr-norm relative_pos_centre \
             --mhc-norm imgt_number \
@@ -89,7 +89,7 @@ rule create_contact_maps:
 rule get_mhc_pseudo_sequence_imgt_numbers:
     input: "data/processed/tcr_pmhc_contacts.csv"
     output: "data/interim/mhc_pseudo_seq_imgt_positions.json"
-    shell: "python -m tcr_antigen_prediction.apps.get_mhc_pseudo_sequence_imgt_numbers --log-level {config[log_level]} -o {output} {input}"
+    shell: "python -m tcr_antigen_prediction.data.apps.get_mhc_pseudo_sequence_imgt_numbers --log-level {config[log_level]} -o {output} {input}"
 
 rule process_net_tcr_data:
     input:
@@ -117,7 +117,7 @@ rule renumber_external_structures:
         """
         mkdir -p "{output}"
         find "{input}" -name "*.pdb" | \
-            xargs -I % bash -c 'python -m tcr_antigen_prediction.apps.renumber_tcr_pmhc_structure \
+            xargs -I % bash -c 'python -m tcr_antigen_prediction.data.apps.renumber_tcr_pmhc_structure \
                 --log-level {config[log_level]} \
                 -o "{output}/$(basename "%")" "%"'
         """
@@ -135,10 +135,10 @@ rule identify_external_tcr_pmhc_interactions:
         echo "name,Achain,Bchain,antigen_chain,mhc_chain1,mhc_chain2,mhc_type" > "{output}/structures_summary.csv"
         for file_name in "{input}"/*; do
             file_name_base=$(basename $file_name .pdb);
-            python -m tcr_antigen_prediction.apps.identify_tcr_pmhc_interactions --log-level {config[log_level]} -o "/tmp/$file_name_base.csv" $file_name
+            python -m tcr_antigen_prediction.data.apps.identify_tcr_pmhc_interactions --log-level {config[log_level]} -o "/tmp/$file_name_base.csv" $file_name
             cat "/tmp/$file_name_base.csv" | sed 1d | cut -d, -f1-5 | tr ',' ' ' \
                 | xargs -I % bash -c \
-                'python -m tcr_antigen_prediction.apps.extract_chains_from_structure --chains % -o "${{3}}/${{1}}_$(echo "%" | tr -d " ").pdb" "$2"' \
+                'python -m tcr_antigen_prediction.data.apps.extract_chains_from_structure --chains % -o "${{3}}/${{1}}_$(echo "%" | tr -d " ").pdb" "$2"' \
                 _ $file_name_base $file_name {output} || continue
             cat "/tmp/$file_name_base.csv" | sed 1d | xargs -I % bash -c 'echo ${{1}}_$(echo % | cut -d, -f1-5 | sed s/,//g),%' \
             _ $file_name_base \
@@ -176,7 +176,7 @@ rule crop_external_structures:
                 continue
             fi
             if [ "$mhc_type" = "MH1" ]; then
-                python -m tcr_antigen_prediction.apps.crop_tcr_pmhc \
+                python -m tcr_antigen_prediction.data.apps.crop_tcr_pmhc \
                     --log-level {config[log_level]} \
                     "{input}/$file_name" \
                     -o "{output}/$file_name" \
@@ -185,7 +185,7 @@ rule crop_external_structures:
                     --antigen-chain $antigen_chain || continue
                 echo "$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f1-5),,$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f7-)" >> "{output}/structures_summary.csv"
             elif [ "$mhc_type" = "MH2" ]; then
-                python -m tcr_antigen_prediction.apps.crop_tcr_pmhc \
+                python -m tcr_antigen_prediction.data.apps.crop_tcr_pmhc \
                     --log-level {config[log_level]} \
                     "{input}/$file_name" \
                     -o "{output}/$file_name" \
@@ -223,7 +223,7 @@ rule get_external_structures_sequences:
             chains="${{alpha_chain}}${{beta_chain}}${{antigen_chain}}${{mhc_chain1}}${{mhc_chain2}}"
             file_name="${{name}}.pdb"
             output_name="/tmp/$(basename $file_name .pdb).csv"
-            python -m tcr_antigen_prediction.apps.annotate_tcr_pmhc_sequences \
+            python -m tcr_antigen_prediction.data.apps.annotate_tcr_pmhc_sequences \
                 --log-level {config[log_level]} \
                 --alpha-chain-id $alpha_chain \
                 --beta-chain-id $beta_chain \
@@ -246,7 +246,7 @@ rule select_external_structures:
     shell:
         """
         mkdir -p {output}
-        python -m tcr_antigen_prediction.apps.filter_similar_structures \
+        python -m tcr_antigen_prediction.data.apps.filter_similar_structures \
             --log-level {config[log_level]} \
             --structural-similarity-cutoff 2.0 \
             --summary-csv {input.summary_file} \
