@@ -344,7 +344,7 @@ rule test:
 rule docs:
     shell:
         """
-        sphinx-apidoc -f -e -o docs/source src/tcr_antigen_prediction src/**/apps/*
+        sphinx-apidoc -f -e -o docs/source src/tcr_antigen_prediction $(find src -name *.py -path "src/**/apps/*")
         python docs/document_clis.py docs/source
         python docs/document_notebooks.py notebooks docs/source
         sphinx-build -b html ./docs ./docs/public
