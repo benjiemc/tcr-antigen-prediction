@@ -1,5 +1,5 @@
 rule models:
-    input: "models/TCRen", "models/TCRContactMapPredictor"
+    input: "models/TCRen", "models/TCRContactMapPredictor", "models/TCRContactMapPredictor_sequence_only"
 
 rule train_TCRen:
     input: "data/processed/selected-stcrdab"
@@ -36,4 +36,21 @@ rule train_TCRContactMapPredictor:
             -o {output} \
             --contact-maps {input.contact_maps} \
             {input.data}
+        """
+
+rule train_TCRContactMapPredictor_sequence_only:
+    input: "data/processed/nettcr.h5"
+    output: directory("models/TCRContactMapPredictor_sequence_only")
+    log: "data/logs/train_tcr_contact_map_predictor_sequence_only.log"
+    resources:
+        runtime="1h",
+        mem="5GB",
+        tasks=1
+    shell:
+        """
+        python -m tcr_antigen_prediction.apps.train_tcr_contact_map_predictor \
+            --log-level {config[log_level]} \
+            --log-file {log} \
+            -o {output} \
+            {input}
         """
