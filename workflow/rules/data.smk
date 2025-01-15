@@ -73,6 +73,30 @@ rule get_mhc_pseudo_sequence_imgt_numbers:
     output: "data/interim/mhc_pseudo_seq_imgt_positions.json"
     shell: "python -m tcr_antigen_prediction.data.apps.get_mhc_pseudo_sequence_imgt_numbers --log-level {config[log_level]} -o {output} {input}"
 
+rule collate_sequence_data:
+    input:
+        iedb="data/raw/iedb.csv",
+        vdjdb="data/raw/vdjdb.tsv",
+        mcpas_tcr="data/raw/McPAS-TCR.csv",
+        itrap="data/raw/itrap.csv"
+    output: "data/interim/sequences.csv"
+    log: "data/logs/collate_sequence_data.log"
+    resources:
+        runtime="20m",
+        mem="500MB",
+        tasks=1
+    shell:
+        """
+        python -m tcr_antigen_prediction.data.apps.collate_sequence_data \
+            --log-level {config[log_level]} \
+            --log-file {log} \
+            --iedb-path {input.iedb} \
+            --vdjdb-path {input.vdjdb} \
+            --itrap-path {input.itrap} \
+            --mcpas-tcr-path {input.mcpas_tcr} \
+            -o {output}
+        """
+
 rule process_net_tcr_data:
     input:
         "data/external/nettcr_2_2_full_dataset.csv",

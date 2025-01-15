@@ -14,6 +14,8 @@ dependencies = [
     "numpy",
     "pandas",
     "scikit-learn",
+    "stitchr",
+    "tidytcells",
     "torch",
 ]
 
