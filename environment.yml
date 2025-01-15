@@ -24,3 +24,4 @@ dependencies:
       - pyxdameraulevenshtein
       - seaborn
       - snakemake-executor-plugin-slurm
+      - upsetplot

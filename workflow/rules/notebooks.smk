@@ -17,6 +17,14 @@ rule run_data_summary_notebook:
         tasks=1
     notebook: "../../notebooks/data_summary.ipynb"
 
+rule run_visualise_sequence_data_notebook:
+    input: "data/interim/sequences.csv", "data/logs/collate_sequence_data.log"
+    resources:
+        runtime="5m",
+        mem="1GB",
+        tasks=1
+    notebook: "../../notebooks/visualise_sequence_data.ipynb"
+
 rule run_process_and_visualise_tcr_pmhc_contact_maps_notebook:
     input: "data/processed/tcr_pmhc_contacts.csv", "data/interim/mhc_pseudo_seq_imgt_positions.json"
     output: "data/processed/contact_maps.h5"
