@@ -20,12 +20,12 @@ rule train_TCRen:
 
 rule train_TCRContactMapPredictor:
     input:
-        data="data/processed/nettcr.h5",
+        data="data/processed/sequences.h5",
         contact_maps="data/processed/contact_maps.h5"
     output: directory("models/TCRContactMapPredictor")
     log: "data/logs/train_tcr_contact_map_predictor.log"
     resources:
-        runtime="1h",
+        runtime="2h",
         mem="5GB",
         tasks=1
     shell:
@@ -39,11 +39,11 @@ rule train_TCRContactMapPredictor:
         """
 
 rule train_TCRContactMapPredictor_sequence_only:
-    input: "data/processed/nettcr.h5"
+    input: "data/processed/sequences.h5"
     output: directory("models/TCRContactMapPredictor_sequence_only")
     log: "data/logs/train_tcr_contact_map_predictor_sequence_only.log"
     resources:
-        runtime="1h",
+        runtime="2h",
         mem="5GB",
         tasks=1
     shell:

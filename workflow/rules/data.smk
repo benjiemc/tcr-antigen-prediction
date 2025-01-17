@@ -2,7 +2,6 @@ rule data:
     input:
         "data/processed/selected-stcrdab",
         "data/processed/tcr_pmhc_contacts.csv",
-        "data/processed/nettcr.h5",
         "data/processed/sequences.h5",
         "data/processed/contact_maps.h5"
 
@@ -13,10 +12,6 @@ rule download_stcrdab:
         mem="500MB",
         tasks=1
     shell: "python -m tcr_antigen_prediction.data.apps.download_stcrdab --log-level {config[log_level]} {output}"
-
-rule download_net_tcr_data:
-    output: "data/external/nettcr_2_2_full_dataset.csv"
-    shell: "wget -O {output} https://raw.githubusercontent.com/mnielLab/NetTCR-2.2/refs/heads/main/data/nettcr_2_2_full_dataset.csv"
 
 rule select_stcrdab_structures:
     input:
@@ -128,18 +123,6 @@ rule process_sequence_data:
             -o {output} \
             {input.sequences}
         """
-
-rule process_net_tcr_data:
-    input:
-        "data/external/nettcr_2_2_full_dataset.csv",
-        "data/external/hla_sequences",
-        "data/interim/mhc_pseudo_seq_imgt_positions.json"
-    output: "data/processed/nettcr.h5"
-    resources:
-        runtime="15m",
-        mem="2GB",
-        tasks=1
-    notebook: "notebooks/exploring_and_processing_net_tcr_data.ipynb"
 
 rule data_external:
     input: "data/processed/external_validation_data_selected"
