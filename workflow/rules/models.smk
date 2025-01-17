@@ -48,7 +48,7 @@ rule train_TCRContactMapPredictor_sequence_only:
         tasks=1
     shell:
         """
-        python -m tcr_antigen_prediction.apps.train_tcr_contact_map_predictor \
+        python -m tcr_antigen_prediction.models.apps.train_tcr_contact_map_predictor \
             --log-level {config[log_level]} \
             --log-file {log} \
             -o {output} \
