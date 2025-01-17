@@ -3,6 +3,7 @@ rule data:
         "data/processed/selected-stcrdab",
         "data/processed/tcr_pmhc_contacts.csv",
         "data/processed/nettcr.h5",
+        "data/processed/sequences.h5",
         "data/processed/contact_maps.h5"
 
 rule download_stcrdab:
@@ -95,6 +96,37 @@ rule collate_sequence_data:
             --itrap-path {input.itrap} \
             --mcpas-tcr-path {input.mcpas_tcr} \
             -o {output}
+        """
+
+rule process_sequence_data:
+    input:
+        sequences="data/interim/sequences.csv",
+        mhc_sequences=expand("data/external/hla_sequences/{mhc}.json", mhc=[
+            'h2_d',
+            'h2_k',
+            'h2_l',
+            'hla_a',
+            'hla_b',
+            'hla_c',
+            'hla_e',
+            'hla_f',
+            'hla_g',
+        ]),
+        mhc_pseudo_imgt="data/interim/mhc_pseudo_seq_imgt_positions.json"
+    output: "data/processed/sequences.h5"
+    resources:
+        runtime="20m",
+        mem="2GB",
+        tasks=1
+    shell:
+        """
+        python -m tcr_antigen_prediction.data.apps.process_sequence_data \
+            --log-level {config[log_level]} \
+            --seed 123 \
+            --mhc-sequences {input.mhc_sequences} \
+            --mhc-pseudo-sequence-imgt-numbers {input.mhc_pseudo_imgt} \
+            -o {output} \
+            {input.sequences}
         """
 
 rule process_net_tcr_data:
