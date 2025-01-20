@@ -75,15 +75,11 @@ REFERENCE_10X = (
 
 
 def assign_mhc_class(allele: str) -> str | None:
-    """Assign MHC Class based on the allele code provided.
-
-    TODO add mouse MH2 information.
-
-    """
+    """Assign MHC Class based on the allele code provided."""
     if re.search('HLA-[A-CE]', allele) or re.search('H2-[DKLbdkq]', allele):
         return 'MH1'
 
-    if re.search('HLA-D[PMOQR][AB]?', allele):
+    if re.search('HLA-D[PMOQR][AB]?', allele) or re.search('H2-I[AE]', allele):
         return 'MH2'
 
     return None
@@ -589,6 +585,7 @@ def collate_sequence_data(
     ].map(
         tidytcells.mh.standardise,
         species='homosapiens',
+        precision='protein',
         log_failures=False,
     )
 
@@ -597,6 +594,7 @@ def collate_sequence_data(
     ].map(
         tidytcells.mh.standardise,
         species='musmusculus',
+        precision='protein',
         log_failures=False,
     )
 
