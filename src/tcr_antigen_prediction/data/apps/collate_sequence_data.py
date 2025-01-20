@@ -619,12 +619,12 @@ def collate_sequence_data(
 
     logger.info('IMGT numbering TCR sequences and extracting CDR regions')
     logger.debug('Numbering alpha-chains')
-    sequence_data[['cdr1_alpha_processed', 'cdr2_alpha_processed', 'cdr3_alpha_processed']] = (
+    sequence_data[['cdr1_alpha', 'cdr2_alpha', 'cdr3_alpha']] = (
         sequence_data['alpha_chain_sequence'].map(get_cdr_sequences).apply(pd.Series)
     )
 
     logger.debug('Numbering beta-chains')
-    sequence_data[['cdr1_beta_processed', 'cdr2_beta_processed', 'cdr3_beta_processed']] = (
+    sequence_data[['cdr1_beta', 'cdr2_beta', 'cdr3_beta']] = (
         sequence_data['beta_chain_sequence'].map(get_cdr_sequences).apply(pd.Series)
     )
 
@@ -674,12 +674,12 @@ def collate_sequence_data(
     sequence_data = (
         sequence_data.groupby(
             [
-                'cdr1_alpha_processed',
-                'cdr2_alpha_processed',
-                'cdr3_alpha_processed',
-                'cdr1_beta_processed',
-                'cdr2_beta_processed',
-                'cdr3_beta_processed',
+                'cdr1_alpha',
+                'cdr2_alpha',
+                'cdr3_alpha',
+                'cdr1_beta',
+                'cdr2_beta',
+                'cdr3_beta',
                 'peptide_sequence',
                 'mhc_pseudo_sequence',
             ],
@@ -689,8 +689,6 @@ def collate_sequence_data(
         .reset_index()
     )
     logger.info('Number of non-redundant sequences: %d', len(sequence_data))
-
-    sequence_data.columns = [column_name.replace('_processed', '') for column_name in sequence_data.columns]
 
     return sequence_data
 
