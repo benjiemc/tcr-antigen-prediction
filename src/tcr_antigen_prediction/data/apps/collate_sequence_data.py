@@ -684,7 +684,7 @@ def collate_sequence_data(
                 'mhc_pseudo_sequence',
             ],
             dropna=False,
-        )['source']
+        )[['v_alpha', 'j_alpha', 'v_beta', 'j_beta', 'mhc1', 'mhc2', 'mhc_type', 'species', 'source']]
         .agg(lambda sources: ';'.join(sorted(set(sources))))
         .reset_index()
     )
