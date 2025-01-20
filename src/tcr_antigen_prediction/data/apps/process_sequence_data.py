@@ -9,25 +9,21 @@ Required columns:
     - cdr2_beta
     - cdr3_beta
     - peptide_sequence
-    - mhc1
-    - mhc2
-    - mhc_type
+    - mhc_pseudo_sequence
 
 """
 
 import argparse
-import json
 import logging
 import sys
 
-import anarci
 import h5py
 import numpy as np
 import pandas as pd
 from Bio.SeqUtils import IUPACData
 
 from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
-from tcr_antigen_prediction.data.utils import centre_pad, create_even_folds, mhc_code_to_slug
+from tcr_antigen_prediction.data.utils import centre_pad, create_even_folds
 
 logger = logging.getLogger()
 
@@ -40,20 +36,6 @@ parser = argparse.ArgumentParser(
 parser.add_argument('input_data', help='path to the input csv file')
 parser.add_argument('--output', '-o', required=True, help='path to output HDF5 file with processed sequences')
 parser.add_argument('--seed', default=None, type=int, help='random seed for data splitting')
-
-# TODO do this in previous workflow step instead
-annotations_group = parser.add_argument_group('Annotations')
-annotations_group.add_argument(
-    '--mhc-sequences',
-    nargs='+',
-    required=True,
-    help='paths to mhc sequence information to create pseudo sequences.',
-)
-annotations_group.add_argument(
-    '--mhc-pseudo-sequence-imgt-numbers',
-    required=True,
-    help='path to mhc pseudo sequence imgt numbers (JSON format)',
-)
 
 data_group = parser.add_argument_group('Data')
 data_group.add_argument(
@@ -72,32 +54,6 @@ add_logging_arguments(parser)
 PROTEIN_LETTERS = sorted(IUPACData.protein_letters_3to1.values())
 
 
-def get_pseudo_sequence(mhc_sequence: str, mhc_pseudo_seq_imgt_positions: dict[str, list[int]]) -> list[str]:
-    numbering, _ = anarci.number(mhc_sequence)
-
-    mhc_pseudo_seq = []
-
-    for helix, residues in mhc_pseudo_seq_imgt_positions.items():
-        for resi in residues:
-            imgt_seq_id = (
-                int(''.join([char for char in resi if char.isnumeric()]))
-                if helix == 'alpha'
-                else int(''.join([char for char in '10' + resi if char.isnumeric()]))
-            )
-            imgt_insert_code = ''.join([char for char in resi if not char.isnumeric()])
-            imgt_insert_code = imgt_insert_code if imgt_insert_code else ' '
-
-            for (seq_id, insert_code), res_olc in numbering:
-                if seq_id == imgt_seq_id and insert_code == imgt_insert_code:
-                    mhc_pseudo_seq.append(res_olc)
-                    break
-
-            else:
-                mhc_pseudo_seq.append('-')
-
-    return mhc_pseudo_seq
-
-
 def main() -> None:
     args = parser.parse_args()
     setup_logger(logger, args.log_level, args.log_file)
@@ -113,30 +69,6 @@ def main() -> None:
     sequence_data = pd.read_csv(args.input_data)
     sequence_data['label'] = 1
 
-    logger.info('Adding MHC sequence information.')
-    # TODO MHC2 support
-    sequence_data = sequence_data.query("mhc_type == 'MH1'").copy()
-
-    hla_sequences = [pd.read_json(path, orient='index') for path in args.mhc_sequences]
-    hla_sequences = pd.concat(hla_sequences)
-
-    sequence_data[['mhc1_slug', 'mhc2_slug']] = sequence_data[['mhc1', 'mhc2']].map(mhc_code_to_slug)
-
-    sequence_data = sequence_data.merge(
-        hla_sequences[['canonical_sequence']],
-        how='inner',
-        left_on='mhc1_slug',
-        right_index=True,
-    ).rename({'canonical_sequence': 'mhc1_sequence'}, axis='columns')
-
-    with open(args.mhc_pseudo_sequence_imgt_numbers, 'r') as fh:
-        mhc_pseudo_seq_imgt_positions = json.load(fh)
-
-    sequence_data['mhc_processed'] = sequence_data['mhc1_sequence'].apply(
-        get_pseudo_sequence,
-        mhc_pseudo_seq_imgt_positions=mhc_pseudo_seq_imgt_positions,
-    )
-
     logger.info('Centre padding sequences')
     sequence_data['cdr1_alpha_processed'] = sequence_data['cdr1_alpha'].apply(list).apply(centre_pad, pad_length=8)
     sequence_data['cdr2_alpha_processed'] = sequence_data['cdr2_alpha'].apply(list).apply(centre_pad, pad_length=8)
@@ -147,6 +79,7 @@ def main() -> None:
     sequence_data['cdr3_beta_processed'] = sequence_data['cdr3_beta'].apply(list).apply(centre_pad, pad_length=24)
 
     sequence_data['peptide_processed'] = sequence_data['peptide_sequence'].apply(list).apply(centre_pad, pad_length=12)
+    sequence_data['mhc_processed'] = sequence_data['mhc_pseudo_sequence'].apply(list)
 
     logger.info('One-hot encoding sequences')
     one_hot_mapping = {}
@@ -223,7 +156,7 @@ def main() -> None:
     processed_data = sequence_data.filter(regex='_processed$|label|fold')
     processed_data.columns = [column_name.replace('_processed', '') for column_name in processed_data.columns]
 
-    # TODO standardise column names
+    # TODO standardise column names between apps
     processed_data = processed_data.rename(
         {
             'cdr1_alpha': 'cdr_1a',

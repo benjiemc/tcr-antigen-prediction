@@ -1,6 +1,7 @@
 """Collate TCR:pMHC sequence data from IEDB, McPAS-TCR, VDJdb, and ITRAP, removing redundant entries."""
 
 import argparse
+import json
 import logging
 import re
 import sys
@@ -12,7 +13,8 @@ from Stitchr import stitchr as st
 from Stitchr import stitchrfunctions as fxn
 
 from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
-from tcr_antigen_prediction.data.imgt_numbering import IMGT_CDR1, IMGT_CDR2, IMGT_CDR3
+from tcr_antigen_prediction.data.imgt_numbering import IMGT_CDR1, IMGT_CDR2, IMGT_CDR3, MHC_I_IMGT_BETA_HELIX_START
+from tcr_antigen_prediction.data.utils import mhc_code_to_slug
 
 logger = logging.getLogger()
 
@@ -36,6 +38,19 @@ input_group.add_argument('--iedb-path', help='path to the IEDB data')
 input_group.add_argument('--vdjdb-path', help='path to the VDJdb data')
 input_group.add_argument('--itrap-path', help='path to the ITRAP data')
 input_group.add_argument('--mcpas-tcr-path', help='path to the McPAS-TCR data')
+
+annotations_group = parser.add_argument_group('Annotations')
+annotations_group.add_argument(
+    '--mhc-sequences',
+    nargs='+',
+    required=True,
+    help='paths to mhc sequence information to create pseudo sequences.',
+)
+annotations_group.add_argument(
+    '--mhc-pseudo-sequence-imgt-numbers',
+    required=True,
+    help='path to mhc pseudo sequence imgt numbers (JSON format)',
+)
 
 add_logging_arguments(parser)
 
@@ -223,6 +238,68 @@ def get_cdr_sequences(sequence: str) -> tuple[str | None, str | None, str | None
     return cdr1, cdr2, cdr3
 
 
+def get_pseudo_sequence(
+    mhc1_sequence: str,
+    mhc2_sequence: str | None,
+    mhc_type: str,
+    mhc_pseudo_seq_imgt_positions: dict[str, list[str]],
+) -> list[str]:
+    """Get the MHC pseudo sequence using anarci and imgt mhc pseudo sequence positiions."""
+    mhc_pseudo_seq_imgt_positions = {
+        helix: [
+            (
+                int(''.join([char for char in resi if char.isnumeric()])),
+                ''.join([char for char in resi if not char.isnumeric()]),
+            )
+            for resi in residues
+        ]
+        for helix, residues in mhc_pseudo_seq_imgt_positions.items()
+    }
+    numberings = {}
+
+    numbering1, _ = anarci.number(mhc1_sequence)
+    numberings['chain1'] = numbering1
+
+    if not pd.isna(mhc2_sequence):
+        numbering2, _ = anarci.number(mhc2_sequence)
+        numberings['chain2'] = numbering2
+
+    mhc_pseudo_seq = []
+    for helix, residues in mhc_pseudo_seq_imgt_positions.items():
+        for imgt_seq_id, imgt_insert_code in residues:
+            if helix == 'alpha':
+                for (seq_id, insert_code), res_olc in numberings['chain1']:
+                    if seq_id == imgt_seq_id and insert_code.strip() == imgt_insert_code:
+                        mhc_pseudo_seq.append(res_olc)
+                        break
+
+                else:
+                    mhc_pseudo_seq.append('-')
+
+            elif helix == 'beta' and mhc_type == 'MH1':
+                for (seq_id, insert_code), res_olc in numberings['chain1']:
+                    if (
+                        seq_id == (imgt_seq_id + MHC_I_IMGT_BETA_HELIX_START)
+                        and insert_code.strip() == imgt_insert_code
+                    ):
+                        mhc_pseudo_seq.append(res_olc)
+                        break
+
+                else:
+                    mhc_pseudo_seq.append('-')
+
+            elif helix == 'beta' and mhc_type == 'MH2':
+                for (seq_id, insert_code), res_olc in numberings['chain2']:
+                    if seq_id == imgt_seq_id and insert_code.strip() == imgt_insert_code:
+                        mhc_pseudo_seq.append(res_olc)
+                        break
+
+                else:
+                    mhc_pseudo_seq.append('-')
+
+    return ''.join(mhc_pseudo_seq)
+
+
 def process_iedb(iedb: pd.DataFrame) -> pd.DataFrame:
     """Process data from downloaded IEDB dataset."""
     logger.info('Number of sequences in IEDB: %d', len(iedb))
@@ -254,6 +331,7 @@ def process_iedb(iedb: pd.DataFrame) -> pd.DataFrame:
     iedb['mhc_processed'] = iedb['mhc_processed'].str.split(' ').map(lambda mhc: mhc[0])
     iedb[['mhc1', 'mhc2']] = iedb['mhc_processed'].str.split('/').apply(pd.Series)
     iedb['mhc_type'] = iedb['mhc1'].map(assign_mhc_class)
+    iedb.loc[(iedb['mhc_type'] == 'MH1') & ~iedb['mhc2'].notna(), 'mhc2'] = 'B2M'
 
     logger.info('Assigning species based on MHC gene name')
     iedb['species'] = iedb['mhc1'].map(assign_species)
@@ -351,7 +429,7 @@ def process_itrap(itrap: pd.DataFrame) -> pd.DataFrame:
 
     itrap[['peptide_sequence', 'mhc1']] = itrap['peptide_HLA'].str.split().apply(pd.Series)
 
-    itrap['mhc2'] = None
+    itrap['mhc2'] = 'B2M'
     itrap['mhc_type'] = 'MH1'
 
     itrap['species'] = 'Human'
@@ -404,7 +482,7 @@ def process_mcpas_tcr(mcpas_tcr: pd.DataFrame) -> pd.DataFrame:
     )
 
     mcpas_tcr['mhc_processed'] = mcpas_tcr['mhc_processed'].str.replace(r'^H-2', 'H2-', regex=True)
-    mcpas_tcr['mhc2'] = None
+    mcpas_tcr['mhc2'] = 'B2M'
 
     logger.info('Assigning MHC type based on MHC allele codes')
     mcpas_tcr['mhc_type'] = mcpas_tcr['mhc_processed'].map(assign_mhc_class)
@@ -433,7 +511,34 @@ def process_mcpas_tcr(mcpas_tcr: pd.DataFrame) -> pd.DataFrame:
     return mcpas_tcr
 
 
-def collate_sequence_data(*datasets: pd.DataFrame) -> pd.DataFrame:
+def collate_sequence_data(
+    *datasets: pd.DataFrame,
+    mhc_sequences: pd.DataFrame,
+    mhc_pseudo_seq_imgt_positions: dict[str, list[int]],
+) -> pd.DataFrame:
+    """Collate datasets, standardise nomenclature, and assign sequences.
+
+    Args:
+        *datasets: datasets to collate together with the following columns
+            - cdr3_alpha
+            - v_alpha
+            - j_alpha
+            - cdr3_beta
+            - v_beta
+            - j_beta
+            - mhc_type
+            - mhc1
+            - mhc2
+            - peptide_sequence
+            - species
+        mhc_sequences: dataframe with MHC sequences indexed by MHC slug (simplified allele code)
+        mhc_pseudo_seq_imgt_positions: dictionary with the imgt numbers for the alpha and beta helix pseudo sequence
+            positions
+
+    Returns:
+        dataframe with the collated and standardised dataset
+
+    """
     sequence_data = pd.concat(datasets).reset_index(drop=True)
     logger.info('Number of collated sequences: %d', len(sequence_data))
 
@@ -479,19 +584,23 @@ def collate_sequence_data(*datasets: pd.DataFrame) -> pd.DataFrame:
     )
 
     logger.debug('Standardising MHC gene names')
-    sequence_data.loc[sequence_data['species'] == 'Human', ['mhc1', 'mhc2']] = (
-        sequence_data.loc[sequence_data['species'] == 'Human', ['mhc1', 'mhc2']]
-        .fillna('')
-        .map(tidytcells.mh.standardise, species='homosapiens', log_failures=False)
+    sequence_data.loc[sequence_data['species'] == 'Human', ['mhc1', 'mhc2']] = sequence_data.loc[
+        sequence_data['species'] == 'Human', ['mhc1', 'mhc2']
+    ].map(
+        tidytcells.mh.standardise,
+        species='homosapiens',
+        log_failures=False,
     )
 
-    sequence_data.loc[sequence_data['species'] == 'Mouse', ['mhc1', 'mhc2']] = (
-        sequence_data.loc[sequence_data['species'] == 'Mouse', ['mhc1', 'mhc2']]
-        .fillna('')
-        .map(tidytcells.mh.standardise, species='musmusculus', log_failures=False)
+    sequence_data.loc[sequence_data['species'] == 'Mouse', ['mhc1', 'mhc2']] = sequence_data.loc[
+        sequence_data['species'] == 'Mouse', ['mhc1', 'mhc2']
+    ].map(
+        tidytcells.mh.standardise,
+        species='musmusculus',
+        log_failures=False,
     )
 
-    sequence_data['mhc2'] = sequence_data['mhc2'].fillna('B2M')
+    sequence_data.loc[(sequence_data['mhc_type'] == 'MH1') & ~sequence_data['mhc2'].notna(), 'mhc2'] = 'B2M'
 
     sequence_data = sequence_data.dropna()
     logger.info('Number of sequences after standardising gene names (removing invalid names): %d', len(sequence_data))
@@ -508,7 +617,7 @@ def collate_sequence_data(*datasets: pd.DataFrame) -> pd.DataFrame:
     sequence_data = sequence_data.dropna()
     logger.info('Number of sequences after creating full length sequences: %d', len(sequence_data))
 
-    logger.info('IMGT numbering sequences and extracting CDR regions')
+    logger.info('IMGT numbering TCR sequences and extracting CDR regions')
     logger.debug('Numbering alpha-chains')
     sequence_data[['cdr1_alpha_processed', 'cdr2_alpha_processed', 'cdr3_alpha_processed']] = (
         sequence_data['alpha_chain_sequence'].map(get_cdr_sequences).apply(pd.Series)
@@ -522,6 +631,45 @@ def collate_sequence_data(*datasets: pd.DataFrame) -> pd.DataFrame:
     sequence_data = sequence_data.dropna()
     logger.info('Number of sequences after extracting CDR regions: %d', len(sequence_data))
 
+    logger.info('IMGT numbering MHC sequencs and extracting pseudo sequence representations')
+    logger.debug('Adding MHC sequences')
+    sequence_data[['mhc1_slug', 'mhc2_slug']] = sequence_data[['mhc1', 'mhc2']].map(
+        lambda mhc_code: mhc_code_to_slug(mhc_code) if mhc_code else mhc_code
+    )
+
+    sequence_data = (
+        sequence_data.merge(
+            mhc_sequences[['canonical_sequence']],
+            how='left',
+            left_on='mhc1_slug',
+            right_index=True,
+        )
+        .rename({'canonical_sequence': 'mhc1_sequence'}, axis='columns')
+        .merge(
+            mhc_sequences[['canonical_sequence']],
+            how='left',
+            left_on='mhc2_slug',
+            right_index=True,
+        )
+        .rename({'canonical_sequence': 'mhc2_sequence'}, axis='columns')
+    )
+
+    sequence_data = sequence_data[sequence_data['mhc1_sequence'].notna()]
+    sequence_data = sequence_data[sequence_data['mhc2_sequence'].notna() | (sequence_data['mhc_type'] == 'MH1')]
+
+    logger.debug('Shortening to pseudo sequence')
+    sequence_data['mhc_pseudo_sequence'] = sequence_data.apply(
+        lambda row, mhc_pseudo_seq_imgt_positions=mhc_pseudo_seq_imgt_positions: get_pseudo_sequence(
+            row.mhc1_sequence,
+            row.mhc2_sequence,
+            row.mhc_type,
+            mhc_pseudo_seq_imgt_positions,
+        ),
+        axis='columns',
+    )
+
+    logger.info('Number of sequences after extracting MHC pseudo sequences: %d', len(sequence_data))
+
     logger.info('Collapsing redundant sequences')
     sequence_data = (
         sequence_data.groupby(
@@ -533,11 +681,9 @@ def collate_sequence_data(*datasets: pd.DataFrame) -> pd.DataFrame:
                 'cdr2_beta_processed',
                 'cdr3_beta_processed',
                 'peptide_sequence',
-                'mhc1',
-                'mhc2',
-                'mhc_type',
-                'species',
-            ]
+                'mhc_pseudo_sequence',
+            ],
+            dropna=False,
         )['source']
         .agg(lambda sources: ';'.join(sorted(set(sources))))
         .reset_index()
@@ -553,6 +699,13 @@ def main():
     args = parser.parse_args()
     setup_logger(logger, args.log_level, args.log_file)
 
+    logger.debug('Loading MHC Pseudo sequence IMGT positions')
+    with open(args.mhc_pseudo_sequence_imgt_numbers, 'r') as fh:
+        mhc_pseudo_seq_imgt_positions = json.load(fh)
+
+    logger.debug('Loading MHC canonical sequences')
+    mhc_sequences = pd.concat([pd.read_json(path, orient='index') for path in args.mhc_sequences])
+
     logger.info('Processing IEDB data')
     iedb = process_iedb(pd.read_csv(args.iedb_path))
 
@@ -566,7 +719,14 @@ def main():
     mcpas_tcr = process_mcpas_tcr(pd.read_csv(args.mcpas_tcr_path))
 
     logger.info('Collating datasets')
-    dataset = collate_sequence_data(iedb, vdjdb, itrap, mcpas_tcr)
+    dataset = collate_sequence_data(
+        iedb,
+        vdjdb,
+        itrap,
+        mcpas_tcr,
+        mhc_sequences=mhc_sequences,
+        mhc_pseudo_seq_imgt_positions=mhc_pseudo_seq_imgt_positions,
+    )
 
     logger.info('Outputting data to %s', args.output)
     dataset.to_csv(args.output, index=False)

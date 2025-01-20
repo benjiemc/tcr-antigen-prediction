@@ -74,28 +74,7 @@ rule collate_sequence_data:
         iedb="data/raw/iedb.csv",
         vdjdb="data/raw/vdjdb.tsv",
         mcpas_tcr="data/raw/McPAS-TCR.csv",
-        itrap="data/raw/itrap.csv"
-    output: "data/interim/sequences.csv"
-    log: "data/logs/collate_sequence_data.log"
-    resources:
-        runtime="20m",
-        mem="500MB",
-        tasks=1
-    shell:
-        """
-        python -m tcr_antigen_prediction.data.apps.collate_sequence_data \
-            --log-level {config[log_level]} \
-            --log-file {log} \
-            --iedb-path {input.iedb} \
-            --vdjdb-path {input.vdjdb} \
-            --itrap-path {input.itrap} \
-            --mcpas-tcr-path {input.mcpas_tcr} \
-            -o {output}
-        """
-
-rule process_sequence_data:
-    input:
-        sequences="data/interim/sequences.csv",
+        itrap="data/raw/itrap.csv",
         mhc_sequences=expand("data/external/hla_sequences/{mhc}.json", mhc=[
             'h2_d',
             'h2_k',
@@ -108,6 +87,29 @@ rule process_sequence_data:
             'hla_g',
         ]),
         mhc_pseudo_imgt="data/interim/mhc_pseudo_seq_imgt_positions.json"
+    output: "data/interim/sequences.csv"
+    log: "data/logs/collate_sequence_data.log"
+    resources:
+        runtime="20m",
+        mem="500MB",
+        tasks=1
+    shell:
+        """
+        python -m tcr_antigen_prediction.data.apps.collate_sequence_data \
+            --log-level {config[log_level]} \
+            --log-file {log} \
+            --mhc-sequences {input.mhc_sequences} \
+            --mhc-pseudo-sequence-imgt-numbers {input.mhc_pseudo_imgt} \
+            --iedb-path {input.iedb} \
+            --vdjdb-path {input.vdjdb} \
+            --itrap-path {input.itrap} \
+            --mcpas-tcr-path {input.mcpas_tcr} \
+            -o {output}
+        """
+
+rule process_sequence_data:
+    input:
+        sequences="data/interim/sequences.csv",
     output: "data/processed/sequences.h5"
     resources:
         runtime="20m",
@@ -118,8 +120,6 @@ rule process_sequence_data:
         python -m tcr_antigen_prediction.data.apps.process_sequence_data \
             --log-level {config[log_level]} \
             --seed 123 \
-            --mhc-sequences {input.mhc_sequences} \
-            --mhc-pseudo-sequence-imgt-numbers {input.mhc_pseudo_imgt} \
             -o {output} \
             {input.sequences}
         """

@@ -1,7 +1,5 @@
   $ python -m tcr_antigen_prediction.data.apps.process_sequence_data \
   > --seed 123 \
-  > --mhc-sequences $TESTDIR/data/h2_d.json $TESTDIR/data/hla_a.json $TESTDIR/data/hla_b.json \
-  > --mhc-pseudo-sequence-imgt-numbers $TESTDIR/data/mhc_pseudo_seq_imgt_positions.json \
   > -o processed_sequences.h5 \
   > $TESTDIR/data/sequences.csv
 
