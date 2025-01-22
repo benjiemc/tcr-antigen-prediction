@@ -1,5 +1,6 @@
 Test app.
   $ python -m tcr_antigen_prediction.data.apps.collate_sequence_data \
+  > --log-level error \
   > --iedb-path $TESTDIR/data/iedb.csv \
   > --vdjdb-path $TESTDIR/data/vdjdb.tsv \
   > --itrap-path $TESTDIR/data/itrap.csv \

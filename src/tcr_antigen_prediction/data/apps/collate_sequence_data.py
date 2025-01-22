@@ -14,7 +14,7 @@ from Stitchr import stitchrfunctions as fxn
 
 from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
 from tcr_antigen_prediction.data.imgt_numbering import IMGT_CDR1, IMGT_CDR2, IMGT_CDR3, MHC_I_IMGT_BETA_HELIX_START
-from tcr_antigen_prediction.data.utils import mhc_code_to_slug
+from tcr_antigen_prediction.data.utils import mhc_slug_to_code
 
 logger = logging.getLogger()
 
@@ -328,6 +328,13 @@ def process_iedb(iedb: pd.DataFrame) -> pd.DataFrame:
     iedb[['mhc1', 'mhc2']] = iedb['mhc_processed'].str.split('/').apply(pd.Series)
     iedb['mhc_type'] = iedb['mhc1'].map(assign_mhc_class)
     iedb.loc[(iedb['mhc_type'] == 'MH1') & ~iedb['mhc2'].notna(), 'mhc2'] = 'B2M'
+    # TODO check if this is ok:
+    iedb.loc[(iedb['mhc_type'] == 'MH2') & ~iedb['mhc2'].notna(), 'mhc2'] = iedb.loc[
+        (iedb['mhc_type'] == 'MH2') & ~iedb['mhc2'].notna()
+    ]['mhc1']
+
+    iedb = iedb.dropna(subset=['mhc_type', 'mhc1', 'mhc2'])
+    logger.info('Number of sequences after splitting MH1 and MH2 gene names: %d', len(iedb))
 
     logger.info('Assigning species based on MHC gene name')
     iedb['species'] = iedb['mhc1'].map(assign_species)
@@ -631,23 +638,19 @@ def collate_sequence_data(
 
     logger.info('IMGT numbering MHC sequencs and extracting pseudo sequence representations')
     logger.debug('Adding MHC sequences')
-    sequence_data[['mhc1_slug', 'mhc2_slug']] = sequence_data[['mhc1', 'mhc2']].map(
-        lambda mhc_code: mhc_code_to_slug(mhc_code) if mhc_code else mhc_code
-    )
-
     sequence_data = (
         sequence_data.merge(
-            mhc_sequences[['canonical_sequence']],
+            mhc_sequences[['mhc_code', 'canonical_sequence']],
             how='left',
-            left_on='mhc1_slug',
-            right_index=True,
+            left_on='mhc1',
+            right_on='mhc_code',
         )
         .rename({'canonical_sequence': 'mhc1_sequence'}, axis='columns')
         .merge(
-            mhc_sequences[['canonical_sequence']],
+            mhc_sequences[['mhc_code', 'canonical_sequence']],
             how='left',
-            left_on='mhc2_slug',
-            right_index=True,
+            left_on='mhc2',
+            right_on='mhc_code',
         )
         .rename({'canonical_sequence': 'mhc2_sequence'}, axis='columns')
     )
@@ -701,6 +704,17 @@ def main():
 
     logger.debug('Loading MHC canonical sequences')
     mhc_sequences = pd.concat([pd.read_json(path, orient='index') for path in args.mhc_sequences])
+
+    mhc_sequences['mhc_code'] = mhc_sequences.index.map(mhc_slug_to_code)
+    mhc_sequences['species'] = mhc_sequences['mhc_code'].map(assign_species)
+
+    mhc_sequences.loc[mhc_sequences['species'] == 'Human', 'mhc_code'] = mhc_sequences.loc[
+        mhc_sequences['species'] == 'Human', 'mhc_code'
+    ].apply(tidytcells.mh.standardize, species='homosapiens')
+
+    mhc_sequences.loc[mhc_sequences['species'] == 'Mouse', 'mhc_code'] = mhc_sequences.loc[
+        mhc_sequences['species'] == 'Mouse', 'mhc_code'
+    ].apply(tidytcells.mh.standardize, species='musmusculus')
 
     logger.info('Processing IEDB data')
     iedb = process_iedb(pd.read_csv(args.iedb_path))

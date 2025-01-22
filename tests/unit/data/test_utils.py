@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from tcr_antigen_prediction.data.utils import centre_pad, mhc_code_to_slug
+from tcr_antigen_prediction.data.utils import centre_pad, mhc_code_to_slug, mhc_slug_to_code
 
 
 class TestMHCCodeToSlug(TestCase):
@@ -9,6 +9,14 @@ class TestMHCCodeToSlug(TestCase):
 
     def test_mouse(self):
         self.assertEqual(mhc_code_to_slug('H2-Kb'), 'h2_kb')
+
+
+class TestMHCSlugToCode(TestCase):
+    def test_human(self):
+        self.assertEqual(mhc_slug_to_code('hla_a_02_01'), 'HLA-A*02:01')
+
+    def test_mouse(self):
+        self.assertEqual(mhc_slug_to_code('h2_kb'), 'H2-Kb')
 
 
 class TestCentrePad(TestCase):
