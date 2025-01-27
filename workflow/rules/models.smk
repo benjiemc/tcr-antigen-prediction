@@ -56,14 +56,15 @@ rule train_TCRContactMapPredictor_sequence_only:
             --log-level {config[log_level]} \
             --log-file {log} \
             -o {output} \
+            {input}
         """
 
 rule train_confidence_predictor:
-    input: "data/processed/nettcr.h5"
+    input: "data/processed/sequences.h5"
     output: directory("models/ConfidencePredictor")
     resources:
-        runtime="1h",
-        mem="20GB",
+        runtime="5h",
+        mem="150GB",
         tasks=1
     shell:
         """
