@@ -160,7 +160,9 @@ class TestTCRContactMapPredictor(TestCase):
             peptide_batch,
             mhc_batch,
         )
-        np.testing.assert_array_almost_equal(predictions.detach(), np.array([[0.491795], [0.491714]]))
+        np.testing.assert_array_almost_equal(
+            predictions.detach(), np.array([[0.027157, -0.008714], [0.02683, -0.008769]])
+        )
 
     def test_no_contact_maps(self):
         torch.manual_seed(0)
@@ -241,4 +243,6 @@ class TestTCRContactMapPredictor(TestCase):
             peptide_batch,
             mhc_batch,
         )
-        np.testing.assert_array_almost_equal(predictions.detach(), np.array([[0.491717], [0.491649]]))
+        np.testing.assert_array_almost_equal(
+            predictions.detach(), np.array([[0.026841, -0.008762], [0.026573, -0.008937]])
+        )

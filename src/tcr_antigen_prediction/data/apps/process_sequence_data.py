@@ -67,7 +67,7 @@ def main() -> None:
 
     logger.info('Loading data')
     sequence_data = pd.read_csv(args.input_data)
-    sequence_data['label'] = 1
+    sequence_data['label'] = [(0, 1)] * len(sequence_data)
 
     logger.info('Centre padding sequences')
     sequence_data['cdr1_alpha_processed'] = sequence_data['cdr1_alpha'].apply(list).apply(centre_pad, pad_length=8)
@@ -138,7 +138,7 @@ def main() -> None:
             axis=1,
         )
 
-        negatives['label'] = 0
+        negatives['label'] = [(1, 0)] * len(negatives)
 
         negative_data.append(negatives)
 

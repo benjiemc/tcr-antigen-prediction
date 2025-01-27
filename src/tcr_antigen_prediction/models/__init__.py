@@ -87,7 +87,7 @@ class TCRContactMapPredictor(nn.Module):
             512,
         )
         self.drop_out = nn.Dropout(drop_out_rate)
-        self.output_fc = nn.Linear(512, 1)
+        self.output_fc = nn.Linear(512, 2)
 
     def forward(
         self,
@@ -113,7 +113,8 @@ class TCRContactMapPredictor(nn.Module):
             mhc: encoded batch of MHC pseudo sequences (batch_size x mhc_length)
 
         Returns:
-            tensor (batch_size x 1) with the binding predictions (between 0 and 1) for each sequence in the batch
+            tensor (batch_size x 2) with the binding predictions (either non-binding [1, 0] or binding [0, 1]) for each
+            sequence in the batch
 
         """
         peptide_emb = torch.flatten(peptide, start_dim=1)  # batch_size x (12 * 20)
@@ -144,7 +145,6 @@ class TCRContactMapPredictor(nn.Module):
         x = nn.ReLU()(x)  # batch_size x 512
         x = self.drop_out(x)  # batch_size x 512
 
-        x = self.output_fc(x)  # batch_size x 1
-        prediction = nn.Sigmoid()(x)  # batch_size x 1
+        prediction = self.output_fc(x)  # batch_size x 2
 
         return prediction

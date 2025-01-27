@@ -135,11 +135,11 @@ def evaluate_model(
             batch_mhc,
         )
 
-        predictions.append(prediction.detach().cpu().numpy().squeeze(-1))
+        predictions.append(nn.Softmax(dim=1)(prediction).detach().cpu().numpy())
 
     predictions = np.concatenate(predictions)
 
-    return roc_auc_score(labels, predictions)
+    return roc_auc_score(labels[:, 1], predictions[:, 1])
 
 
 def main():
@@ -230,7 +230,7 @@ def main():
         logger.debug('Transferring model to %s', str(device))
         model.to(device)
 
-        loss_fn = nn.BCELoss()
+        loss_fn = nn.CrossEntropyLoss()
         optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
 
         output_name = os.path.join(args.output, f'model_{fold_idx}.pt')
@@ -257,7 +257,7 @@ def main():
                 batch_peptide = torch.tensor(peptides[batch_indices], dtype=torch.float32, device=device)
                 batch_mhc = torch.tensor(mhc_pseudo_sequences[batch_indices], dtype=torch.float32, device=device)
 
-                batch_label = torch.tensor(labels[batch_indices], dtype=torch.float32, device=device).unsqueeze(-1)
+                batch_label = torch.tensor(labels[batch_indices], dtype=torch.float32, device=device)
 
                 prediction = model(
                     batch_cdr1a,
@@ -270,7 +270,7 @@ def main():
                     batch_mhc,
                 )
 
-                loss = loss_fn(prediction, batch_label)
+                loss = loss_fn(prediction, torch.argmax(batch_label, dim=1))
                 loss.backward()
 
                 optimizer.step()
@@ -280,8 +280,8 @@ def main():
                     logger.info('Evaluating at iteration %d', (i + 1) + (batches_per_epoch * (epoch - 1)))
 
                     training_roc_auc = roc_auc_score(
-                        batch_label.detach().cpu().numpy().squeeze(-1),
-                        prediction.detach().cpu().numpy().squeeze(-1),
+                        batch_label.detach().cpu().numpy()[:, 1],
+                        nn.Softmax(dim=1)(prediction).detach().cpu().numpy()[:, 1],
                     )
 
                     validation_roc_auc = evaluate_model(

@@ -29,7 +29,7 @@ rule train_TCRContactMapPredictor:
     output: directory("models/TCRContactMapPredictor")
     log: "data/logs/train_tcr_contact_map_predictor.log"
     resources:
-        runtime="2h",
+        runtime="5h",
         mem="5GB",
         tasks=1
     shell:
@@ -47,7 +47,7 @@ rule train_TCRContactMapPredictor_sequence_only:
     output: directory("models/TCRContactMapPredictor_sequence_only")
     log: "data/logs/train_tcr_contact_map_predictor_sequence_only.log"
     resources:
-        runtime="2h",
+        runtime="5h",
         mem="5GB",
         tasks=1
     shell:
