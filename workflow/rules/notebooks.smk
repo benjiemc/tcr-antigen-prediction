@@ -57,3 +57,11 @@ rule run_benchmark_model_performance_notebook:
         mem="1GB",
         tasks=1
     notebook: "../../notebooks/benchmark_model_performance.ipynb"
+
+rule run_evaluate_confidence_predictions_notebook:
+    input: "models/ConfidencePredictor", "models/TCRContactMapPredictor", "data/processed/sequences.h5"
+    resources:
+        runtime="5m",
+        mem="5GB",
+        tasks=1
+    notebook: "../..notebooks/evaluate_confidence_predictions.ipynb"
