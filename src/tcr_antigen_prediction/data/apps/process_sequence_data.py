@@ -144,10 +144,12 @@ def main() -> None:
 
     sequence_data = pd.concat([sequence_data, *negative_data])
 
-    sequence_data.filter(regex='(_processed$)|label|fold')
-
     peptide_counts = sequence_data['peptide_sequence'].value_counts()
-    folds = create_even_folds(list(zip(peptide_counts.index.tolist(), peptide_counts.tolist(), strict=True)), seed=123)
+    peptide_counts = peptide_counts.sort_index().sort_values(ascending=False)
+    folds = create_even_folds(
+        list(zip(peptide_counts.index.tolist(), peptide_counts.tolist(), strict=True)),
+        seed=args.seed,
+    )
 
     sequence_data['fold'] = sequence_data['peptide_sequence'].map(
         {peptide_sequence: i for i, fold in enumerate(folds, 1) for peptide_sequence in fold}
