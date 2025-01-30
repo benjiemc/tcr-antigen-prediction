@@ -49,3 +49,11 @@ rule run_visualising_and_evaluating_tcr_contact_map_predictor_sequence_only_trai
         mem="500MB",
         tasks=1
     notebook: "../../notebooks/visualising_and_evaluating_tcr_contact_map_predictor_sequence_only_training.ipynb"
+
+rule run_benchmark_model_performance_notebook:
+    input: "data/processed/sequences.h5", "models/TCRContactMapPredictor", "models/TCRContactMapPredictor_sequence_only"
+    resources:
+        runtime="5m",
+        mem="1GB",
+        tasks=1
+    notebook: "../../notebooks/benchmark_model_performance.ipynb"
