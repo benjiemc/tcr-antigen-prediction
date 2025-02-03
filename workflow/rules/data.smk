@@ -107,6 +107,23 @@ rule collate_sequence_data:
             -o {output}
         """
 
+rule calculate_peptide_distances:
+    input: "data/interim/sequences.csv"
+    output:
+        distance_matrix="data/interim/peptide_distances.txt",
+        peptides="data/interim/peptides.txt"
+    resources:
+        runtime="1m",
+        mem="1GB",
+        tasks=1
+    shell:
+        """
+        cut -d"," -f7 {input} | sed 1d | sort | uniq > {output.peptides}
+        python -m tcr_antigen_prediction.data.apps.compute_pw_distances \
+            -o {output.distance_matrix} \
+            $(cat {output.peptides} | tr '\n' ' ')
+        """
+
 rule process_sequence_data:
     input:
         sequences="data/interim/sequences.csv",
