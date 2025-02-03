@@ -51,7 +51,12 @@ rule run_visualising_and_evaluating_tcr_contact_map_predictor_sequence_only_trai
     notebook: "../../notebooks/visualising_and_evaluating_tcr_contact_map_predictor_sequence_only_training.ipynb"
 
 rule run_benchmark_model_performance_notebook:
-    input: "data/processed/sequences.h5", "models/TCRContactMapPredictor", "models/TCRContactMapPredictor_sequence_only"
+    input:
+        "data/interim/peptides.txt",
+        "data/interim/peptide_distances.txt",
+        "data/processed/sequences.h5",
+        "models/TCRContactMapPredictor",
+        "models/TCRContactMapPredictor_sequence_only"
     resources:
         runtime="5m",
         mem="1GB",
