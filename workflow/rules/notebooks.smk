@@ -63,6 +63,14 @@ rule run_benchmark_model_performance_notebook:
         tasks=1
     notebook: "../../notebooks/benchmark_model_performance.ipynb"
 
+rule run_evaluate_distance_based_confidence_predictor_performance_notebook:
+    input: "data/logs/train_confidence_predictor.log"
+    resources:
+        runtime="1m",
+        mem="1GB",
+        tasks=1
+    notebook: "../../notebooks/evaluate_distance_based_confidence_predictor_performance.ipynb"
+
 rule run_evaluate_confidence_predictions_notebook:
     input: "models/ConfidencePredictor", "models/TCRContactMapPredictor", "data/processed/sequences.h5"
     resources:

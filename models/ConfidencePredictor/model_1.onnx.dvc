@@ -1,5 +1,5 @@
 outs:
-- md5: ff335eaa3f5bf846cc15468f4ca373e1
-  size: 431947686
+- md5: e2c79903780dfb47d3b8e9e8ae7236ba
+  size: 367483127
   hash: md5
   path: model_1.onnx

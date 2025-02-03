@@ -62,6 +62,7 @@ rule train_TCRContactMapPredictor_sequence_only:
 rule train_confidence_predictor:
     input: "data/processed/sequences.h5"
     output: directory("models/ConfidencePredictor")
+    log: "data/logs/train_confidence_predictor.log"
     resources:
         runtime="5h",
         mem="150GB",
@@ -71,6 +72,7 @@ rule train_confidence_predictor:
         mkdir -p {output}
         python -m tcr_antigen_prediction.models.apps.train_confidence_predictor \
             --log-level {config[log_level]} \
+            --log-file {log} \
             -o {output}/model.onnx \
             {input}
         """
