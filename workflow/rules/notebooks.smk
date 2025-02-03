@@ -72,7 +72,12 @@ rule run_evaluate_distance_based_confidence_predictor_performance_notebook:
     notebook: "../../notebooks/evaluate_distance_based_confidence_predictor_performance.ipynb"
 
 rule run_evaluate_confidence_predictions_notebook:
-    input: "models/ConfidencePredictor", "models/TCRContactMapPredictor", "data/processed/sequences.h5"
+    input:
+        "models/ConfidencePredictor",
+        "models/TCRContactMapPredictor",
+        "data/processed/sequences.h5",
+        "data/interim/peptides.txt",
+        "data/interim/peptide_distances.txt"
     resources:
         runtime="5m",
         mem="5GB",
