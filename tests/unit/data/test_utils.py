@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from tcr_antigen_prediction.data.utils import centre_pad, mhc_code_to_slug, mhc_slug_to_code
+from tcr_antigen_prediction.data.utils import centre_pad, left_pad, mhc_code_to_slug, mhc_slug_to_code, right_pad
 
 
 class TestMHCCodeToSlug(TestCase):
@@ -53,3 +53,25 @@ class TestCentrePad(TestCase):
             centre_pad(['A', 'P', 'R', 'G', 'P', 'H', 'G', 'G', 'A', 'A', 'S', 'G', 'L'], 12),
             ['P', 'R', 'G', 'P', 'H', 'G', 'G', 'A', 'A', 'S', 'G', 'L'],
         )
+
+
+class TestRightPad(TestCase):
+    def test_pad(self):
+        self.assertEqual(right_pad(['A', 'B', 'C'], 5), ['A', 'B', 'C', '-', '-'])
+
+    def test_crop(self):
+        self.assertEqual(right_pad(['A', 'B', 'C'], 2), ['A', 'B'])
+
+    def test_nothing(self):
+        self.assertEqual(right_pad(['A', 'B', 'C'], 3), ['A', 'B', 'C'])
+
+
+class TestLeftPad(TestCase):
+    def test_pad(self):
+        self.assertEqual(left_pad(['A', 'B', 'C'], 5), ['-', '-', 'A', 'B', 'C'])
+
+    def test_crop(self):
+        self.assertEqual(left_pad(['A', 'B', 'C'], 2), ['B', 'C'])
+
+    def test_nothing(self):
+        self.assertEqual(left_pad(['A', 'B', 'C'], 3), ['A', 'B', 'C'])

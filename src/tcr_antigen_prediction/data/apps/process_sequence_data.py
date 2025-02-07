@@ -20,10 +20,10 @@ import sys
 import h5py
 import numpy as np
 import pandas as pd
-from Bio.SeqUtils import IUPACData
 
 from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
-from tcr_antigen_prediction.data.utils import centre_pad, create_even_folds
+from tcr_antigen_prediction.data.amino_acid_encodings import BLOSUM_50_ENCODING, ONE_HOT_ENCODING
+from tcr_antigen_prediction.data.utils import centre_pad, create_even_folds, left_pad, right_pad
 
 logger = logging.getLogger()
 
@@ -47,11 +47,32 @@ data_group.add_argument(
         'times more negatives than positives)'
     ),
 )
+data_group.add_argument('--cdr-1a-length', default=8, type=int, help='Length to pad CDR 1a sequences to (Default: 8)')
+data_group.add_argument('--cdr-2a-length', default=8, type=int, help='Length to pad CDR 2a sequences to (Default: 8)')
+data_group.add_argument('--cdr-3a-length', default=24, type=int, help='Length to pad CDR 3a sequences to (Default: 24)')
+data_group.add_argument('--cdr-1b-length', default=8, type=int, help='Length to pad CDR 1b sequences to (Default: 8)')
+data_group.add_argument('--cdr-2b-length', default=8, type=int, help='Length to pad CDR 2b sequences to (Default: 8)')
+data_group.add_argument('--cdr-3b-length', default=24, type=int, help='Length to pad CDR 3b sequences to (Default: 24)')
+data_group.add_argument(
+    '--peptide-length',
+    default=12,
+    type=int,
+    help='Length to pad peptide sequences to (Default: 12)',
+)
+data_group.add_argument(
+    '--pad-direction',
+    choices=['centre', 'left', 'right'],
+    default='centre',
+    help="Direction to pad sequences (Default: 'centre')",
+)
+data_group.add_argument(
+    '--encoding',
+    choices=['blosum50', 'one-hot'],
+    default='one-hot',
+    help='numerical encoding to use for the sequences.',
+)
 
 add_logging_arguments(parser)
-
-
-PROTEIN_LETTERS = sorted(IUPACData.protein_letters_3to1.values())
 
 
 def main() -> None:
@@ -69,36 +90,56 @@ def main() -> None:
     sequence_data = pd.read_csv(args.input_data)
     sequence_data['label'] = 1
 
-    logger.info('Centre padding sequences')
-    sequence_data['cdr1_alpha_processed'] = sequence_data['cdr1_alpha'].apply(list).apply(centre_pad, pad_length=8)
-    sequence_data['cdr2_alpha_processed'] = sequence_data['cdr2_alpha'].apply(list).apply(centre_pad, pad_length=8)
-    sequence_data['cdr3_alpha_processed'] = sequence_data['cdr3_alpha'].apply(list).apply(centre_pad, pad_length=24)
+    match args.pad_direction:
+        case 'centre':
+            logger.info('Centre padding sequences')
+            pad_func = centre_pad
 
-    sequence_data['cdr1_beta_processed'] = sequence_data['cdr1_beta'].apply(list).apply(centre_pad, pad_length=8)
-    sequence_data['cdr2_beta_processed'] = sequence_data['cdr2_beta'].apply(list).apply(centre_pad, pad_length=8)
-    sequence_data['cdr3_beta_processed'] = sequence_data['cdr3_beta'].apply(list).apply(centre_pad, pad_length=24)
+        case 'right':
+            logger.info('Right padding sequences')
+            pad_func = right_pad
 
-    sequence_data['peptide_processed'] = sequence_data['peptide_sequence'].apply(list).apply(centre_pad, pad_length=12)
-    sequence_data['mhc_processed'] = sequence_data['mhc_pseudo_sequence'].apply(list)
+        case 'left':
+            logger.info('Left padding sequences')
+            pad_func = left_pad
 
-    logger.info('One-hot encoding sequences')
-    one_hot_mapping = {}
-
-    zero_arr = np.zeros(len(PROTEIN_LETTERS), dtype=int)
-
-    for idx, olc in enumerate(PROTEIN_LETTERS):
-        encoding = zero_arr.copy()
-        encoding[idx] = 1
-        one_hot_mapping[olc] = encoding
-
-    one_hot_mapping['-'] = zero_arr.copy()
-
-    processed_data = sequence_data.filter(regex='_processed$')
-
-    processed_data = processed_data.map(
-        lambda seq: np.array([one_hot_mapping[olc] for olc in seq]),
+    sequence_data['cdr1_alpha_processed'] = (
+        sequence_data['cdr1_alpha'].apply(list).apply(pad_func, pad_length=args.cdr_1a_length)
+    )
+    sequence_data['cdr2_alpha_processed'] = (
+        sequence_data['cdr2_alpha'].apply(list).apply(pad_func, pad_length=args.cdr_2a_length)
+    )
+    sequence_data['cdr3_alpha_processed'] = (
+        sequence_data['cdr3_alpha'].apply(list).apply(pad_func, pad_length=args.cdr_3a_length)
+    )
+    sequence_data['cdr1_beta_processed'] = (
+        sequence_data['cdr1_beta'].apply(list).apply(pad_func, pad_length=args.cdr_1b_length)
+    )
+    sequence_data['cdr2_beta_processed'] = (
+        sequence_data['cdr2_beta'].apply(list).apply(pad_func, pad_length=args.cdr_2b_length)
+    )
+    sequence_data['cdr3_beta_processed'] = (
+        sequence_data['cdr3_beta'].apply(list).apply(pad_func, pad_length=args.cdr_3b_length)
     )
 
+    sequence_data['peptide_processed'] = (
+        sequence_data['peptide_sequence'].apply(list).apply(pad_func, pad_length=args.peptide_length)
+    )
+    sequence_data['mhc_processed'] = sequence_data['mhc_pseudo_sequence'].apply(list)
+
+    match args.encoding:
+        case 'one-hot':
+            logger.info('One-hot encoding sequences')
+            encoding = ONE_HOT_ENCODING
+
+        case 'blosum50':
+            logger.info('Blosum 50 encoding sequences')
+            encoding = BLOSUM_50_ENCODING
+
+    processed_data = sequence_data.filter(regex='_processed$')
+    processed_data = processed_data.map(
+        lambda seq: np.array([encoding[olc] for olc in seq]),
+    )
     sequence_data[processed_data.columns] = processed_data
 
     logger.info('Generating negative data by random sampling')

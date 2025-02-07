@@ -141,6 +141,31 @@ rule process_sequence_data:
             {input.sequences}
         """
 
+rule process_sequence_data_for_nettcr:
+    input: "data/interim/sequences.csv"
+    output: "data/processed/sequences_right_pad_blosum.h5"
+    resources:
+        runtime="20m",
+        mem="2GB",
+        tasks=1
+    shell:
+        """
+        python -m tcr_antigen_prediction.data.apps.process_sequence_data \
+            --log-level {config[log_level]} \
+            --seed 123 \
+            --cdr-1a-length 7 \
+            --cdr-2a-length 8 \
+            --cdr-3a-length 22 \
+            --cdr-1b-length 6 \
+            --cdr-2b-length 7 \
+            --cdr-3b-length 23 \
+            --peptide-length 12 \
+            --pad-direction right \
+            --encoding blosum50 \
+            -o {output} \
+            {input}
+        """
+
 rule data_external:
     input: "data/processed/external_validation_data_selected"
 

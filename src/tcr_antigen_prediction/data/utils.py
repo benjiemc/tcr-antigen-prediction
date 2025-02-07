@@ -86,6 +86,74 @@ def centre_pad(sequence: list[str], pad_length: int) -> list[str]:
     return sequence
 
 
+def right_pad(sequence: list[str], pad_length: int) -> list[str]:
+    """Right pad or crop sequence based on the specified pad length.
+
+    Args:
+        sequence: sequence to pad
+        pad_length: length to pad or crop to
+
+    Returns:
+        sequence with '-' used to represent null pad values
+
+    Examples:
+        >>> right_pad(['A', 'B', 'C'], 5)
+        ['A', 'B', 'C', '-', '-']
+
+        >>> right_pad(['A', 'B', 'C'], 2)
+        ['A', 'B']
+
+        >>> right_pad(['A', 'B', 'C'], 3)
+        ['A', 'B', 'C']
+
+    """
+    sequence_length = len(sequence)
+
+    if sequence_length < pad_length:
+        num_to_add = pad_length - sequence_length
+        return sequence + ['-'] * num_to_add
+
+    if sequence_length > pad_length:
+        num_to_remove = sequence_length - pad_length
+        return sequence[:-num_to_remove]
+
+    return sequence
+
+
+def left_pad(sequence: list[str], pad_length: int) -> list[str]:
+    """Left pad or crop sequence based on the specified pad length.
+
+    Args:
+        sequence: sequence to pad
+        pad_length: length to pad or crop to
+
+    Returns:
+        sequence with '-' used to represent null pad values
+
+    Examples:
+        >>> left_pad(['A', 'B', 'C'], 5)
+        ['-', '-', 'A', 'B', 'C']
+
+        >>> left_pad(['A', 'B', 'C'], 2)
+        ['B', 'C']
+
+        >>> left_pad(['A', 'B', 'C'], 3)
+        ['A', 'B', 'C']
+
+    """
+    sequence_length = len(sequence)
+
+    if sequence_length < pad_length:
+        num_to_add = pad_length - sequence_length
+        return ['-'] * num_to_add + sequence
+
+    if sequence_length > pad_length:
+        num_to_remove = sequence_length - pad_length
+        return sequence[num_to_remove:]
+
+    return sequence
+
+
 def create_even_folds(
     counts: list[tuple[typing.Any, int]],
     num_folds: int = 5,
