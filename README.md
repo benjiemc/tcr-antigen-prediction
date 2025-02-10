@@ -48,6 +48,9 @@ git submodule update --recursive
 mamba_prefix=$(mamba run -n tcr-antigen-prediction mamba info --json | jq '."env location"' | sed s/\"//g)
 python_version=$(mamba run -n tcr-antigen-prediction python --version | cut -d " " -f2 | cut -d "." -f1-2)
 cp -r third_party/anarci $mamba_prefix/lib/python$python_version/site-packages
+
+# Install NetTCR-clone
+pip install third_party/net_tcr
 ```
 
 The environment can then be activated:

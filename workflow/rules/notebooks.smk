@@ -50,6 +50,14 @@ rule run_visualising_and_evaluating_tcr_contact_map_predictor_sequence_only_trai
         tasks=1
     notebook: "../../notebooks/visualising_and_evaluating_tcr_contact_map_predictor_sequence_only_training.ipynb"
 
+rule run_visualising_and_evaluating_nettcr_training_notebook:
+    input: "data/logs/train_NetTCR.log"
+    resources:
+        runtime="1m",
+        mem="500MB",
+        tasks=1
+    notebook: "../../notebooks/visualising_and_evaluating_nettcr_training.ipynb"
+
 rule run_benchmark_model_performance_notebook:
     input:
         "data/interim/peptides.txt",

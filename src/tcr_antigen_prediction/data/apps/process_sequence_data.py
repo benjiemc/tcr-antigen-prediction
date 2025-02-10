@@ -71,6 +71,7 @@ data_group.add_argument(
     default='one-hot',
     help='numerical encoding to use for the sequences.',
 )
+data_group.add_argument('--normalisation-factor', type=float, default=1.0, help='normalise encoding values by factor')
 
 add_logging_arguments(parser)
 
@@ -140,6 +141,9 @@ def main() -> None:
     processed_data = processed_data.map(
         lambda seq: np.array([encoding[olc] for olc in seq]),
     )
+    logger.debug('Normalising by factor %f', args.normalisation_factor)
+    processed_data = processed_data.div(args.normalisation_factor)
+
     sequence_data[processed_data.columns] = processed_data
 
     logger.info('Generating negative data by random sampling')

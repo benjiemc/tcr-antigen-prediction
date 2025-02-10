@@ -59,6 +59,23 @@ rule train_TCRContactMapPredictor_sequence_only:
             {input}
         """
 
+rule train_NetTCR:
+    input: "data/processed/sequences_right_pad_blosum.h5"
+    output: directory("models/NetTCR")
+    log: "data/logs/train_NetTCR.log"
+    resources:
+        runtime="10h",
+        mem="20GB",
+        tasks=1
+    shell:
+        """
+        python -m nettcr.apps.train_nettcr \
+            --log-level {config[log_level]} \
+            --log-file {log} \
+            -o {output} \
+            {input}
+        """
+
 rule train_confidence_predictor:
     input: "data/processed/sequences.h5"
     output: directory("models/ConfidencePredictor")

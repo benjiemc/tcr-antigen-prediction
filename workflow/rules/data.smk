@@ -162,6 +162,7 @@ rule process_sequence_data_for_nettcr:
             --peptide-length 12 \
             --pad-direction right \
             --encoding blosum50 \
+            --normalisation-factor 5.0 \
             -o {output} \
             {input}
         """
