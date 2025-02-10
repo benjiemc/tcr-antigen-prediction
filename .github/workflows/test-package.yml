@@ -19,8 +19,14 @@ jobs:
         run: |
             pip install pulp==2.7.0 snakemake
             eval $(ssh-agent -s)
-            ssh-add - <<< "${{ secrets.ANARCI_TCR_PMHC_SSH_KEY }}"
-            ssh-add - <<< "${{ secrets.NETTCR_SSH_KEY }}"
+            mkdir -p ~/.ssh
+            echo "${{ secrets.ANARCI_TCR_PMHC_SSH_KEY }}" > ~/.ssh/anarci_tcr_pmhc
+            echo "${{ secrets.NETTCR_SSH_KEY }}" > ~/.ssh/nettcr
+            chmod 600 ~/.ssh/anarci_tcr_pmhc ~/.ssh/nettcr
+            ssh-add ~/.ssh/anarci_tcr_pmhc ~/.ssh/nettcr
+            ssh-add -L
+            wget https://gist.githubusercontent.com/mpdude/e56fcae5bc541b95187fa764aafb5e6d/raw/676626f0f8009d8b47743417dba436483cd929c6/ssh-deploy-key-wrapper.sh && chmod +x ssh-deploy-key-wrapper.sh
+            export GIT_SSH="$(pwd)/ssh-deploy-key-wrapper.sh"
             export KEY_MODELLER=${{ secrets.MODELLER_KEY }}
             snakemake environment --quiet all --cores 1
             mamba run -n tcr-antigen-prediction pip install '.[develop]'
