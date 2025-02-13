@@ -11,15 +11,16 @@ include: "rules/notebooks.smk"
 rule environment:
     shell:
         """
+        git submodule init
         mamba env create -f environment.yml
         mamba run -n tcr-antigen-prediction python -m pip install .
-        git submodule init
-        git submodule update --recursive
         mamba run -n tcr-antigen-prediction stitchrdl -s human
         mamba run -n tcr-antigen-prediction stitchrdl -s mouse
+        git submodule update --remote third_party/anarci
         mamba_prefix=$(mamba run -n tcr-antigen-prediction mamba info --json | jq '."env location"' | sed s/\\"//g)
         python_version=$(mamba run -n tcr-antigen-prediction python --version | cut -d " " -f2 | cut -d "." -f1-2)
         cp -r third_party/anarci $mamba_prefix/lib/python$python_version/site-packages
+        git submodule update --remote third_party/NetTCR
         pip install third_party/net_tcr
         """
 

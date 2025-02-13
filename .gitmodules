@@ -4,3 +4,6 @@
 [submodule "third_party/NetTCR"]
 	path = third_party/NetTCR
 	url = git@github.com:benjiemc/NetTCR.git
+[submodule "report"]
+	path = report
+	url = https://git@git.overleaf.com/67ae21132aa58899c0af12e9

@@ -35,6 +35,7 @@ If **only mamba is installed**, manually run the following steps to install the 
 
 ```
 # Create Environment
+git submodules init
 mamba env create -f environment.yml
 mamba run -n tcr-antigen-prediction python -m pip install .
 
@@ -43,13 +44,13 @@ mamba run -n tcr-antigen-prediction stitchrdl -s human
 mamba run -n tcr-antigen-prediction stitchrdl -s mouse
 
 # Install ANARCI
-git submodules init
-git submodule update --recursive
+git submodule update --remote third_party/anarci
 mamba_prefix=$(mamba run -n tcr-antigen-prediction mamba info --json | jq '."env location"' | sed s/\"//g)
 python_version=$(mamba run -n tcr-antigen-prediction python --version | cut -d " " -f2 | cut -d "." -f1-2)
 cp -r third_party/anarci $mamba_prefix/lib/python$python_version/site-packages
 
 # Install NetTCR-clone
+git submodule update --remote third_party/NetTCR
 pip install third_party/net_tcr
 ```
 
