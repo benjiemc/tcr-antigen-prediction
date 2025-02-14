@@ -153,12 +153,12 @@ rule process_sequence_data_for_nettcr:
         python -m tcr_antigen_prediction.data.apps.process_sequence_data \
             --log-level {config[log_level]} \
             --seed 123 \
-            --cdr-1a-length 7 \
-            --cdr-2a-length 8 \
-            --cdr-3a-length 22 \
-            --cdr-1b-length 6 \
-            --cdr-2b-length 7 \
-            --cdr-3b-length 23 \
+            --cdr1-alpha-length 7 \
+            --cdr2-alpha-length 8 \
+            --cdr3-alpha-length 22 \
+            --cdr1-beta-length 6 \
+            --cdr2-beta-length 7 \
+            --cdr3-beta-length 23 \
             --peptide-length 12 \
             --pad-direction right \
             --encoding blosum50 \

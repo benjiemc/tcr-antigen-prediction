@@ -64,7 +64,7 @@ COMMON_COLUMNS = [
     'mhc_type',
     'mhc1',
     'mhc2',
-    'peptide_sequence',
+    'peptide',
     'species',
 ]
 
@@ -348,7 +348,7 @@ def process_iedb(iedb: pd.DataFrame) -> pd.DataFrame:
             'Chain 2 - CDR3 Calculated': 'cdr3_beta',
             'Chain 2 - Calculated V Gene': 'v_beta',
             'Chain 2 - Calculated J Gene': 'j_beta',
-            'Epitope - Name': 'peptide_sequence',
+            'Epitope - Name': 'peptide',
         },
         axis='columns',
     )
@@ -406,7 +406,7 @@ def process_vdjdb(vdjdb: pd.DataFrame) -> pd.DataFrame:
             'V_beta': 'v_beta',
             'J_beta': 'j_beta',
             'MHC class': 'mhc_type',
-            'Epitope': 'peptide_sequence',
+            'Epitope': 'peptide',
             'Species': 'species',
             'MHC A': 'mhc1',
             'MHC B': 'mhc2',
@@ -430,7 +430,7 @@ def process_itrap(itrap: pd.DataFrame) -> pd.DataFrame:
     itrap[['v_alpha', 'j_alpha', 'constant_alpha']] = itrap['genes_TRA'].str.split(';').apply(pd.Series)
     itrap[['v_beta', 'd_beta', 'j_beta', 'constant_beta']] = itrap['genes_TRB'].str.split(';').apply(pd.Series)
 
-    itrap[['peptide_sequence', 'mhc1']] = itrap['peptide_HLA'].str.split().apply(pd.Series)
+    itrap[['peptide', 'mhc1']] = itrap['peptide_HLA'].str.split().apply(pd.Series)
 
     itrap['mhc2'] = 'B2M'
     itrap['mhc_type'] = 'MH1'
@@ -499,7 +499,7 @@ def process_mcpas_tcr(mcpas_tcr: pd.DataFrame) -> pd.DataFrame:
             'TRAJ': 'j_alpha',
             'TRBV': 'v_beta',
             'TRBJ': 'j_beta',
-            'Epitope.peptide': 'peptide_sequence',
+            'Epitope.peptide': 'peptide',
             'Species': 'species',
             'mhc_processed': 'mhc1',
         },
@@ -532,7 +532,7 @@ def collate_sequence_data(
             - mhc_type
             - mhc1
             - mhc2
-            - peptide_sequence
+            - peptide
             - species
         mhc_sequences: dataframe with MHC sequences indexed by MHC slug (simplified allele code)
         mhc_pseudo_seq_imgt_positions: dictionary with the imgt numbers for the alpha and beta helix pseudo sequence
@@ -659,7 +659,7 @@ def collate_sequence_data(
     sequence_data = sequence_data[sequence_data['mhc2_sequence'].notna() | (sequence_data['mhc_type'] == 'MH1')]
 
     logger.debug('Shortening to pseudo sequence')
-    sequence_data['mhc_pseudo_sequence'] = sequence_data.apply(
+    sequence_data['mhc_pseudo'] = sequence_data.apply(
         lambda row, mhc_pseudo_seq_imgt_positions=mhc_pseudo_seq_imgt_positions: get_pseudo_sequence(
             row.mhc1_sequence,
             row.mhc2_sequence,
@@ -681,8 +681,8 @@ def collate_sequence_data(
                 'cdr1_beta',
                 'cdr2_beta',
                 'cdr3_beta',
-                'peptide_sequence',
-                'mhc_pseudo_sequence',
+                'peptide',
+                'mhc_pseudo',
             ],
             dropna=False,
         )[['v_alpha', 'j_alpha', 'v_beta', 'j_beta', 'mhc1', 'mhc2', 'mhc_type', 'species', 'source']]

@@ -37,7 +37,7 @@ data_parameters.add_argument('--cdr-2-length', type=int, default=8, help='maximu
 data_parameters.add_argument('--cdr-3-length', type=int, default=24, help='maximum CDR 3 length (Default: 24)')
 data_parameters.add_argument('--peptide-length', type=int, default=12, help='maximum peptide length (Default: 12)')
 data_parameters.add_argument(
-    '--mhc-pseudo-sequence-length',
+    '--mhc-pseudo-length',
     type=int,
     default=26,
     help='length of MHC pseudo sequences (Default: 26)',
@@ -90,7 +90,7 @@ def evaluate_model(
     cdr_2bs: np.ndarray,
     cdr_3bs: np.ndarray,
     peptides: np.ndarray,
-    mhc_pseudo_sequences: np.ndarray,
+    mhc_pseudos: np.ndarray,
     labels: np.ndarray,
     device: torch.device,
     batch_size: int = 1000,
@@ -122,7 +122,7 @@ def evaluate_model(
         batch_cdr3b = torch.tensor(cdr_3bs[batch_indices], dtype=torch.float32, device=device)
 
         batch_peptide = torch.tensor(peptides[batch_indices], dtype=torch.float32, device=device)
-        batch_mhc = torch.tensor(mhc_pseudo_sequences[batch_indices], dtype=torch.float32, device=device)
+        batch_mhc = torch.tensor(mhc_pseudos[batch_indices], dtype=torch.float32, device=device)
 
         prediction = model(
             batch_cdr1a,
@@ -184,15 +184,15 @@ def main():
 
     logger.info('Loading training data from %s', args.training_data)
     with h5py.File(args.training_data) as fh:
-        cdr_1as = fh['cdr_1a'][:]
-        cdr_2as = fh['cdr_2a'][:]
-        cdr_3as = fh['cdr_3a'][:]
-        cdr_1bs = fh['cdr_1b'][:]
-        cdr_2bs = fh['cdr_2b'][:]
-        cdr_3bs = fh['cdr_3b'][:]
+        cdr_1as = fh['cdr1_alpha'][:]
+        cdr_2as = fh['cdr2_alpha'][:]
+        cdr_3as = fh['cdr3_alpha'][:]
+        cdr_1bs = fh['cdr1_beta'][:]
+        cdr_2bs = fh['cdr2_beta'][:]
+        cdr_3bs = fh['cdr3_beta'][:]
 
         peptides = fh['peptide'][:]
-        mhc_pseudo_sequences = fh['mhc_pseudo_sequence'][:]
+        mhc_pseudos = fh['mhc_pseudo'][:]
 
         labels = fh['label'][:]
         folds = fh['fold'][:]
@@ -220,7 +220,7 @@ def main():
             cdr_2_length=args.cdr_2_length,
             cdr_3_length=args.cdr_3_length,
             peptide_length=args.peptide_length,
-            mhc_length=args.mhc_pseudo_sequence_length,
+            mhc_length=args.mhc_pseudo_length,
             drop_out_rate=args.drop_out_rate,
             learn_contact_maps=args.learn_contact_maps,
         )
@@ -255,7 +255,7 @@ def main():
                 batch_cdr3b = torch.tensor(cdr_3bs[batch_indices], dtype=torch.float32, device=device)
 
                 batch_peptide = torch.tensor(peptides[batch_indices], dtype=torch.float32, device=device)
-                batch_mhc = torch.tensor(mhc_pseudo_sequences[batch_indices], dtype=torch.float32, device=device)
+                batch_mhc = torch.tensor(mhc_pseudos[batch_indices], dtype=torch.float32, device=device)
 
                 batch_label = torch.tensor(labels[batch_indices], dtype=torch.float32, device=device).unsqueeze(-1)
 
@@ -293,7 +293,7 @@ def main():
                         cdr_2bs[validation_indices],
                         cdr_3bs[validation_indices],
                         peptides[validation_indices],
-                        mhc_pseudo_sequences[validation_indices],
+                        mhc_pseudos[validation_indices],
                         labels[validation_indices],
                         device,
                         batch_size=args.eval_batch_size,

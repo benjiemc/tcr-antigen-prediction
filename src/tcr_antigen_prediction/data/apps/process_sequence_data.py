@@ -8,8 +8,8 @@ Required columns:
     - cdr1_beta
     - cdr2_beta
     - cdr3_beta
-    - peptide_sequence
-    - mhc_pseudo_sequence
+    - peptide
+    - mhc_pseudo
 
 """
 
@@ -47,12 +47,42 @@ data_group.add_argument(
         'times more negatives than positives)'
     ),
 )
-data_group.add_argument('--cdr-1a-length', default=8, type=int, help='Length to pad CDR 1a sequences to (Default: 8)')
-data_group.add_argument('--cdr-2a-length', default=8, type=int, help='Length to pad CDR 2a sequences to (Default: 8)')
-data_group.add_argument('--cdr-3a-length', default=24, type=int, help='Length to pad CDR 3a sequences to (Default: 24)')
-data_group.add_argument('--cdr-1b-length', default=8, type=int, help='Length to pad CDR 1b sequences to (Default: 8)')
-data_group.add_argument('--cdr-2b-length', default=8, type=int, help='Length to pad CDR 2b sequences to (Default: 8)')
-data_group.add_argument('--cdr-3b-length', default=24, type=int, help='Length to pad CDR 3b sequences to (Default: 24)')
+data_group.add_argument(
+    '--cdr1-alpha-length',
+    default=8,
+    type=int,
+    help='Length to pad CDR 1a sequences to (Default: 8)',
+)
+data_group.add_argument(
+    '--cdr2-alpha-length',
+    default=8,
+    type=int,
+    help='Length to pad CDR 2a sequences to (Default: 8)',
+)
+data_group.add_argument(
+    '--cdr3-alpha-length',
+    default=24,
+    type=int,
+    help='Length to pad CDR 3a sequences to (Default: 24)',
+)
+data_group.add_argument(
+    '--cdr1-beta-length',
+    default=8,
+    type=int,
+    help='Length to pad CDR 1b sequences to (Default: 8)',
+)
+data_group.add_argument(
+    '--cdr2-beta-length',
+    default=8,
+    type=int,
+    help='Length to pad CDR 2b sequences to (Default: 8)',
+)
+data_group.add_argument(
+    '--cdr3-beta-length',
+    default=24,
+    type=int,
+    help='Length to pad CDR 3b sequences to (Default: 24)',
+)
 data_group.add_argument(
     '--peptide-length',
     default=12,
@@ -105,28 +135,28 @@ def main() -> None:
             pad_func = left_pad
 
     sequence_data['cdr1_alpha_processed'] = (
-        sequence_data['cdr1_alpha'].apply(list).apply(pad_func, pad_length=args.cdr_1a_length)
+        sequence_data['cdr1_alpha'].apply(list).apply(pad_func, pad_length=args.cdr1_alpha_length)
     )
     sequence_data['cdr2_alpha_processed'] = (
-        sequence_data['cdr2_alpha'].apply(list).apply(pad_func, pad_length=args.cdr_2a_length)
+        sequence_data['cdr2_alpha'].apply(list).apply(pad_func, pad_length=args.cdr2_alpha_length)
     )
     sequence_data['cdr3_alpha_processed'] = (
-        sequence_data['cdr3_alpha'].apply(list).apply(pad_func, pad_length=args.cdr_3a_length)
+        sequence_data['cdr3_alpha'].apply(list).apply(pad_func, pad_length=args.cdr3_alpha_length)
     )
     sequence_data['cdr1_beta_processed'] = (
-        sequence_data['cdr1_beta'].apply(list).apply(pad_func, pad_length=args.cdr_1b_length)
+        sequence_data['cdr1_beta'].apply(list).apply(pad_func, pad_length=args.cdr1_beta_length)
     )
     sequence_data['cdr2_beta_processed'] = (
-        sequence_data['cdr2_beta'].apply(list).apply(pad_func, pad_length=args.cdr_2b_length)
+        sequence_data['cdr2_beta'].apply(list).apply(pad_func, pad_length=args.cdr2_beta_length)
     )
     sequence_data['cdr3_beta_processed'] = (
-        sequence_data['cdr3_beta'].apply(list).apply(pad_func, pad_length=args.cdr_3b_length)
+        sequence_data['cdr3_beta'].apply(list).apply(pad_func, pad_length=args.cdr3_beta_length)
     )
 
     sequence_data['peptide_processed'] = (
-        sequence_data['peptide_sequence'].apply(list).apply(pad_func, pad_length=args.peptide_length)
+        sequence_data['peptide'].apply(list).apply(pad_func, pad_length=args.peptide_length)
     )
-    sequence_data['mhc_processed'] = sequence_data['mhc_pseudo_sequence'].apply(list)
+    sequence_data['mhc_pseudo_processed'] = sequence_data['mhc_pseudo'].apply(list)
 
     match args.encoding:
         case 'one-hot':
@@ -151,7 +181,7 @@ def main() -> None:
         regex=r'^cdr[1-3]_(alpha|beta)$',
     ).apply('-'.join, axis='columns')
 
-    peptides = sequence_data['peptide_sequence'].unique()
+    peptides = sequence_data['peptide'].unique()
 
     tcr_columns = sequence_data.filter(regex='cdr').columns
     pmhc_columns = sequence_data.filter(regex='peptide|mhc').columns
@@ -159,9 +189,9 @@ def main() -> None:
     negative_data = []
 
     for peptide in peptides:
-        in_group = sequence_data[sequence_data['peptide_sequence'] == peptide]
+        in_group = sequence_data[sequence_data['peptide'] == peptide]
         out_group = sequence_data[
-            (sequence_data['peptide_sequence'] != peptide)
+            (sequence_data['peptide'] != peptide)
             & (~sequence_data['collated_cdr_sequences'].isin(in_group['collated_cdr_sequences']))
         ]
 
@@ -189,33 +219,19 @@ def main() -> None:
 
     sequence_data = pd.concat([sequence_data, *negative_data])
 
-    peptide_counts = sequence_data['peptide_sequence'].value_counts()
+    peptide_counts = sequence_data['peptide'].value_counts()
     peptide_counts = peptide_counts.sort_index().sort_values(ascending=False)
     folds = create_even_folds(
         list(zip(peptide_counts.index.tolist(), peptide_counts.tolist(), strict=True)),
         seed=args.seed,
     )
 
-    sequence_data['fold'] = sequence_data['peptide_sequence'].map(
-        {peptide_sequence: i for i, fold in enumerate(folds, 1) for peptide_sequence in fold}
+    sequence_data['fold'] = sequence_data['peptide'].map(
+        {peptide: i for i, fold in enumerate(folds, 1) for peptide in fold}
     )
 
     processed_data = sequence_data.filter(regex='_processed$|label|fold')
     processed_data.columns = [column_name.replace('_processed', '') for column_name in processed_data.columns]
-
-    # TODO standardise column names between apps
-    processed_data = processed_data.rename(
-        {
-            'cdr1_alpha': 'cdr_1a',
-            'cdr2_alpha': 'cdr_2a',
-            'cdr3_alpha': 'cdr_3a',
-            'cdr1_beta': 'cdr_1b',
-            'cdr2_beta': 'cdr_2b',
-            'cdr3_beta': 'cdr_3b',
-            'mhc': 'mhc_pseudo_sequence',
-        },
-        axis='columns',
-    )
 
     logger.info('Outputting data to %s', args.output)
     with h5py.File(args.output, 'w') as fh:

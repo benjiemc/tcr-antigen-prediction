@@ -44,14 +44,14 @@ def main() -> None:
 
     logger.info('Loading data...')
     with h5py.File(args.training_data, 'r') as fh:
-        cdr_1as = fh['cdr_1a'][:]
-        cdr_1bs = fh['cdr_1b'][:]
-        cdr_2as = fh['cdr_2a'][:]
-        cdr_2bs = fh['cdr_2b'][:]
-        cdr_3as = fh['cdr_3a'][:]
-        cdr_3bs = fh['cdr_3b'][:]
+        cdr_1as = fh['cdr1_alpha'][:]
+        cdr_2as = fh['cdr2_alpha'][:]
+        cdr_3as = fh['cdr3_alpha'][:]
+        cdr_1bs = fh['cdr1_beta'][:]
+        cdr_2bs = fh['cdr2_beta'][:]
+        cdr_3bs = fh['cdr3_beta'][:]
         peptides = fh['peptide'][:]
-        mhcs = fh['mhc_pseudo_sequence'][:]
+        mhcs = fh['mhc_pseudo'][:]
 
         folds = fh['fold'][:]
 
