@@ -141,10 +141,10 @@ class TCRContactMapPredictor(nn.Module):
         x = torch.cat((*peptide_interactions, *mhc_interactions), dim=-1)  # batch_size x 3040
 
         x = self.combined_fc(x)  # batch_size x 512
-        x = nn.ReLU()(x)  # batch_size x 512
+        x = nn.functional.relu(x)  # batch_size x 512
         x = self.drop_out(x)  # batch_size x 512
 
         x = self.output_fc(x)  # batch_size x 1
-        prediction = nn.Sigmoid()(x)  # batch_size x 1
+        prediction = nn.functional.sigmoid(x)  # batch_size x 1
 
         return prediction
