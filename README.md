@@ -51,7 +51,7 @@ cp -r third_party/anarci $mamba_prefix/lib/python$python_version/site-packages
 
 # Install NetTCR-clone
 git submodule update --remote third_party/NetTCR
-pip install third_party/net_tcr
+mamba run -n tcr-antigen-prediction pip install third_party/NetTCR
 ```
 
 The environment can then be activated:
