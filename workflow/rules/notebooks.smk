@@ -9,13 +9,13 @@ rule run_identify_contact_residues_notebook:
         tasks=1
     notebook: "../../notebooks/Identify_contact_residues_on_MHC_molecules.ipynb"
 
-rule run_data_summary_notebook:
+rule run_visualise_structure_data_notebook:
     input: "data/processed/selected-stcrdab", "data/logs/select_stcrdab_tcr_pmhc_structures.log"
     resources:
         runtime="5m",
         mem="1GB",
         tasks=1
-    notebook: "../../notebooks/data_summary.ipynb"
+    notebook: "../../notebooks/visualise_structure_data.ipynb"
 
 rule run_visualise_sequence_data_notebook:
     input: "data/interim/sequences.csv", "data/logs/collate_sequence_data.log"
