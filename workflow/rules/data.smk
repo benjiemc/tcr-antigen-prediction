@@ -42,7 +42,7 @@ rule select_stcrdab_structures:
             --fix-structures-missing-residues \
             --structural-similarity-cutoff 2.0 \
             -o {output} \
-            {input.stcrdab_path} 2> {log}
+            {input.stcrdab_path}
         """
 
 rule create_contact_maps:
