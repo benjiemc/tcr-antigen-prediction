@@ -7,7 +7,6 @@ import random
 import sys
 import tempfile
 
-import numpy as np
 import pandas as pd
 from Bio.PDB import PDBIO, PDBParser, Structure
 from sklearn.cluster import AgglomerativeClustering
@@ -71,20 +70,6 @@ parser.add_argument(
     nargs='+',
     default=[],
     help='list of IMGT residue codes that are in contact positions on the MHC class II beta-chain',
-)
-
-data_split_group = parser.add_argument_group('Data Splits')
-data_split_group.add_argument(
-    '--train-split', type=float, default=0.70, help='proportion of data to assign to training (Default: 0.70)'
-)
-data_split_group.add_argument(
-    '--validation-split', type=float, default=0.15, help='proportion of data to assign to validation (Default: 0.15)'
-)
-data_split_group.add_argument(
-    '--test-split', type=float, default=0.15, help='proportion of data to assign to testing (Default: 0.15)'
-)
-data_split_group.add_argument(
-    '--pdb-ids-to-exclude', nargs='+', default=None, help='PDB IDs to exclude from the validation/testing data splits'
 )
 
 structure_type_group = parser.add_argument_group('Structure Types')
@@ -447,64 +432,6 @@ def remove_similar_structures(df: pd.DataFrame, threshold: float) -> pd.DataFram
     return pd.concat(output_dfs)
 
 
-def split_groups_multiple_proportions(idx_sizes, proportions, exclude_idxs=None, exclude_split=None):
-    total_sum = sum([size for _, size in idx_sizes])
-    target_sums = [total_sum * prop for prop in proportions]
-
-    random.shuffle(idx_sizes)
-
-    groups = [[] for _ in range(len(proportions))]
-    sum_groups = [0] * len(proportions)
-
-    if exclude_idxs is not None:  # add all excluded IDs to selected split
-        for idx, size in idx_sizes:
-            if idx in exclude_idxs and exclude_split is not None:
-                groups[exclude_split].append(idx)
-                sum_groups[exclude_split] += size
-
-    for idx, size in idx_sizes:
-        if exclude_idxs and idx in exclude_idxs:
-            continue
-
-        # Find the group with the smallest current sum and add the number
-        min_sum_index = min(range(len(proportions)), key=lambda i: sum_groups[i])
-
-        if sum_groups[min_sum_index] + size <= target_sums[min_sum_index]:
-            groups[min_sum_index].append(idx)
-            sum_groups[min_sum_index] += size
-
-        else:
-            # If adding the number exceeds the target sum, add to the next group
-            for i in range(len(proportions)):
-                if i != min_sum_index and sum_groups[i] + size <= target_sums[i]:
-                    groups[i].append(idx)
-                    sum_groups[i] += size
-                    break
-            else:  # If it doesn't fit anywhere, add it to the original trial
-                groups[min_sum_index].append(idx)
-                sum_groups[min_sum_index] += size
-
-    return groups
-
-
-def merge_groups(groups):
-    merged_groups = []
-
-    for group in groups:
-        merged = False
-
-        for i, merged_group in enumerate(merged_groups):
-            if len(group & merged_group) > 0:
-                merged_groups[i] = group | merged_group
-                merged = True
-                break
-
-        if not merged:
-            merged_groups.append(group)
-
-    return merged_groups
-
-
 def main():
     args = parser.parse_args()
     setup_logger(logger, args.log_level, args.log_file)
@@ -647,72 +574,24 @@ def main():
 
         logger.info('Number of structures: %d', len(selected_structures))
 
-    logger.info(
-        'Splitting data according to partions (Train: %.2f, Validation %.2f, and Test %.2f)',
-        args.train_split,
-        args.validation_split,
-        args.test_split,
+    selected_structures = selected_structures.fillna('')
+    selected_structures = selected_structures.sort_values(
+        [
+            'pdb',
+            'Achain',
+            'Bchain',
+            'antigen_chain',
+            'mhc_chain1',
+            'mhc_chain2',
+        ]
     )
-
-    peptide_groups = selected_structures.groupby('peptide_sequence')
-
-    logger.debug('Merging peptide groups with common TCRs.')
-    merge_matrix = np.zeros((len(peptide_groups), len(peptide_groups)))
-    for i, (_, group_i) in enumerate(peptide_groups):
-        for j, (_, group_j) in enumerate(peptide_groups):
-            group_i_seqs = set(group_i['collated_cdrs'].tolist())
-            group_j_seqs = set(group_j['collated_cdrs'].tolist())
-
-            if len(group_i_seqs & group_j_seqs) > 0:
-                merge_matrix[i, j] = 1
-
-    group_indicies = np.arange(len(peptide_groups))
-    groups = [set(group_indicies[row > 0]) for row in merge_matrix]
-
-    separated_groups = merge_groups(groups)
-
-    separated_groups_data = [
-        pd.concat([list(peptide_groups)[idx][1] for idx in group], axis=0) for group in separated_groups
-    ]
-
-    logger.debug('Adding group IDs')
-    for group_id, group in enumerate(separated_groups_data, 1):
-        group['group_id'] = group_id
-
-    exclude_group_idxs = (
-        [idx for idx, group in enumerate(separated_groups_data) if group['pdb'].isin(args.pdb_ids_to_exclude).any()]
-        if args.pdb_ids_to_exclude is not None
-        else None
-    )
-
-    separated_idx_size = [(idx, len(df)) for idx, df in enumerate(separated_groups_data)]
-
-    train_idxs, val_idxs, test_idxs = split_groups_multiple_proportions(
-        separated_idx_size,
-        (args.train_split, args.validation_split, args.test_split),
-        exclude_group_idxs,
-        exclude_split=0,
-    )  # training split
-
-    dataset = pd.DataFrame()
-    for split_name, idxs in (('train', train_idxs), ('validation', val_idxs), ('test', test_idxs)):
-        if len(idxs) == 0:
-            logger.warning('No data in %s split', split_name)
-            continue
-
-        split_data = pd.concat([df for idx, df in enumerate(separated_groups_data) if idx in idxs], axis=0)
-        split_data['split'] = split_name
-
-        dataset = pd.concat([dataset, split_data])
-
-    dataset = dataset.fillna('')
-    dataset = dataset.reset_index()
+    selected_structures = selected_structures.reset_index()
 
     logger.info('Outputing structures...')
     if not os.path.exists(args.output):
         os.mkdir(args.output)
 
-    dataset['path'] = dataset.apply(
+    selected_structures['path'] = selected_structures.apply(
         lambda row: f'{row.pdb}_{row.Achain}{row.Bchain}{row.antigen_chain}{row.mhc_chain1}{row.mhc_chain2}.pdb',
         axis=1,
     )
@@ -733,12 +612,10 @@ def main():
     if mhc_tcr_contacts_available:
         output_columns.append('mhc_tcr_contact_pseudo_sequence')
 
-    output_columns += ['group_id', 'split']
-
-    dataset[output_columns].to_csv(os.path.join(args.output, 'stcrdab_split.csv'), index=False)
+    selected_structures[output_columns].to_csv(os.path.join(args.output, 'stcrdab_split.csv'), index=False)
 
     pdb_parser = PDBParser()
-    for _, row in dataset.iterrows():
+    for _, row in selected_structures.iterrows():
         structure = pdb_parser.get_structure(row.pdb, row.imgt_file_path)
         output_chains = [row.Achain, row.Bchain, row.antigen_chain, row.mhc_chain1, row.mhc_chain2]
 

@@ -29,19 +29,6 @@ Test app adding MHC-TCR Pseudo Sequences
 
   $ diff output-mhc-tcr-pseudo-seqs/stcrdab_split.csv $TESTDIR/reference/mhc-tcr-pseudo-seqs/stcrdab_split.csv
 
-Test excluding PDB IDs
-  $  python -m tcr_antigen_prediction.data.apps.select_stcrdab_tcr_pmhc_structures \
-  > --log-level error \
-  > --seed 123 \
-  > --tcr-types abTCR \
-  > --mhc-types MH1 MH2 \
-  > --antigen-types peptide \
-  > --pdb-ids-to-exclude 3qiw \
-  > -o output-exclude-pdb-ids \
-  > $TESTDIR/data/stcrdab-mock/
-
-  $ diff output-exclude-pdb-ids/stcrdab_split.csv $TESTDIR/reference/exclude-pdb-ids/stcrdab_split.csv
-
 Test removing structures missing residues
   $ python -m tcr_antigen_prediction.data.apps.select_stcrdab_tcr_pmhc_structures \
   > --log-level error \
