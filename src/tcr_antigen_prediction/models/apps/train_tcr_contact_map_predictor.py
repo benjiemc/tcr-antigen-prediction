@@ -161,21 +161,21 @@ def main():
         logger.info('Loading contact maps from %s', args.contact_maps)
         with h5py.File(args.contact_maps) as fh:
             cdr_peptide_contact_maps = (
-                torch.tensor(fh['cdr_peptide']['cdr_1a'][:], dtype=torch.float32),
-                torch.tensor(fh['cdr_peptide']['cdr_2a'][:], dtype=torch.float32),
-                torch.tensor(fh['cdr_peptide']['cdr_3a'][:], dtype=torch.float32),
-                torch.tensor(fh['cdr_peptide']['cdr_1b'][:], dtype=torch.float32),
-                torch.tensor(fh['cdr_peptide']['cdr_2b'][:], dtype=torch.float32),
-                torch.tensor(fh['cdr_peptide']['cdr_3b'][:], dtype=torch.float32),
+                torch.tensor(fh['peptide']['cdr1_alpha'][:], dtype=torch.float32),
+                torch.tensor(fh['peptide']['cdr2_alpha'][:], dtype=torch.float32),
+                torch.tensor(fh['peptide']['cdr3_alpha'][:], dtype=torch.float32),
+                torch.tensor(fh['peptide']['cdr1_beta'][:], dtype=torch.float32),
+                torch.tensor(fh['peptide']['cdr2_beta'][:], dtype=torch.float32),
+                torch.tensor(fh['peptide']['cdr3_beta'][:], dtype=torch.float32),
             )
 
             cdr_mhc_contact_maps = (
-                torch.tensor(fh['cdr_mhc']['cdr_1a'][:], dtype=torch.float32),
-                torch.tensor(fh['cdr_mhc']['cdr_2a'][:], dtype=torch.float32),
-                torch.tensor(fh['cdr_mhc']['cdr_3a'][:], dtype=torch.float32),
-                torch.tensor(fh['cdr_mhc']['cdr_1b'][:], dtype=torch.float32),
-                torch.tensor(fh['cdr_mhc']['cdr_2b'][:], dtype=torch.float32),
-                torch.tensor(fh['cdr_mhc']['cdr_3b'][:], dtype=torch.float32),
+                torch.tensor(fh['mhc_pseudo']['cdr1_alpha'][:], dtype=torch.float32),
+                torch.tensor(fh['mhc_pseudo']['cdr2_alpha'][:], dtype=torch.float32),
+                torch.tensor(fh['mhc_pseudo']['cdr3_alpha'][:], dtype=torch.float32),
+                torch.tensor(fh['mhc_pseudo']['cdr1_beta'][:], dtype=torch.float32),
+                torch.tensor(fh['mhc_pseudo']['cdr2_beta'][:], dtype=torch.float32),
+                torch.tensor(fh['mhc_pseudo']['cdr3_beta'][:], dtype=torch.float32),
             )
 
     else:
