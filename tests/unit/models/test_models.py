@@ -94,7 +94,7 @@ class TestTCRContactMapPredictor(TestCase):
             input_depth=4,
         )
 
-        cdr_1a_batch = torch.tensor(
+        cdr1_alpha_batch = torch.tensor(
             [
                 [[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]],
                 [[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]],
@@ -102,11 +102,11 @@ class TestTCRContactMapPredictor(TestCase):
             dtype=torch.float32,
         )
 
-        cdr_2a_batch = cdr_1a_batch.clone().detach()
-        cdr_1b_batch = cdr_1a_batch.clone().detach()
-        cdr_2b_batch = cdr_1a_batch.clone().detach()
+        cdr2_alpha_batch = cdr1_alpha_batch.clone().detach()
+        cdr1_beta_batch = cdr1_alpha_batch.clone().detach()
+        cdr2_beta_batch = cdr1_alpha_batch.clone().detach()
 
-        cdr_3a_batch = torch.tensor(
+        cdr3_alpha_batch = torch.tensor(
             [
                 [[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]],
                 [[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]],
@@ -114,7 +114,7 @@ class TestTCRContactMapPredictor(TestCase):
             dtype=torch.float32,
         )
 
-        cdr_3b_batch = cdr_3a_batch.clone().detach()
+        cdr3_beta_batch = cdr3_alpha_batch.clone().detach()
 
         peptide_batch = torch.tensor(
             [
@@ -124,7 +124,7 @@ class TestTCRContactMapPredictor(TestCase):
             dtype=torch.float32,
         )
 
-        mhc_batch = torch.tensor(
+        mhc_pseudo_batch = torch.tensor(
             [
                 [
                     [0, 0, 0, 0],
@@ -151,14 +151,14 @@ class TestTCRContactMapPredictor(TestCase):
         )
 
         predictions = model.forward(
-            cdr_1a_batch,
-            cdr_2a_batch,
-            cdr_3a_batch,
-            cdr_1b_batch,
-            cdr_2b_batch,
-            cdr_3b_batch,
+            cdr1_alpha_batch,
+            cdr2_alpha_batch,
+            cdr3_alpha_batch,
+            cdr1_beta_batch,
+            cdr2_beta_batch,
+            cdr3_beta_batch,
             peptide_batch,
-            mhc_batch,
+            mhc_pseudo_batch,
         )
         np.testing.assert_array_almost_equal(predictions.detach(), np.array([[0.491795], [0.491714]]))
 
@@ -175,7 +175,7 @@ class TestTCRContactMapPredictor(TestCase):
             input_depth=4,
         )
 
-        cdr_1a_batch = torch.tensor(
+        cdr1_alpha_batch = torch.tensor(
             [
                 [[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]],
                 [[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]],
@@ -183,11 +183,11 @@ class TestTCRContactMapPredictor(TestCase):
             dtype=torch.float32,
         )
 
-        cdr_2a_batch = cdr_1a_batch.clone().detach()
-        cdr_1b_batch = cdr_1a_batch.clone().detach()
-        cdr_2b_batch = cdr_1a_batch.clone().detach()
+        cdr2_alpha_batch = cdr1_alpha_batch.clone().detach()
+        cdr1_beta_batch = cdr1_alpha_batch.clone().detach()
+        cdr2_beta_batch = cdr1_alpha_batch.clone().detach()
 
-        cdr_3a_batch = torch.tensor(
+        cdr3_alpha_batch = torch.tensor(
             [
                 [[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]],
                 [[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]],
@@ -195,7 +195,7 @@ class TestTCRContactMapPredictor(TestCase):
             dtype=torch.float32,
         )
 
-        cdr_3b_batch = cdr_3a_batch.clone().detach()
+        cdr3_beta_batch = cdr3_alpha_batch.clone().detach()
 
         peptide_batch = torch.tensor(
             [
@@ -205,7 +205,7 @@ class TestTCRContactMapPredictor(TestCase):
             dtype=torch.float32,
         )
 
-        mhc_batch = torch.tensor(
+        mhc_pseudo_batch = torch.tensor(
             [
                 [
                     [0, 0, 0, 0],
@@ -232,13 +232,13 @@ class TestTCRContactMapPredictor(TestCase):
         )
 
         predictions = model.forward(
-            cdr_1a_batch,
-            cdr_2a_batch,
-            cdr_3a_batch,
-            cdr_1b_batch,
-            cdr_2b_batch,
-            cdr_3b_batch,
+            cdr1_alpha_batch,
+            cdr2_alpha_batch,
+            cdr3_alpha_batch,
+            cdr1_beta_batch,
+            cdr2_beta_batch,
+            cdr3_beta_batch,
             peptide_batch,
-            mhc_batch,
+            mhc_pseudo_batch,
         )
         np.testing.assert_array_almost_equal(predictions.detach(), np.array([[0.491717], [0.491649]]))

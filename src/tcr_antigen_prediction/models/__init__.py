@@ -91,26 +91,26 @@ class TCRContactMapPredictor(nn.Module):
 
     def forward(
         self,
-        cdr_1a: torch.Tensor,  # batch_size x 8 x 20
-        cdr_2a: torch.Tensor,  # batch_size x 8 x 20
-        cdr_3a: torch.Tensor,  # batch_size x 24 x 20
-        cdr_1b: torch.Tensor,  # batch_size x 8 x 20
-        cdr_2b: torch.Tensor,  # batch_size x 8 x 20
-        cdr_3b: torch.Tensor,  # batch_size x 24 x 20
+        cdr1_alpha: torch.Tensor,  # batch_size x 8 x 20
+        cdr2_alpha: torch.Tensor,  # batch_size x 8 x 20
+        cdr3_alpha: torch.Tensor,  # batch_size x 24 x 20
+        cdr1_beta: torch.Tensor,  # batch_size x 8 x 20
+        cdr2_beta: torch.Tensor,  # batch_size x 8 x 20
+        cdr3_beta: torch.Tensor,  # batch_size x 24 x 20
         peptide: torch.Tensor,  # batch_size x 12 x 20
-        mhc: torch.Tensor,  # batch_size x 26 x 20
+        mhc_pseudo: torch.Tensor,  # batch_size x 26 x 20
     ) -> torch.Tensor:  # batch_size
         """Forward pass of neural network model.
 
         Args:
-            cdr_1a: encoded batch of cdr_1a sequences (batch_size x cdr_1_length)
-            cdr_2a: encoded batch of cdr_2a sequences (batch_size x cdr_2_length)
-            cdr_3a: encoded batch of cdr_3a sequences (batch_size x cdr_3_length)
-            cdr_1b: encoded batch of cdr_1b sequences (batch_size x cdr_1_length)
-            cdr_2b: encoded batch of cdr_2b sequences (batch_size x cdr_2_length)
-            cdr_3b: encoded batch of cdr_3b sequences (batch_size x cdr_3_length)
+            cdr1_alpha: encoded batch of cdr1 alpha sequences (batch_size x cdr_1_length)
+            cdr2_alpha: encoded batch of cdr2 alpha sequences (batch_size x cdr_2_length)
+            cdr3_alpha: encoded batch of cdr3 alpha sequences (batch_size x cdr_3_length)
+            cdr1_beta: encoded batch of cdr1 beta sequences (batch_size x cdr_1_length)
+            cdr2_beta: encoded batch of cdr2 beta sequences (batch_size x cdr_2_length)
+            cdr3_beta: encoded batch of cdr3 beta sequences (batch_size x cdr_3_length)
             peptide: encoded batch of peptide sequences (batch_size x peptide_length)
-            mhc: encoded batch of MHC pseudo sequences (batch_size x mhc_length)
+            mhc_pseudo: encoded batch of MHC pseudo sequences (batch_size x mhc_length)
 
         Returns:
             tensor (batch_size x 1) with the binding predictions (between 0 and 1) for each sequence in the batch
@@ -119,12 +119,12 @@ class TCRContactMapPredictor(nn.Module):
         peptide_emb = torch.flatten(peptide, start_dim=1)  # batch_size x (12 * 20)
         peptide_emb = self.peptide_embedding_layer(peptide_emb)  # batch_size x 12
 
-        mhc_emb = torch.flatten(mhc, start_dim=1)  # batch_size x (26 * 20)
+        mhc_emb = torch.flatten(mhc_pseudo, start_dim=1)  # batch_size x (26 * 20)
         mhc_emb = self.mhc_embedding_layer(mhc_emb)  # batch_size x 26
 
         peptide_interactions = []
         mhc_interactions = []
-        for i, cdr in enumerate((cdr_1a, cdr_2a, cdr_3a, cdr_1b, cdr_2b, cdr_3b)):
+        for i, cdr in enumerate((cdr1_alpha, cdr2_alpha, cdr3_alpha, cdr1_beta, cdr2_beta, cdr3_beta)):
             cdr_emb = torch.flatten(cdr, start_dim=1)  # batch_size x (cdr_length * 20)
             cdr_emb = self.cdr_embedding_layers[i](cdr_emb)  # batch_size x cdr_length
 
