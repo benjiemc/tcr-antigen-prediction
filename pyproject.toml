@@ -19,7 +19,7 @@ dependencies = [
     "scikit-learn",
     "scipy",
     "skl2onnx",
-    "stitchr",
+    "stitchr<=1.1.3",
     "tidytcells",
     "torch",
 ]
