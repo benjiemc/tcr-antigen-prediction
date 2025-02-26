@@ -16,6 +16,17 @@ from tcr_antigen_prediction.models import TCRStructMap
 
 logger = logging.getLogger()
 
+MODEL_FEATURES = [
+    'cdr1_alpha',
+    'cdr2_alpha',
+    'cdr3_alpha',
+    'cdr1_beta',
+    'cdr2_beta',
+    'cdr3_beta',
+    'peptide',
+    'mhc_pseudo',
+]
+
 parser = argparse.ArgumentParser(
     prog=f'python -m {sys.modules[__name__].__spec__.name}',
     description=__doc__,
@@ -32,9 +43,27 @@ outputs.add_argument('--output', '-o', required=True, help='path to output direc
 parser.add_argument('--seed', default=None, type=int, help='Seed for random processes (Default: None)')
 
 data_parameters = parser.add_argument_group('Data Parameters')
-data_parameters.add_argument('--cdr-1-length', type=int, default=8, help='maximum CDR 1 length (Default: 8)')
-data_parameters.add_argument('--cdr-2-length', type=int, default=8, help='maximum CDR 2 length (Default: 8)')
-data_parameters.add_argument('--cdr-3-length', type=int, default=24, help='maximum CDR 3 length (Default: 24)')
+data_parameters.add_argument(
+    '--features-to-include',
+    nargs='+',
+    default='all',
+    choices=[*MODEL_FEATURES, 'all'],
+    help=(
+        'features to include in training (Default: all). This is useful for understanding the impact of different '
+        'features on model perfomance.'
+    ),
+)
+data_parameters.add_argument('--cdr1-alpha-length', type=int, default=8, help='maximum CDR1-alpha length (Default: 8)')
+data_parameters.add_argument('--cdr2-alpha-length', type=int, default=8, help='maximum CDR2-alpha length (Default: 8)')
+data_parameters.add_argument(
+    '--cdr3-alpha-length',
+    type=int,
+    default=24,
+    help='maximum CDR3-alpha length (Default: 24)',
+)
+data_parameters.add_argument('--cdr1-beta-length', type=int, default=8, help='maximum CDR1-beta length (Default: 8)')
+data_parameters.add_argument('--cdr2-beta-length', type=int, default=8, help='maximum CDR2-beta length (Default: 8)')
+data_parameters.add_argument('--cdr3-beta-length', type=int, default=24, help='maximum CDR3-beta length (Default: 24)')
 data_parameters.add_argument('--peptide-length', type=int, default=12, help='maximum peptide length (Default: 12)')
 data_parameters.add_argument(
     '--mhc-pseudo-length',
@@ -83,14 +112,7 @@ add_logging_arguments(parser)
 
 def evaluate_model(
     model: nn.Module,
-    cdr_1as: np.ndarray,
-    cdr_2as: np.ndarray,
-    cdr_3as: np.ndarray,
-    cdr_1bs: np.ndarray,
-    cdr_2bs: np.ndarray,
-    cdr_3bs: np.ndarray,
-    peptides: np.ndarray,
-    mhc_pseudos: np.ndarray,
+    input_data: dict[str, np.ndarray],
     labels: np.ndarray,
     device: torch.device,
     batch_size: int = 1000,
@@ -100,7 +122,7 @@ def evaluate_model(
     Sets model to evaluation mode.
     """
     model.eval()
-    indices = np.arange(len(cdr_1as))
+    indices = np.arange(len(labels))
 
     num_eval_batches = int(np.ceil(len(indices) / batch_size))
 
@@ -114,26 +136,12 @@ def evaluate_model(
             else indices[batch_idx_start:]
         )
 
-        batch_cdr1a = torch.tensor(cdr_1as[batch_indices], dtype=torch.float32, device=device)
-        batch_cdr2a = torch.tensor(cdr_2as[batch_indices], dtype=torch.float32, device=device)
-        batch_cdr3a = torch.tensor(cdr_3as[batch_indices], dtype=torch.float32, device=device)
-        batch_cdr1b = torch.tensor(cdr_1bs[batch_indices], dtype=torch.float32, device=device)
-        batch_cdr2b = torch.tensor(cdr_2bs[batch_indices], dtype=torch.float32, device=device)
-        batch_cdr3b = torch.tensor(cdr_3bs[batch_indices], dtype=torch.float32, device=device)
+        batch = {
+            feature: torch.tensor(data[batch_indices], dtype=torch.float32, device=device)
+            for feature, data in input_data.items()
+        }
 
-        batch_peptide = torch.tensor(peptides[batch_indices], dtype=torch.float32, device=device)
-        batch_mhc = torch.tensor(mhc_pseudos[batch_indices], dtype=torch.float32, device=device)
-
-        prediction = model(
-            batch_cdr1a,
-            batch_cdr2a,
-            batch_cdr3a,
-            batch_cdr1b,
-            batch_cdr2b,
-            batch_cdr3b,
-            batch_peptide,
-            batch_mhc,
-        )
+        prediction = model(**batch)
 
         predictions.append(prediction.detach().cpu().numpy().squeeze(-1))
 
@@ -145,6 +153,13 @@ def evaluate_model(
 def main():
     args = parser.parse_args()
     setup_logger(logger, args.log_level, args.log_file)
+
+    feature_order = {name: num for num, name in enumerate(MODEL_FEATURES)}
+    features = (
+        MODEL_FEATURES
+        if args.features_to_include == 'all'
+        else sorted(args.features_to_include, key=lambda name: feature_order[name])
+    )
 
     for argument, value in vars(args).items():
         logger.info('Parameter: %s=%r', argument, value)
@@ -184,20 +199,12 @@ def main():
 
     logger.info('Loading training data from %s', args.training_data)
     with h5py.File(args.training_data) as fh:
-        cdr_1as = fh['cdr1_alpha'][:]
-        cdr_2as = fh['cdr2_alpha'][:]
-        cdr_3as = fh['cdr3_alpha'][:]
-        cdr_1bs = fh['cdr1_beta'][:]
-        cdr_2bs = fh['cdr2_beta'][:]
-        cdr_3bs = fh['cdr3_beta'][:]
-
-        peptides = fh['peptide'][:]
-        mhc_pseudos = fh['mhc_pseudo'][:]
+        input_data = {name: fh[name][:] for name in features}
 
         labels = fh['label'][:]
         folds = fh['fold'][:]
 
-    indices = np.arange(len(cdr_1as))
+    indices = np.arange(len(labels))
 
     if not os.path.exists(args.output):
         logger.info('Creating %s', args.output)
@@ -209,6 +216,9 @@ def main():
         training_indices = indices[folds != fold_idx]
         validation_indices = indices[folds == fold_idx]
 
+        validation_data = {name: data[validation_indices] for name, data in input_data.items()}
+        validation_labels = labels[validation_indices]
+
         logger.debug('Number of training data points: %d', len(training_indices))
         logger.debug('Number of validation data points: %d', len(validation_indices))
 
@@ -216,11 +226,14 @@ def main():
         model = TCRStructMap(
             cdr_peptide_contact_maps,
             cdr_mhc_contact_maps,
-            cdr_1_length=args.cdr_1_length,
-            cdr_2_length=args.cdr_2_length,
-            cdr_3_length=args.cdr_3_length,
-            peptide_length=args.peptide_length,
-            mhc_length=args.mhc_pseudo_length,
+            cdr1_alpha_length=args.cdr1_alpha_length if 'cdr1_alpha' in features else 0,
+            cdr2_alpha_length=args.cdr2_alpha_length if 'cdr2_alpha' in features else 0,
+            cdr3_alpha_length=args.cdr3_alpha_length if 'cdr3_alpha' in features else 0,
+            cdr1_beta_length=args.cdr1_beta_length if 'cdr1_beta' in features else 0,
+            cdr2_beta_length=args.cdr2_beta_length if 'cdr2_beta' in features else 0,
+            cdr3_beta_length=args.cdr3_beta_length if 'cdr3_beta' in features else 0,
+            peptide_length=args.peptide_length if 'peptide' in features else 0,
+            mhc_length=args.mhc_pseudo_length if 'mhc_pseudo' in features else 0,
             drop_out_rate=args.drop_out_rate,
             learn_contact_maps=args.learn_contact_maps,
         )
@@ -247,28 +260,14 @@ def main():
                 logger.debug('Training batch %d of %d', i + 1, batches_per_epoch)
                 batch_indices = epoch_indices[i * args.batch_size : i * args.batch_size + args.batch_size]
 
-                batch_cdr1a = torch.tensor(cdr_1as[batch_indices], dtype=torch.float32, device=device)
-                batch_cdr2a = torch.tensor(cdr_2as[batch_indices], dtype=torch.float32, device=device)
-                batch_cdr3a = torch.tensor(cdr_3as[batch_indices], dtype=torch.float32, device=device)
-                batch_cdr1b = torch.tensor(cdr_1bs[batch_indices], dtype=torch.float32, device=device)
-                batch_cdr2b = torch.tensor(cdr_2bs[batch_indices], dtype=torch.float32, device=device)
-                batch_cdr3b = torch.tensor(cdr_3bs[batch_indices], dtype=torch.float32, device=device)
-
-                batch_peptide = torch.tensor(peptides[batch_indices], dtype=torch.float32, device=device)
-                batch_mhc = torch.tensor(mhc_pseudos[batch_indices], dtype=torch.float32, device=device)
+                batch = {
+                    feature: torch.tensor(data[batch_indices], dtype=torch.float32, device=device)
+                    for feature, data in input_data.items()
+                }
 
                 batch_label = torch.tensor(labels[batch_indices], dtype=torch.float32, device=device).unsqueeze(-1)
 
-                prediction = model(
-                    batch_cdr1a,
-                    batch_cdr2a,
-                    batch_cdr3a,
-                    batch_cdr1b,
-                    batch_cdr2b,
-                    batch_cdr3b,
-                    batch_peptide,
-                    batch_mhc,
-                )
+                prediction = model(**batch)
 
                 loss = loss_fn(prediction, batch_label)
                 loss.backward()
@@ -286,15 +285,8 @@ def main():
 
                     validation_roc_auc = evaluate_model(
                         model,
-                        cdr_1as[validation_indices],
-                        cdr_2as[validation_indices],
-                        cdr_3as[validation_indices],
-                        cdr_1bs[validation_indices],
-                        cdr_2bs[validation_indices],
-                        cdr_3bs[validation_indices],
-                        peptides[validation_indices],
-                        mhc_pseudos[validation_indices],
-                        labels[validation_indices],
+                        validation_data,
+                        validation_labels,
                         device,
                         batch_size=args.eval_batch_size,
                     )
