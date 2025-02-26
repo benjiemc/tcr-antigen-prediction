@@ -16,6 +16,7 @@ dependencies:
   - snakemake
   - pip:
       - biopython
+      - logomaker
       - matplotlib
       - networkx
       - numpy
