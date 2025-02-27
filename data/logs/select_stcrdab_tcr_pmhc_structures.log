@@ -1,15 +1,14 @@
-2024-12-02 13:43:33,053 - INFO: Loading STCRDab summary
-2024-12-02 13:43:33,134 - INFO: Number of structures: 958
-2024-12-02 13:43:33,147 - INFO: Selecting structures (TCRs: abTCR, MHCs: MH1, MH2, antigens: peptide)
-2024-12-02 13:43:33,169 - INFO: Number of structures: 429
-2024-12-02 13:43:33,169 - INFO: Screening structures above 3.50 Å resolution
-2024-12-02 13:43:33,195 - INFO: Number of structures: 419
-2024-12-02 13:43:33,195 - INFO: Removing structures missing residues
-2024-12-02 13:53:08,733 - WARNING: Chain ID not found in raw structure of 3tf7 and chains c-C-B-A. Structure will be removed.
-2024-12-02 14:00:53,129 - WARNING: Chain ID not found in raw structure of 3tf7 and chains g-G-F-E. Structure will be removed.
-2024-12-02 14:10:34,954 - INFO: Number of structures: 356
-2024-12-02 14:10:34,998 - INFO: Getting sequence information...
-2024-12-02 14:13:49,413 - INFO: Removing structures within 2.00 Å RMSD
-2024-12-02 14:19:25,964 - INFO: Number of structures: 251
-2024-12-02 14:19:25,964 - INFO: Splitting data according to partions (Train: 0.70, Validation 0.15, and Test 0.15)
-2024-12-02 14:19:27,804 - INFO: Outputing structures...
+2025-02-27 10:32:18,295 - INFO: Loading STCRDab summary
+2025-02-27 10:32:18,363 - INFO: Number of structures: 958
+2025-02-27 10:32:18,376 - INFO: Selecting structures (TCRs: abTCR, MHCs: MH1, MH2, antigens: peptide)
+2025-02-27 10:32:18,396 - INFO: Number of structures: 429
+2025-02-27 10:32:18,396 - INFO: Screening structures above 3.50 Å resolution
+2025-02-27 10:32:18,426 - INFO: Number of structures: 419
+2025-02-27 10:32:18,426 - INFO: Removing structures missing residues
+2025-02-27 10:40:22,997 - WARNING: Chain ID not found in raw structure of 3tf7 and chains c-C-B-A. Structure will be removed.
+2025-02-27 10:46:45,860 - WARNING: Chain ID not found in raw structure of 3tf7 and chains g-G-F-E. Structure will be removed.
+2025-02-27 10:53:51,829 - INFO: Number of structures: 356
+2025-02-27 10:53:51,869 - INFO: Getting sequence information...
+2025-02-27 10:56:46,829 - INFO: Removing structures within 2.00 Å RMSD
+2025-02-27 11:02:05,658 - INFO: Number of structures: 251
+2025-02-27 11:02:05,680 - INFO: Outputing structures...

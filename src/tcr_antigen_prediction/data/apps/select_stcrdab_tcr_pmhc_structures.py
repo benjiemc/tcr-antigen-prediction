@@ -333,7 +333,7 @@ def add_cdr_sequences(pdb_id: str, alpha_chain_id: str, beta_chain_id: str, imgt
     structure = PDBParser().get_structure(pdb_id, imgt_file_path)
 
     sequences = {
-        f'cdr_{chain_type[0]}{cdr_num}': get_sequence(structure, chain_id, numbering)
+        f"cdr{cdr_num}_{chain_type.replace('_chain', '')}": get_sequence(structure, chain_id, numbering)
         for chain_type, chain_id in (('alpha_chain', alpha_chain_id), ('beta_chain', beta_chain_id))
         for cdr_num, numbering in ((1, IMGT_CDR1), (2, IMGT_CDR2), (3, IMGT_CDR3))
     }
@@ -378,9 +378,7 @@ def remove_similar_structures(df: pd.DataFrame, threshold: float) -> pd.DataFram
     """
     output_dfs = []
 
-    for (cdr_sequence, peptide_sequence, mhc_type), group in df.groupby(
-        ['collated_cdrs', 'peptide_sequence', 'mhc_type']
-    ):
+    for (cdr_sequence, peptide_sequence, mhc_type), group in df.groupby(['collated_cdrs', 'peptide', 'mhc_type']):
         if len(group) == 1:
             output_dfs.append(group)
             continue
@@ -504,7 +502,7 @@ def main():
         lambda row: add_peptide_sequences(row.pdb, row.antigen_chain, row.imgt_file_path),
         axis=1,
     )
-    peptide_sequences.name = 'peptide_sequence'
+    peptide_sequences.name = 'peptide'
 
     mhc_tcr_contacts_available = args.mhc_class_I_tcr_contact_residues or (
         args.mhc_class_II_alpha_chain_tcr_contact_residues and args.mhc_class_II_beta_chain_tcr_contact_residues
@@ -537,7 +535,7 @@ def main():
             ),
             axis=1,
         )
-        mhc_tcr_contact_pseudo_sequences.name = 'mhc_tcr_contact_pseudo_sequence'
+        mhc_tcr_contact_pseudo_sequences.name = 'mhc_pseudo'
 
         selected_structures = pd.concat(
             [
@@ -555,17 +553,17 @@ def main():
         )
 
     selected_structures['collated_cdrs'] = (
-        selected_structures['cdr_a1']
+        selected_structures['cdr1_alpha']
         + '-'
-        + selected_structures['cdr_a2']
+        + selected_structures['cdr2_alpha']
         + '-'
-        + selected_structures['cdr_a3']
+        + selected_structures['cdr3_alpha']
         + '-'
-        + selected_structures['cdr_b1']
+        + selected_structures['cdr1_beta']
         + '-'
-        + selected_structures['cdr_b2']
+        + selected_structures['cdr2_beta']
         + '-'
-        + selected_structures['cdr_b3']
+        + selected_structures['cdr3_beta']
     )
 
     if args.structural_similarity_cutoff:
@@ -591,9 +589,31 @@ def main():
     if not os.path.exists(args.output):
         os.mkdir(args.output)
 
+    logger.debug('Formatting meta data')
     selected_structures['path'] = selected_structures.apply(
         lambda row: f'{row.pdb}_{row.Achain}{row.Bchain}{row.antigen_chain}{row.mhc_chain1}{row.mhc_chain2}.pdb',
         axis=1,
+    )
+
+    selected_structures = selected_structures.rename(
+        {'alpha_subgroup': 'v_alpha', 'beta_subgroup': 'v_beta'},
+        axis='columns',
+    )
+    selected_structures['species'] = (
+        selected_structures.filter(regex='(?<!antigen_)organism')
+        .fillna('')
+        .apply(set, axis='columns')
+        .map(list)
+        .map(sorted)
+        .map('/'.join)
+        .str.strip('/')
+        .str.replace('homo sapiens', 'Human')
+        .str.replace('mus musculus', 'Mouse')
+        .str.replace('triticum aestivum', 'Wheat')
+        .str.replace('macaca mulatta', 'Rhesus Monkey')
+        .str.replace('manduca sexta', 'Tobacco Hornworm')
+        .str.replace('pan troglodytes', 'Chimpanzee')
+        .str.replace('escherichia coli', 'E. coli')
     )
 
     output_columns = [
@@ -605,12 +625,20 @@ def main():
         'mhc_chain1',
         'mhc_chain2',
         'mhc_type',
-        'peptide_sequence',
-        'collated_cdrs',
+        'cdr1_alpha',
+        'cdr2_alpha',
+        'cdr3_alpha',
+        'cdr1_beta',
+        'cdr2_beta',
+        'cdr3_beta',
+        'v_alpha',
+        'v_beta',
+        'peptide',
+        'species',
     ]
 
     if mhc_tcr_contacts_available:
-        output_columns.append('mhc_tcr_contact_pseudo_sequence')
+        output_columns.append('mhc_pseudo')
 
     selected_structures[output_columns].to_csv(os.path.join(args.output, 'stcrdab_split.csv'), index=False)
 
