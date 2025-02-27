@@ -51,7 +51,8 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument('stcrdab', help='path to the STCRDab')
 
-parser.add_argument('--output', '-o', help='output path')
+parser.add_argument('--output', '-o', required=True, help='directory to output selected structures')
+parser.add_argument('--output-summary-csv', required=True, help='path to output summary csv file of structures')
 parser.add_argument('--seed', default=None, type=int, help='random seed for data splitting')
 parser.add_argument(
     '--mhc-class-I-tcr-contact-residues',
@@ -640,14 +641,15 @@ def main():
     if mhc_tcr_contacts_available:
         output_columns.append('mhc_pseudo')
 
-    selected_structures[output_columns].to_csv(os.path.join(args.output, 'stcrdab_split.csv'), index=False)
+    logger.debug('Output summary file to %s', args.output_summary_csv)
+    selected_structures[output_columns].to_csv(args.output_summary_csv, index=False)
 
     pdb_parser = PDBParser()
     for _, row in selected_structures.iterrows():
         structure = pdb_parser.get_structure(row.pdb, row.imgt_file_path)
         output_chains = [row.Achain, row.Bchain, row.antigen_chain, row.mhc_chain1, row.mhc_chain2]
 
-        logger.debug('Outputting %s...', row.path)
+        logger.debug('Outputting PDB structure %s...', row.path)
 
         if args.remove_het_atoms:
             logger.debug('Removing hetero atoms')

@@ -18,7 +18,9 @@ rule select_stcrdab_structures:
         stcrdab_path="data/raw/stcrdab",
         tcr_mhc_class_I_contacts="data/interim/tcr_mhc_class_I_contacts.csv",
         tcr_mhc_class_II_contacts="data/interim/tcr_mhc_class_II_contacts.csv"
-    output: directory("data/processed/selected-stcrdab")
+    output:
+        structures=directory("data/processed/selected-stcrdab"),
+        summary="data/interim/structures_summary.csv"
     resources:
         runtime="1h",
         mem="500MB",
@@ -41,12 +43,15 @@ rule select_stcrdab_structures:
             --remove-structures-missing-residues \
             --fix-structures-missing-residues \
             --structural-similarity-cutoff 2.0 \
-            -o {output} \
+            --output-summary-csv {output.summary}
+            -o {output.structures} \
             {input.stcrdab_path}
         """
 
 rule create_contact_maps:
-    input: "data/processed/selected-stcrdab"
+    input:
+        structures="data/processed/selected-stcrdab",
+        summary="data/interim/structures_summary.csv"
     output: "data/processed/tcr_pmhc_contacts.csv"
     resources:
         runtime="10m",
@@ -60,8 +65,8 @@ rule create_contact_maps:
             --mhc-norm imgt_number \
             --peptide-norm relative_pos_centre \
             -o {output} \
-            --summary-csv {input}/stcrdab_split.csv \
-            {input}/*.pdb \
+            --summary-csv {input.summary} \
+            {input.structures}/*.pdb \
         """
 
 rule get_mhc_pseudo_sequence_imgt_numbers:

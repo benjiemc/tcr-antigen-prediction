@@ -10,7 +10,7 @@ rule run_identify_contact_residues_notebook:
     notebook: "../../notebooks/Identify_contact_residues_on_MHC_molecules.ipynb"
 
 rule run_visualise_structure_data_notebook:
-    input: "data/processed/selected-stcrdab", "data/logs/select_stcrdab_tcr_pmhc_structures.log"
+    input: "data/interim/structures_summary.csv", "data/logs/select_stcrdab_tcr_pmhc_structures.log"
     resources:
         runtime="5m",
         mem="1GB",

@@ -5,10 +5,11 @@ Test app (standard)
   > --tcr-types abTCR \
   > --mhc-types MH1 MH2 \
   > --antigen-types peptide \
+  > --output-summary-csv structure_summary.csv \
   > -o output \
   > $TESTDIR/data/stcrdab-mock/
 
-  $ diff output/stcrdab_split.csv $TESTDIR/reference/standard/stcrdab_split.csv
+  $ diff structure_summary.csv $TESTDIR/reference/standard/structure_summary.csv
 
   $ diff output/3qiw_CDEAB.pdb $TESTDIR/reference/standard/3qiw_CDEAB.pdb
   $ diff output/7q9b_DECAB.pdb $TESTDIR/reference/standard/7q9b_DECAB.pdb
@@ -24,10 +25,11 @@ Test app adding MHC-TCR Pseudo Sequences
   > --mhc-class-I-tcr-contact-residues 1058 1061A 1062 1063 1065 1066 1068 1069 1070 1073 1076 1077 58 62 65 66 68 69 72 73 75 76 79 \
   > --mhc-class-II-alpha-chain-tcr-contact-residues 63 65 66 68 69 70 72 73 76 \
   > --mhc-class-II-beta-chain-tcr-contact-residues 58 61A 61B 62 63 65 66 69 72 72A 76 \
+  > --output-summary-csv mhc_tcr_pseudo_structure_summary.csv \
   > -o output-mhc-tcr-pseudo-seqs \
   > $TESTDIR/data/stcrdab-mock/
 
-  $ diff output-mhc-tcr-pseudo-seqs/stcrdab_split.csv $TESTDIR/reference/mhc-tcr-pseudo-seqs/stcrdab_split.csv
+  $ diff mhc_tcr_pseudo_structure_summary.csv $TESTDIR/reference/mhc-tcr-pseudo-seqs/structure_summary.csv
 
 Test removing structures missing residues
   $ python -m tcr_antigen_prediction.data.apps.select_stcrdab_tcr_pmhc_structures \
@@ -37,10 +39,11 @@ Test removing structures missing residues
   > --mhc-types MH1 MH2 \
   > --antigen-types peptide \
   > --remove-structures-missing-residues \
+  > --output-summary-csv no_missing_resiudes_structure_summary.csv \
   > -o output-no-missing-residues \
   > $TESTDIR/data/stcrdab-mock/
 
-  $ diff output-no-missing-residues/stcrdab_split.csv $TESTDIR/reference/output-no-missing-residues/stcrdab_split.csv
+  $ diff no_missing_resiudes_structure_summary.csv $TESTDIR/reference/output-no-missing-residues/structure_summary.csv
 
 Test fixing structures missing reisdues
   $ python -m tcr_antigen_prediction.data.apps.select_stcrdab_tcr_pmhc_structures \
@@ -51,10 +54,11 @@ Test fixing structures missing reisdues
   > --antigen-types peptide \
   > --remove-structures-missing-residues \
   > --fix-structures-missing-residues \
+  > --output-summary-csv fix_missing_residues_structure_summary.csv \
   > -o output-fixed-missing-residues \
   > $TESTDIR/data/stcrdab-mock/
 
-  $ diff output-fixed-missing-residues/stcrdab_split.csv $TESTDIR/reference/fixed-missing-residues/stcrdab_split.csv
+  $ diff fix_missing_residues_structure_summary.csv $TESTDIR/reference/fixed-missing-residues/structure_summary.csv
   $ diff output-fixed-missing-residues/3qiw_CDEAB.pdb $TESTDIR/reference/fixed-missing-residues/3qiw_CDEAB.pdb
   $ diff output-fixed-missing-residues/6v19_DECAB.pdb $TESTDIR/reference/fixed-missing-residues/6v19_DECAB.pdb
 
@@ -66,10 +70,11 @@ Test structural similarity cutoff
   > --mhc-types MH1 MH2 \
   > --antigen-types peptide \
   > --structural-similarity-cutoff 2.0 \
+  > --output-summary-csv structural_similarity_cutoff_structure_summary.csv \
   > -o output-structural-similarity-cutoff \
   > $TESTDIR/data/stcrdab-mock/
 
-  $ diff output-structural-similarity-cutoff/stcrdab_split.csv $TESTDIR/reference/structural-similarity-cutoff/stcrdab_split.csv
+  $ diff structural_similarity_cutoff_structure_summary.csv $TESTDIR/reference/structural-similarity-cutoff/structure_summary.csv
 
 Test crop structures
   $ python -m tcr_antigen_prediction.data.apps.select_stcrdab_tcr_pmhc_structures \
@@ -79,10 +84,11 @@ Test crop structures
   > --mhc-types MH1 MH2 \
   > --antigen-types peptide \
   > --crop-structures \
+  > --output-summary-csv crop_structure_structure_summary.csv \
   > -o output-crop \
   > $TESTDIR/data/stcrdab-mock/
 
-  $ diff output-crop/stcrdab_split.csv $TESTDIR/reference/crop/stcrdab_split.csv
+  $ diff crop_structure_structure_summary.csv $TESTDIR/reference/crop/structure_summary.csv
 
   $ diff output-crop/3qiw_CDEAB.pdb $TESTDIR/reference/crop/3qiw_CDEAB.pdb
   $ diff output-crop/7q9b_DECAB.pdb $TESTDIR/reference/crop/7q9b_DECAB.pdb
@@ -96,10 +102,11 @@ Test remove HETATMs
   > --mhc-types MH1 MH2 \
   > --antigen-types peptide \
   > --remove-het-atoms \
+  > --output-summary-csv remove_hetatms_structure_summary.csv \
   > -o output-no-het-atoms \
   > $TESTDIR/data/stcrdab-mock/
 
-  $ diff output-no-het-atoms/stcrdab_split.csv $TESTDIR/reference/no-het-atoms/stcrdab_split.csv
+  $ diff remove_hetatms_structure_summary.csv $TESTDIR/reference/no-het-atoms/structure_summary.csv
 
   $ diff output-no-het-atoms/3qiw_CDEAB.pdb $TESTDIR/reference/no-het-atoms/3qiw_CDEAB.pdb
   $ diff output-no-het-atoms/7q9b_DECAB.pdb $TESTDIR/reference/no-het-atoms/7q9b_DECAB.pdb
