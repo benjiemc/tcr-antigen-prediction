@@ -318,3 +318,19 @@ rule select_external_structures:
             {input.data_dir}
         cat "{output}/structures_summary.csv" | sed 1d | cut -d, -f1 | xargs -I % cp {input.data_dir}/%.pdb {output}/
         """
+
+rule download_immrep_2025_data:
+    output: "data/external/immrep2025.zip"
+    shell:
+        """
+        wget -O {output} "https://storage.googleapis.com/kaggle-competitions-data/kaggle-v2/90596/11270508/bundle/archive.zip?GoogleAccessId=web-data@kaggle-161607.iam.gserviceaccount.com&Expires=1741257712&Signature=KKcAzJCqhfISPZc2pOl6wUc02auUwRJ%2BUPRfo1o%2FSLPA1aK1PGLfJGvA7XgtoEmSS6gztZgjg4gwfJP%2BTgYiP%2B2Msyil0xcM2zRoEthK1kWEPuXXEolgWgSbwzukc%2FdOM8MBuV%2BdQl%2FoRADT45hZc4TaQpVvssczN1YChsPrrrlaQGJLxQeSxkgckmBahc%2Fi3E%2Ffg6yF8np2DqU5o07d9AucJCdtjxWzo8YXPS7d4Jy%2B1mQVQkYBWnWNlF%2F6hLfHd%2FaeosI9MOVRT4kASWJsa0iviMKHzn7OgOpGM88Op5t0Wxf1WyKWBtH8NqilhrLfOL9WJAAkYAAwIVUBayZeCA%3D%3D&response-content-disposition=attachment%3B+filename%3Dimmrep25.zip"
+        """
+
+rule uncompress_immrep_2025_data:
+    input: "data/external/immrep2025.zip"
+    output:
+        "data/interim/iedb_positives.csv",
+        "data/interim/sample_submission.csv",
+        "data/interim/test.csv",
+        "data/interim/vdjdb_positives.csv"
+    shell: "unzip {input} -d data/interim/"
