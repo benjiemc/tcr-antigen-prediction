@@ -617,6 +617,11 @@ def main():
         .str.replace('escherichia coli', 'E. coli')
     )
 
+    selected_structures['mhc_chain2'] = selected_structures.apply(
+        lambda row: '' if row.mhc_type == 'MH1' and args.crop_structures else row.mhc_chain2,
+        axis=1,
+    )
+
     output_columns = [
         'path',
         'pdb',
