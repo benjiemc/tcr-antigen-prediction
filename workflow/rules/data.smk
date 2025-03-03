@@ -14,10 +14,7 @@ rule download_stcrdab:
     shell: "python -m tcr_antigen_prediction.data.apps.download_stcrdab --log-level {config[log_level]} {output}"
 
 rule select_stcrdab_structures:
-    input:
-        stcrdab_path="data/raw/stcrdab",
-        tcr_mhc_class_I_contacts="data/interim/tcr_mhc_class_I_contacts.csv",
-        tcr_mhc_class_II_contacts="data/interim/tcr_mhc_class_II_contacts.csv"
+    input: "data/raw/stcrdab"
     output:
         structures=directory("data/processed/selected-stcrdab"),
         summary="data/interim/structures_summary.csv"
@@ -35,17 +32,14 @@ rule select_stcrdab_structures:
             --tcr-types abTCR \
             --mhc-types MH1 MH2 \
             --antigen-types peptide \
-            --mhc-class-I-tcr-contact-residues $(cut -d, -f2 {input.tcr_mhc_class_I_contacts} | sed 1d | sort | uniq | tr '\n' ' ') \
-            --mhc-class-II-alpha-chain-tcr-contact-residues $(awk -F ',' '$2 == "mhc_chain1" {{ print $3 }}' {input.tcr_mhc_class_II_contacts} | sort | uniq | tr '\n' ' ') \
-            --mhc-class-II-beta-chain-tcr-contact-residues $(awk -F ',' '$2 == "mhc_chain2" {{ print $3 }}' {input.tcr_mhc_class_II_contacts} | sort | uniq | tr '\n' ' ') \
             --crop-structures \
             --remove-het-atoms \
             --remove-structures-missing-residues \
             --fix-structures-missing-residues \
             --structural-similarity-cutoff 2.0 \
-            --output-summary-csv {output.summary}
+            --output-summary-csv {output.summary} \
             -o {output.structures} \
-            {input.stcrdab_path}
+            {input}
         """
 
 rule create_contact_maps:
@@ -73,6 +67,26 @@ rule get_mhc_pseudo_sequence_imgt_numbers:
     input: "data/processed/tcr_pmhc_contacts.csv"
     output: "data/interim/mhc_pseudo_seq_imgt_positions.json"
     shell: "python -m tcr_antigen_prediction.data.apps.get_mhc_pseudo_sequence_imgt_numbers --log-level {config[log_level]} -o {output} {input}"
+
+rule add_mhc_pseudo_sequences:
+    input:
+        structures="data/processed/selected-stcrdab",
+        summary="data/interim/structures_summary.csv",
+        mhc_pseudo_imgt="data/interim/mhc_pseudo_seq_imgt_positions.json"
+    output: "data/processed/structures_summary.csv"
+    resources:
+        runtime="10m",
+        mem="500MB",
+        tasks=1
+    shell:
+        """
+        python -m tcr_antigen_prediction.data.apps.annotate_mhc_pseudo_sequences \
+            --log-level {config[log_level]} \
+            -o {output} \
+            --summary-csv {input.summary} \
+            --mhc-pseudo-sequence-imgt-numbers {input.mhc_pseudo_imgt} \
+            {input.structures}/*.pdb
+        """
 
 rule collate_sequence_data:
     input:

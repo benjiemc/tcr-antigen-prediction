@@ -54,24 +54,6 @@ parser.add_argument('stcrdab', help='path to the STCRDab')
 parser.add_argument('--output', '-o', required=True, help='directory to output selected structures')
 parser.add_argument('--output-summary-csv', required=True, help='path to output summary csv file of structures')
 parser.add_argument('--seed', default=None, type=int, help='random seed for data splitting')
-parser.add_argument(
-    '--mhc-class-I-tcr-contact-residues',
-    nargs='+',
-    default=[],
-    help='list of IMGT residue codes that are in contact positions on the MHC class I molecules',
-)
-parser.add_argument(
-    '--mhc-class-II-alpha-chain-tcr-contact-residues',
-    nargs='+',
-    default=[],
-    help='list of IMGT residue codes that are in contact positions on the MHC class II alpha-chain',
-)
-parser.add_argument(
-    '--mhc-class-II-beta-chain-tcr-contact-residues',
-    nargs='+',
-    default=[],
-    help='list of IMGT residue codes that are in contact positions on the MHC class II beta-chain',
-)
 
 structure_type_group = parser.add_argument_group('Structure Types')
 structure_type_group.add_argument(
@@ -349,29 +331,6 @@ def add_peptide_sequences(pdb_id: str, antigen_chain_id: str, imgt_file_path: st
     return get_sequence(structure, antigen_chain_id)
 
 
-def add_mhc_tcr_contact_pseudo_sequences(
-    pdb_id: str,
-    mhc_type: str,
-    mhc_chain_1_id: str,
-    mhc_chain_2_id: str,
-    stcrdab_path: str,
-    mhc_tcr_contact_residues: set[int] | tuple[set[int], set[int]],
-) -> str:
-    """Add MHC-TCR contact pseudo sequences."""
-    structure = PDBParser().get_structure(pdb_id, os.path.join(stcrdab_path, 'imgt', pdb_id + '.pdb'))
-
-    if mhc_type == 'MH1':
-        return get_sequence(structure, mhc_chain_1_id, mhc_tcr_contact_residues)
-
-    if mhc_type == 'MH2':
-        return get_sequence(structure, mhc_chain_1_id, mhc_tcr_contact_residues[0]) + get_sequence(
-            structure, mhc_chain_2_id, mhc_tcr_contact_residues[1]
-        )
-
-    msg = f'Invalid MHC type: {mhc_type}. Type must be MH1 or MH2.'
-    raise ValueError(msg)
-
-
 def remove_similar_structures(df: pd.DataFrame, threshold: float) -> pd.DataFrame:
     """Remove structures with the same CDR and peptide sequences within the RMSD threshold.
 
@@ -505,53 +464,10 @@ def main():
     )
     peptide_sequences.name = 'peptide'
 
-    mhc_tcr_contacts_available = args.mhc_class_I_tcr_contact_residues or (
-        args.mhc_class_II_alpha_chain_tcr_contact_residues and args.mhc_class_II_beta_chain_tcr_contact_residues
+    selected_structures = pd.concat(
+        [selected_structures, cdr_sequences, peptide_sequences.to_frame()],
+        axis='columns',
     )
-    if mhc_tcr_contacts_available:
-        mhc_i_tcr_contact_residues_range = {
-            int(''.join([character for character in seq_id if character.isnumeric()]))
-            for seq_id in args.mhc_class_I_tcr_contact_residues
-        }
-
-        mhc_ii_tcr_contact_residues_range = (
-            {
-                int(''.join([character for character in seq_id if character.isnumeric()]))
-                for seq_id in args.mhc_class_II_alpha_chain_tcr_contact_residues
-            },
-            {
-                int(''.join([character for character in seq_id if character.isnumeric()]))
-                for seq_id in args.mhc_class_II_beta_chain_tcr_contact_residues
-            },
-        )
-
-        mhc_tcr_contact_pseudo_sequences = selected_structures.apply(
-            lambda row: add_mhc_tcr_contact_pseudo_sequences(
-                row.pdb,
-                row.mhc_type,
-                row.mhc_chain1,
-                row.mhc_chain2,
-                args.stcrdab,
-                mhc_i_tcr_contact_residues_range if row.mhc_type == 'MH1' else mhc_ii_tcr_contact_residues_range,
-            ),
-            axis=1,
-        )
-        mhc_tcr_contact_pseudo_sequences.name = 'mhc_pseudo'
-
-        selected_structures = pd.concat(
-            [
-                selected_structures,
-                cdr_sequences,
-                peptide_sequences.to_frame(),
-                mhc_tcr_contact_pseudo_sequences.to_frame(),
-            ],
-            axis='columns',
-        )
-
-    else:
-        selected_structures = pd.concat(
-            [selected_structures, cdr_sequences, peptide_sequences.to_frame()], axis='columns'
-        )
 
     selected_structures['collated_cdrs'] = (
         selected_structures['cdr1_alpha']
@@ -642,9 +558,6 @@ def main():
         'peptide',
         'species',
     ]
-
-    if mhc_tcr_contacts_available:
-        output_columns.append('mhc_pseudo')
 
     logger.debug('Output summary file to %s', args.output_summary_csv)
     selected_structures[output_columns].to_csv(args.output_summary_csv, index=False)

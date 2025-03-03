@@ -1,16 +1,5 @@
-rule run_identify_contact_residues_notebook:
-    input: "data/raw/stcrdab"
-    output:
-        "data/interim/tcr_mhc_class_I_contacts.csv",
-        "data/interim/tcr_mhc_class_II_contacts.csv"
-    resources:
-        runtime="20m",
-        mem="10GB",
-        tasks=1
-    notebook: "../../notebooks/Identify_contact_residues_on_MHC_molecules.ipynb"
-
 rule run_visualise_structure_data_notebook:
-    input: "data/interim/structures_summary.csv", "data/logs/select_stcrdab_tcr_pmhc_structures.log"
+    input: "data/processed/structures_summary.csv", "data/logs/select_stcrdab_tcr_pmhc_structures.log"
     resources:
         runtime="5m",
         mem="1GB",
