@@ -1,0 +1,5 @@
+outs:
+- md5: 2f19c7632954a91a5a76a584b950f00c
+  size: 36434
+  hash: md5
+  path: structures_summary.csv
