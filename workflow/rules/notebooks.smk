@@ -14,14 +14,13 @@ rule run_visualise_sequence_data_notebook:
         tasks=1
     notebook: "../../notebooks/visualise_sequence_data.ipynb"
 
-rule run_process_and_visualise_tcr_pmhc_contact_maps_notebook:
+rule run_visualise_tcr_pmhc_contact_maps_notebook:
     input: "data/processed/tcr_pmhc_contacts.csv", "data/interim/mhc_pseudo_seq_imgt_positions.json"
-    output: "data/processed/contact_maps.h5"
     resources:
         runtime="5m",
         mem="1GB",
         tasks=1
-    notebook: "../../notebooks/process_and_visualise_tcr_pmhc_contact_maps.ipynb"
+    notebook: "../../notebooks/visualise_tcr_pmhc_contact_maps.ipynb"
 
 rule run_visualising_and_evaluating_tcr_struct_map_training_notebook:
     input: "data/logs/train_tcr_struct_map.log"

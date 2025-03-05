@@ -88,6 +88,26 @@ rule add_mhc_pseudo_sequences:
             {input.structures}/*.pdb
         """
 
+rule process_contact_maps:
+    input:
+        contacts="data/processed/tcr_pmhc_contacts.csv",
+        mhc_pseudo_imgt="data/interim/mhc_pseudo_seq_imgt_positions.json"
+    output: "data/processed/contact_maps.h5"
+    resources:
+        runtime="5m",
+        mem="100MB",
+        tasks=1
+    shell:
+        """
+        python -m tcr_antigen_prediction.data.apps.process_contact_maps \
+            --log-level {config[log_level]} \
+            --mhc-types MH1 \
+            --pad \
+            -o {output} \
+            --mhc-pseudo-sequence-imgt-numbers {input.mhc_pseudo_imgt} \
+            {input.contacts}
+        """
+
 rule collate_sequence_data:
     input:
         iedb="data/raw/iedb.csv",
