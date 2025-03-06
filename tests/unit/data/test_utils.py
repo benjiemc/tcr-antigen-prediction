@@ -1,6 +1,68 @@
 from unittest import TestCase
 
-from tcr_antigen_prediction.data.utils import centre_pad, left_pad, mhc_code_to_slug, mhc_slug_to_code, right_pad
+from tcr_antigen_prediction.data.utils import (
+    assign_mhc_class,
+    assign_species,
+    centre_pad,
+    get_cdr_sequences,
+    get_mhc_pseudo_sequence,
+    left_pad,
+    mhc_code_to_slug,
+    mhc_slug_to_code,
+    right_pad,
+    stitch_sequence,
+)
+
+
+class TestStitchSequence(TestCase):
+    def test_alpha_chain(self):
+        self.assertEqual(
+            stitch_sequence('TRAV6N-7*01', 'TRAJ11*01', 'CALAPPDKLTF', 'Mouse'),
+            'MNSSPGFMTVMLLIFTRAHGDSVTQTEGQVALSEEDFLTIHCNYSASGYPALFWYVQYPGEGPQFLFRASRDKEKGSSRGFEATYDKGTTSFHLRKASVQESDSAV'
+            'YYCALAPPDKLTFGKGTVLLVSPDIQNPEPAVYQLKDPRSQDSTLCLFTDFDSQINVPKTMESGTFITDKTVLDMKAMDSKSNGAIAWSNQTSFTCQDIFKETNAT'
+            'YPSSDVPCDATLTEKSFETDMNLNFQNLSVMGLRILLLKVAGFNLLMTLRLWSS',
+        )
+
+    def test_beta_chain(self):
+        self.assertEqual(
+            stitch_sequence('TRBV12-1*01', 'TRBJ2-2*01', 'CASSVPGQGDTGQLYF', 'Mouse'),
+            'MSNTVLADSAWGITLLSWVTVFLLGTSSADSGVVQSPRHIIKEKGGRSVLTCIPISGHSNVVWYQQTLGKELKFLIQHYEKVERDKGFLPSRFSVQQFDDYHSEMN'
+            'MSALELEDSAMYFCASSVPGQGDTGQLYFGEGSKLTVLEDLRNVTPPKVSLFEPSKAEIANKQKATLVCLARGFFPDHVELSWWVNGKEVHSGVSTDPQAYKESNY'
+            'SYCLSSRLRVSATFWHNPRNHFRCQVQFHGLSEEDKWPEGSPKPVTQNISAEAWGRADCGITSASYHQGVLSATILYEILLGKATLYAVLVSGLVLMAMVKKKNS',
+        )
+
+
+class TestGetCDRSequences(TestCase):
+    def test_alpha_chain(self):
+        cdr1_alpha, cdr2_alpha, cdr3_alpha = get_cdr_sequences(
+            'MDAGVIQSPRHEVTEMGQEVTLRCKPISGHNSLFWYRQTMMRGLELLIYFNNNVPIDDSGMPEDRFSAKMPNASFSTLKIQPSEPRDSAVYFCASTWGRASTDTQY'
+            'FGPGTRLTVLEDLKNVFPPEVAVFEPSEAEISHTQKATLVCLATGFYPDHVELSWWVNGKEVHSGVCTDPQPLKEQPALNDSRYALSSRLRVSATFWQNPRNHFRC'
+            'QVQFYGLSENDEWTQDRAKPVTQIVSAEAWGRAD',
+        )
+
+        self.assertEqual(cdr1_alpha, 'SGHNS')
+        self.assertEqual(cdr2_alpha, 'FNNNVP')
+        self.assertEqual(cdr3_alpha, 'ASTWGRASTDTQY')
+
+    def test_beta_chain(self):
+        cdr1_beta, cdr2_beta, cdr3_beta = get_cdr_sequences(
+            'MAQTVTQSQPEMSVQEAETVTLSCTYDTSESDYYLFWYKQPPSRQMILVIRQEAYKQQNATENRFSVNFQKAAKSFSLKISDSQLGDAAMYFCASSGNTPLVFGKG'
+            'TRLSVIPNIQNPDPAVYQLRDSKSSDKSVCLFTDFDSQTNVSQSKDSDVYITDKCVLDMRSMDFKSNSAVAWSNKSDFACANAFNNSIIPEDTFFPSPESS'
+        )
+
+        self.assertEqual(cdr1_beta, 'TSESDYY')
+        self.assertEqual(cdr2_beta, 'QEAYKQQN')
+        self.assertEqual(cdr3_beta, 'ASSGNTPLV')
+
+    def test_invalid(self):
+        cdr1, cdr2, cdr3 = get_cdr_sequences(
+            'CLFTDFDSQTNVSQSKDSDVNSIIPEDTRLSVIPNSMDFKSNSAVAWSNKSDFACANAIQNPDPAVYQLRDSKSSYITDKCVLDMRFNDKSVTFFPSPESSMAQTV'
+            'TQSQPEMLVIRQEAYKQQNATENRFSMYFCSVQEAETVTLSCTYDTSVNFQKAAKSFSLKISDSQLGDAAESDYYLFWYKQPPSRQMIASSGNTPLVFGKG'
+        )
+
+        self.assertIsNone(cdr1)
+        self.assertIsNone(cdr2)
+        self.assertIsNone(cdr3)
 
 
 class TestMHCCodeToSlug(TestCase):
@@ -17,6 +79,71 @@ class TestMHCSlugToCode(TestCase):
 
     def test_mouse(self):
         self.assertEqual(mhc_slug_to_code('h2_kb'), 'H2-Kb')
+
+
+class TestAssignMHCClass(TestCase):
+    def test_class_i_human(self):
+        self.assertEqual(assign_mhc_class('HLA-A*02:01'), 'MH1')
+
+    def test_class_ii_human(self):
+        self.assertEqual(assign_mhc_class('HLA-DQ*02:01'), 'MH2')
+
+    def test_class_i_mouse(self):
+        self.assertEqual(assign_mhc_class('H2-D'), 'MH1')
+
+    def test_class_ii_mouse(self):
+        self.assertEqual(assign_mhc_class('H2-IA'), 'MH2')
+
+
+class TestGetMHCPseudoSequence(TestCase):
+    def setUp(self):
+        self.imgt_pseudo_seq_positions = {
+            'alpha': ['62', '63', '65', '66', '68', '69', '70', '72', '73', '75', '76', '79'],
+            'beta': ['58', '61A', '62', '63', '65', '66', '67', '69', '70', '72', '72A', '73', '76', '77'],
+        }
+
+    def test_mh1(self):
+        mhc_sequence = (
+            'GSHSMRYFYTSVSRPGRGEPRFISVGYVDDTQFVRFDSDAASPREEPRAPWIEQEGPEYWDRNTQIYKAQAQTDRESLRNLRGYYNQSEAGSHTLQSMYGCDVGPD'
+            'GRLLRGHDQYAYDGKDYIALNEDLRSWTAADTAAQITQRKWEAAREAEQRRAYLEGECVEWLRRYLENGKDKLERADPPKTHVTHHPISDHEATLRCWALGFYPAE'
+            'ITLTWQRDGEDQTQDTELVETRPAGDRTFQKWAAVVVPSGEEQRYTCHVQHEGLPKPLTLRWE'
+        )
+
+        self.assertEqual(
+            get_mhc_pseudo_sequence(mhc_sequence, None, 'MH1', self.imgt_pseudo_seq_positions),
+            'RNQIKAQQTRERKAREEQRAYEGEEW',
+        )
+
+    def test_mh2(self):
+        mhc1_sequence = (
+            'IKEEHTIIQAEFYLLPDKRGEFMFDFDGDEIFHVDIEKSETIWRLEEFAKFASFEAQGALANIAVDKANLDVMKERSNNTPDANVAPEVTVLSRSPVNLGEPNILI'
+            'CFIDKFSPPVVNVTWLRNGRPVTEGVSETVFLPRDDHLFRKFHYLTFLPSTDDFYDCEVDHWGLEEPLRKTWEFEEKTLLPETKEN'
+        )
+
+        mhc2_sequence = (
+            'RDSRDRMVNHFIAEFKRKGGSLVPRGSGGGGSRPWFLEYCKSECHFYNGTQRVRLLVRYFYNLEENLRFDSDVGEFRAVTELGRPDAENWNSQPEFLEQKRAEVDT'
+            'VCRHNYEIFDNFLVPRRVEPTVTVYPTKTQPLEHHNLLVCSVSDFYPGNIEVRWFRNGKEEKTGIVSTGLVRNGDWTFQTLVMLETVPQSGEVYTCQVEHPSLTDP'
+            'VTVEWKAQSTSAQNK'
+        )
+
+        self.assertEqual(
+            get_mhc_pseudo_sequence(mhc1_sequence, mhc2_sequence, 'MH2', self.imgt_pseudo_seq_positions),
+            'FEQGLANAVKADNQEFEQKAEDTVHN',
+        )
+
+
+class TestAssignSpecies(TestCase):
+    def test_human(self):
+        self.assertEqual(assign_species('HLA-A*02:01'), 'Human')
+        self.assertEqual(assign_species('HLA-E*03:01'), 'Human')
+        self.assertEqual(assign_species('HLA-DQ*02:01'), 'Human')
+
+    def test_mouse(self):
+        self.assertEqual(assign_species('H2-A'), 'Mouse')
+        self.assertEqual(assign_species('H2-D'), 'Mouse')
+
+    def test_chicken(self):
+        self.assertEqual(assign_species('Gaga-BF1*002:01:01'), 'Chicken')
 
 
 class TestCentrePad(TestCase):
