@@ -8,6 +8,7 @@ import sys
 import tempfile
 
 import pandas as pd
+import requests
 from Bio.PDB import PDBIO, PDBParser, Structure
 from sklearn.cluster import AgglomerativeClustering
 
@@ -110,6 +111,8 @@ quality_group.add_argument(
 )
 
 add_logging_arguments(parser)
+
+HISTO_FYI_BASE_URL = 'https://api.histo.fyi/v1/structures/{pdb}'
 
 
 def fix_structure(
@@ -331,6 +334,19 @@ def add_peptide_sequences(pdb_id: str, antigen_chain_id: str, imgt_file_path: st
     return get_sequence(structure, antigen_chain_id)
 
 
+def add_mhc_allele_information(pdb_id: str) -> tuple[str | None, str | None]:
+    """Get MHC allele information from histo.fyi if available."""
+    request = requests.get(HISTO_FYI_BASE_URL.format(pdb=pdb_id), timeout=20)
+    content = request.json()
+
+    if content['structure'] is None:
+        return None, None
+
+    alleles = tuple([content['structure']['allele'][chain].get('name', None) for chain in ('alpha', 'beta')])
+
+    return alleles
+
+
 def remove_similar_structures(df: pd.DataFrame, threshold: float) -> pd.DataFrame:
     """Remove structures with the same CDR and peptide sequences within the RMSD threshold.
 
@@ -483,6 +499,15 @@ def main():
         + selected_structures['cdr3_beta']
     )
 
+    logger.info('Getting available MHC information')
+    selected_structures[['mhc1', 'mhc2']] = selected_structures['pdb'].map(add_mhc_allele_information).apply(pd.Series)
+    selected_structures.loc[
+        (selected_structures['mhc_type'] == 'MH1')
+        & selected_structures['mhc2'].isna()
+        & selected_structures['mhc1'].notna(),
+        'mhc2',
+    ] = 'B2M'
+
     if args.structural_similarity_cutoff:
         logger.info('Removing structures within %.2f Å RMSD', args.structural_similarity_cutoff)
         selected_structures = remove_similar_structures(selected_structures, args.structural_similarity_cutoff)
@@ -556,6 +581,8 @@ def main():
         'v_alpha',
         'v_beta',
         'peptide',
+        'mhc1',
+        'mhc2',
         'species',
     ]
 
