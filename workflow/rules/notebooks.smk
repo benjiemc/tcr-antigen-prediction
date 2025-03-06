@@ -91,3 +91,26 @@ rule run_evaluate_confidence_predictions_notebook:
         mem="5GB",
         tasks=1
     notebook: "../../notebooks/evaluate_confidence_predictions.ipynb"
+
+rule run_immrep_2025_notebook:
+    input:
+        "data/interim/test.csv",
+        expand("data/external/hla_sequences/{mhc}.json", mhc=[
+            'h2_d',
+            'h2_k',
+            'h2_l',
+            'hla_a',
+            'hla_b',
+            'hla_c',
+            'hla_e',
+            'hla_f',
+            'hla_g',
+        ]),
+        "data/interim/mhc_pseudo_seq_imgt_positions.json",
+        "models/TCRContactMapPredictor"
+    output: "data/processed/immrep_2025_submission.csv"
+    resources:
+        runtime="10m",
+        mem="5GB",
+        tasks=1
+    notebook: "../../notebooks/immrep_2025.ipynb"
