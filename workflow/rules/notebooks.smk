@@ -14,6 +14,14 @@ rule run_visualise_sequence_data_notebook:
         tasks=1
     notebook: "../../notebooks/visualise_sequence_data.ipynb"
 
+rule run_compairing_sequence_and_structure_data_notebook:
+    input: "data/processed/structures_summary.csv", "data/interim/sequences.csv"
+    resources:
+        runtime="5m",
+        mem="1GB",
+        tasks=1
+    notebook: "../../notebooks/compairing_sequence_and_structure_data.ipynb"
+
 rule run_visualise_tcr_pmhc_contact_maps_notebook:
     input: "data/processed/tcr_pmhc_contacts.csv", "data/interim/mhc_pseudo_seq_imgt_positions.json"
     resources:
