@@ -102,6 +102,22 @@ data_group.add_argument(
     help='numerical encoding to use for the sequences.',
 )
 data_group.add_argument('--normalisation-factor', type=float, default=1.0, help='normalise encoding values by factor')
+data_group.add_argument(
+    '--num-folds',
+    type=int,
+    default=5,
+    help='Number of folds to create in the dataset (Default: 5)',
+)
+data_group.add_argument(
+    '--split-type',
+    choices=['random', 'tcr', 'peptide'],
+    default='peptide',
+    help=(
+        "Method to partition data between folds (Default: 'peptide'). 'random' means to randomly shuffle data between"
+        " folds, 'tcr' means no TCRs are shared across folds, and 'peptide' means to ensure no peptides are shared "
+        "across folds."
+    ),
+)
 
 add_logging_arguments(parser)
 
@@ -177,7 +193,7 @@ def main() -> None:
     sequence_data[processed_data.columns] = processed_data
 
     logger.info('Generating negative data by random sampling')
-    sequence_data['collated_cdr_sequences'] = sequence_data.filter(
+    sequence_data['collated_cdrs'] = sequence_data.filter(
         regex=r'^cdr[1-3]_(alpha|beta)$',
     ).apply('-'.join, axis='columns')
 
@@ -191,8 +207,7 @@ def main() -> None:
     for peptide in peptides:
         in_group = sequence_data[sequence_data['peptide'] == peptide]
         out_group = sequence_data[
-            (sequence_data['peptide'] != peptide)
-            & (~sequence_data['collated_cdr_sequences'].isin(in_group['collated_cdr_sequences']))
+            (sequence_data['peptide'] != peptide) & (~sequence_data['collated_cdrs'].isin(in_group['collated_cdrs']))
         ]
 
         negatives = (
@@ -217,18 +232,68 @@ def main() -> None:
 
         negative_data.append(negatives)
 
-    sequence_data = pd.concat([sequence_data, *negative_data])
+    sequence_data = pd.concat([sequence_data, *negative_data]).reset_index(drop=True)
 
-    peptide_counts = sequence_data['peptide'].value_counts()
-    peptide_counts = peptide_counts.sort_index().sort_values(ascending=False)
-    folds = create_even_folds(
-        list(zip(peptide_counts.index.tolist(), peptide_counts.tolist(), strict=True)),
-        seed=args.seed,
-    )
+    logger.info('Creating %d cross-validation folds', args.num_folds)
+    match args.split_type:
+        case 'random':
+            logger.debug('Randomly assigning cross-validation folds')
 
-    sequence_data['fold'] = sequence_data['peptide'].map(
-        {peptide: i for i, fold in enumerate(folds, 1) for peptide in fold}
-    )
+            if len(sequence_data) < args.num_folds:
+                logger.warning(
+                    'Insufficient data to create %d folds. Only %d folds will be created',
+                    args.num_folds,
+                    len(sequence_data),
+                )
+
+            folds = create_even_folds(
+                [(idx, 1) for idx in sequence_data.index],
+                num_folds=args.num_folds,
+                seed=args.seed,
+            )
+            sequence_data['fold'] = sequence_data.index.map({idx: i for i, fold in enumerate(folds, 1) for idx in fold})
+
+        case 'tcr':
+            logger.debug('Splitting TCRs across cross-validation folds')
+            tcr_counts = sequence_data['collated_cdrs'].value_counts()
+            tcr_counts = tcr_counts.sort_index().sort_values(ascending=False)
+
+            if len(tcr_counts) < args.num_folds:
+                logger.warning(
+                    'Insufficient data to create %d folds. Only %d fold(s) will be created',
+                    args.num_folds,
+                    len(tcr_counts),
+                )
+
+            folds = create_even_folds(
+                list(zip(tcr_counts.index.tolist(), tcr_counts.tolist(), strict=True)),
+                num_folds=args.num_folds,
+                seed=args.seed,
+            )
+            sequence_data['fold'] = sequence_data['collated_cdrs'].map(
+                {tcr_sequence: i for i, fold in enumerate(folds, 1) for tcr_sequence in fold}
+            )
+
+        case 'peptide':
+            logger.debug('Splitting peptides across cross-validation folds')
+            peptide_counts = sequence_data['peptide'].value_counts()
+            peptide_counts = peptide_counts.sort_index().sort_values(ascending=False)
+
+            if len(peptide_counts) < args.num_folds:
+                logger.warning(
+                    'Insufficient data to create %d folds. Only %d fold(s) will be created',
+                    args.num_folds,
+                    len(peptide_counts),
+                )
+
+            folds = create_even_folds(
+                list(zip(peptide_counts.index.tolist(), peptide_counts.tolist(), strict=True)),
+                num_folds=args.num_folds,
+                seed=args.seed,
+            )
+            sequence_data['fold'] = sequence_data['peptide'].map(
+                {peptide_sequence: i for i, fold in enumerate(folds, 1) for peptide_sequence in fold}
+            )
 
     processed_data = sequence_data.filter(regex='_processed$|label|fold')
     processed_data.columns = [column_name.replace('_processed', '') for column_name in processed_data.columns]

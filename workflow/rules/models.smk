@@ -3,6 +3,7 @@ rule models:
         "models/TCRen",
         "models/TCRStructMap",
         "models/TCRStructMap_sequence_only",
+        "models/TCRStructMap_tcr_split_sequence_only",
         "models/NetTCR",
         "models/ConfidencePredictor"
 
@@ -60,6 +61,23 @@ rule train_TCRStructMap_sequence_only:
             --log-level {config[log_level]} \
             --log-file {log} \
             --seed {config[seed]} \
+            -o {output} \
+            {input}
+        """
+
+rule train_TCRStructMap_tcr_split_sequence_only:
+    input: "data/processed/sequences_tcr_split.h5"
+    output: directory("models/TCRStructMap_tcr_split_sequence_only")
+    log: "data/logs/train_tcr_struct_map_tcr_split.log"
+    resources:
+        runtime="2h",
+        mem="5GB",
+        tasks=1
+    shell:
+        """
+        python -m tcr_antigen_prediction.models.apps.train_tcr_struct_map \
+            --log-level {config[log_level]} \
+            --log-file {log} \
             -o {output} \
             {input}
         """

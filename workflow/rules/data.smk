@@ -179,6 +179,24 @@ rule process_sequence_data:
             {input.sequences}
         """
 
+rule process_sequence_data_tcr_split:
+    input:
+        sequences="data/interim/sequences.csv",
+    output: "data/processed/sequences_tcr_split.h5"
+    resources:
+        runtime="20m",
+        mem="2GB",
+        tasks=1
+    shell:
+        """
+        python -m tcr_antigen_prediction.data.apps.process_sequence_data \
+            --log-level {config[log_level]} \
+            --seed 123 \
+            --split-type tcr \
+            -o {output} \
+            {input.sequences}
+        """
+
 rule process_sequence_data_for_nettcr:
     input: "data/interim/sequences.csv"
     output: "data/processed/sequences_right_pad_blosum.h5"

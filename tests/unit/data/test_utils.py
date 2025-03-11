@@ -1,9 +1,12 @@
 from unittest import TestCase
 
+import pandas as pd
+
 from tcr_antigen_prediction.data.utils import (
     assign_mhc_class,
     assign_species,
     centre_pad,
+    create_shared_groups,
     get_cdr_sequences,
     get_mhc_pseudo_sequence,
     left_pad,
@@ -202,3 +205,39 @@ class TestLeftPad(TestCase):
 
     def test_nothing(self):
         self.assertEqual(left_pad(['A', 'B', 'C'], 3), ['A', 'B', 'C'])
+
+
+class TestCreateSharedGroups(TestCase):
+    def test(self):
+        sequences = pd.DataFrame(
+            {
+                'peptide_sequence': ['a', 'b', 'a', 'c', 'd'],
+                'collated_cdrs': ['A', 'A', 'B', 'C', 'C'],
+                'dummy': [1, 2, 4, 3, 1],
+            }
+        )
+
+        groups = create_shared_groups(sequences)
+
+        self.assertEqual(len(groups), 2)
+        pd.testing.assert_frame_equal(
+            groups[0],
+            pd.DataFrame(
+                {
+                    'peptide_sequence': ['a', 'b', 'a'],
+                    'collated_cdrs': ['A', 'A', 'B'],
+                    'dummy': [1, 2, 4],
+                }
+            ),
+        )
+        pd.testing.assert_frame_equal(
+            groups[1],
+            pd.DataFrame(
+                {
+                    'peptide_sequence': ['c', 'd'],
+                    'collated_cdrs': ['C', 'C'],
+                    'dummy': [3, 1],
+                },
+                index=[3, 4],
+            ),
+        )

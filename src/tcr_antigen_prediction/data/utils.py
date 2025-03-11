@@ -6,6 +6,7 @@ import re
 import typing
 import warnings
 
+import numpy as np
 import pandas as pd
 from Stitchr import stitchr as st
 from Stitchr import stitchrfunctions as fxn
@@ -440,3 +441,54 @@ def create_even_folds(
                 sum_groups[min_sum_index] += size
 
     return tuple(groups)
+
+
+def create_shared_groups(df: pd.DataFrame) -> list[pd.DataFrame]:
+    """Create combined groups of TCRs and peptides.
+
+    Args:
+        df: data frame with mandatory columns 'peptide_sequence' and 'collated_cdrs'
+
+    Returns:
+        a list of dataframes where each data frame shares some TCRs and peptides within itself.
+
+    """
+
+    def merge_groups(groups: list[set]) -> list[set]:
+        merged_groups = []
+
+        for group in groups:
+            merged = False
+
+            for i, merged_group in enumerate(merged_groups):
+                if len(group & merged_group) > 0:
+                    merged_groups[i] = group | merged_group
+                    merged = True
+                    break
+
+            if not merged:
+                merged_groups.append(group)
+
+        return merged_groups
+
+    peptide_groups = df.groupby('peptide_sequence')
+
+    merge_matrix = np.zeros((len(peptide_groups), len(peptide_groups)))
+    for i, (_, group_i) in enumerate(peptide_groups):
+        for j, (_, group_j) in enumerate(peptide_groups):
+            group_i_seqs = set(group_i['collated_cdrs'].tolist())
+            group_j_seqs = set(group_j['collated_cdrs'].tolist())
+
+            if len(group_i_seqs & group_j_seqs) > 0:
+                merge_matrix[i, j] = 1
+
+    group_indicies = np.arange(len(peptide_groups))
+    groups = [set(group_indicies[row > 0]) for row in merge_matrix]
+
+    separated_groups = merge_groups(groups)
+
+    separated_groups_data = [
+        pd.concat([list(peptide_groups)[idx][1] for idx in group], axis=0).sort_index() for group in separated_groups
+    ]
+
+    return separated_groups_data
