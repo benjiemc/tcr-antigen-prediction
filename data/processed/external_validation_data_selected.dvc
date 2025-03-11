@@ -1,6 +1,6 @@
 outs:
-- md5: faec42d8f8424b7f6734ef6a2ce51dc0.dir
-  size: 12116308
-  nfiles: 46
+- md5: ecc94d7501667326d89f6b4e2d6318d6.dir
+  size: 8902995
+  nfiles: 35
   hash: md5
   path: external_validation_data_selected

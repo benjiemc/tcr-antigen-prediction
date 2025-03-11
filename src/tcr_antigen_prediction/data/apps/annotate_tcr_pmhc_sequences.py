@@ -41,16 +41,16 @@ def main():
 
     if args.alpha_chain_id:
         for cdr_number, imgt_numbering in enumerate((IMGT_CDR1, IMGT_CDR2, IMGT_CDR3), 1):
-            header.append(f'CDR{cdr_number}alpha_sequence')
+            header.append(f'cdr{cdr_number}_alpha')
             output.append(get_sequence(structure, args.alpha_chain_id, imgt_numbering))
 
     if args.beta_chain_id:
         for cdr_number, imgt_numbering in enumerate((IMGT_CDR1, IMGT_CDR2, IMGT_CDR3), 1):
-            header.append(f'CDR{cdr_number}beta_sequence')
+            header.append(f'cdr{cdr_number}_beta')
             output.append(get_sequence(structure, args.beta_chain_id, imgt_numbering))
 
     if args.antigen_chain_id:
-        header.append('peptide_sequence')
+        header.append('peptide')
         output.append(get_sequence(structure, args.antigen_chain_id))
 
     if args.output:

@@ -312,7 +312,7 @@ rule get_external_structures_sequences:
         tasks=1
     shell:
         """
-        echo "$(head -n1 {input}/structures_summary.csv),CDR1alpha_sequence,CDR2alpha_sequence,CDR3alpha_sequence,CDR1beta_sequence,CDR2beta_sequence,CDR3beta_sequence,peptide_sequence" > {output}
+        echo "$(head -n1 {input}/structures_summary.csv),cdr1_alpha,cdr2_alpha,cdr3_alpha,cdr1_beta,cdr2_beta,cdr3_beta,peptide" > {output}
         num_lines=$(cat {input}/structures_summary.csv | wc -l)
         line=1
         while [ $line -lt $num_lines ]; do

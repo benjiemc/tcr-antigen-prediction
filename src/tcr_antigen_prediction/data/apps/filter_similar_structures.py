@@ -39,9 +39,7 @@ def remove_similar_structures(
     """Remove structures with the same CDR and peptide sequences within the RMSD threshold."""
     output_dfs = []
 
-    for (cdr_sequence, peptide_sequence, mhc_type), group in df.groupby(
-        ['collated_cdrs', 'peptide_sequence', 'mhc_type']
-    ):
+    for (cdr_sequence, peptide_sequence, mhc_type), group in df.groupby(['collated_cdrs', 'peptide', 'mhc_type']):
         if len(group) == 1:
             output_dfs.append(group)
             continue
@@ -73,7 +71,7 @@ def main():
     setup_logger(logger, args.log_level, args.log_file)
 
     summary_df = pd.read_csv(args.summary_csv)
-    summary_df['collated_cdrs'] = summary_df.filter(regex='cdr|CDR').apply('-'.join, axis=1)
+    summary_df['collated_cdrs'] = summary_df.filter(regex='cdr[1-3]_(alpha|beta)').apply('-'.join, axis=1)
 
     pdb_parser = PDBParser(QUIET=True)
     structures = {
@@ -84,7 +82,24 @@ def main():
     selected_structures = remove_similar_structures(summary_df, args.structural_similarity_cutoff, structures)
 
     output = open(args.output, 'w') if args.output else sys.stdout  # noqa: SIM115
-    selected_structures.to_csv(output, index=False)
+    selected_structures[
+        [
+            'name',
+            'Achain',
+            'Bchain',
+            'antigen_chain',
+            'mhc_chain1',
+            'mhc_chain2',
+            'mhc_type',
+            'cdr1_alpha',
+            'cdr2_alpha',
+            'cdr3_alpha',
+            'cdr1_beta',
+            'cdr2_beta',
+            'cdr3_beta',
+            'peptide',
+        ]
+    ].to_csv(output, index=False)
 
     if args.output:
         output.close()

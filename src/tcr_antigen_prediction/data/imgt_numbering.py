@@ -89,7 +89,11 @@ def renumber_chain(chain: Chain.Chain) -> tuple[Chain.Chain, str]:
     residues = list(chain.get_residues())
 
     sequence = ''.join(
-        [IUPACData.protein_letters_3to1[res.get_resname().title()] for res in residues if res.id[0] == ' ']
+        [
+            IUPACData.protein_letters_3to1[res.get_resname().title()]
+            for res in residues
+            if res.id[0] == ' ' and res.get_resname().title() in IUPACData.protein_letters_3to1
+        ]
     )
 
     numbering, chain_type = anarci.number(sequence)
