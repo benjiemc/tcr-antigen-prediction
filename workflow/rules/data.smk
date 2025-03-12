@@ -248,7 +248,7 @@ rule identify_external_tcr_pmhc_interactions:
         tasks=1
     shell:
         """
-        echo "name,Achain,Bchain,antigen_chain,mhc_chain1,mhc_chain2,mhc_type" > {output}
+        echo "path,Achain,Bchain,antigen_chain,mhc_chain1,mhc_chain2,mhc_type" > {output}
         for file_name in "{input}"/*; do
             file_name_base=$(basename $file_name .pdb);
             python -m tcr_antigen_prediction.data.apps.identify_tcr_pmhc_interactions --log-level {config[log_level]} $file_name \
@@ -345,7 +345,8 @@ rule crop_external_structures:
 rule get_external_structures_sequences:
     input:
         summary="data/interim/external_structures_summary_cropped.csv",
-        structures="data/interim/external_validation_data_entities_crop"
+        structures="data/interim/external_validation_data_entities_crop",
+        mhc_pseudo_imgt="data/interim/mhc_pseudo_seq_imgt_positions.json"
     output: "data/interim/external_validation_data_annotated_sequences.csv"
     resources:
         runtime="5m",
@@ -372,6 +373,13 @@ rule get_external_structures_sequences:
                 {input.structures}/$file_name
             echo $(sed -n "${{line}}p" {input.summary}),$(cat $output_name | sed 1d) >> {output}
         done
+
+        python -m tcr_antigen_prediction.data.apps.annotate_mhc_pseudo_sequences \
+            --log-level {config[log_level]} \
+            --summary-csv {output} \
+            --mhc-pseudo-sequence-imgt-numbers {input.mhc_pseudo_imgt} \
+            -o {output} \
+            {input.structures}/*.pdb
         """
 
 rule select_external_structures:

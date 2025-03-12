@@ -46,11 +46,10 @@ def remove_similar_structures(
 
         logger.debug('Screening TCR: %s, peptide: %s, MHC: %s', cdr_sequence, peptide_sequence, mhc_type)
 
-        sorted_group = group.sort_values('name')
-        sorted_group = sorted_group.dropna(axis='columns', how='all')
+        sorted_group = group.sort_values('path')
 
-        group_structures = [structures[name] for name in sorted_group['name'].to_numpy()]
-        chain_maps = sorted_group.filter(regex=r'\w+chain\w*').to_dict('records')
+        group_structures = [structures[path] for path in sorted_group['path'].to_numpy()]
+        chain_maps = sorted_group.filter(regex=r'\w+chain\w*').dropna(axis='columns', how='all').to_dict('records')
 
         distance_matrix = compute_structural_distances(group_structures, chain_maps, mhc_type)
         clusters = (
@@ -75,31 +74,16 @@ def main():
 
     pdb_parser = PDBParser(QUIET=True)
     structures = {
-        name: pdb_parser.get_structure(name.replace('.pdb', ''), os.path.join(args.structures, name))
-        for name in summary_df['name'].tolist()
+        path: pdb_parser.get_structure(path.replace('.pdb', ''), os.path.join(args.structures, path))
+        for path in summary_df['path'].tolist()
     }
 
     selected_structures = remove_similar_structures(summary_df, args.structural_similarity_cutoff, structures)
 
     output = open(args.output, 'w') if args.output else sys.stdout  # noqa: SIM115
-    selected_structures[
-        [
-            'name',
-            'Achain',
-            'Bchain',
-            'antigen_chain',
-            'mhc_chain1',
-            'mhc_chain2',
-            'mhc_type',
-            'cdr1_alpha',
-            'cdr2_alpha',
-            'cdr3_alpha',
-            'cdr1_beta',
-            'cdr2_beta',
-            'cdr3_beta',
-            'peptide',
-        ]
-    ].to_csv(output, index=False)
+    selected_structures[[col_name for col_name in selected_structures.columns if col_name != 'collated_cdrs']].to_csv(
+        output, index=False
+    )
 
     if args.output:
         output.close()
