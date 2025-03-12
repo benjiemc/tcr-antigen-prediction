@@ -209,8 +209,22 @@ rule process_sequence_data_for_nettcr:
 rule data_external:
     input: "data/processed/external_validation_data_selected"
 
-rule renumber_external_structures:
+rule flatten_and_sanitize_external_structures_file_paths:
     input: "data/external/ClassI_ternaries"
+    output: directory("data/interim/external_structures_sanitized")
+    resources:
+        runtime="1m",
+        mem="500MB",
+        tasks=1
+    shell:
+        """
+        mkdir -p {output}
+        find "{input}" -name "*.pdb" \
+            | xargs -I % bash -c 'mv "%" {output}/$(basename "%" .pdb | tr '.' '_' | tr ',' '_' | tr '-' '_').pdb'
+        """
+
+rule renumber_external_structures:
+    input: "data/interim/external_structures_sanitized"
     output: directory("data/interim/external_validation_data_renumbered")
     resources:
         runtime="10m",
