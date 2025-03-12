@@ -75,7 +75,7 @@ def main():
 
     pdb_parser = PDBParser(QUIET=True)
     structures = {
-        name: pdb_parser.get_structure(name, os.path.join(args.structures, name + '.pdb'))
+        name: pdb_parser.get_structure(name.replace('.pdb', ''), os.path.join(args.structures, name))
         for name in summary_df['name'].tolist()
     }
 
