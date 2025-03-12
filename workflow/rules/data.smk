@@ -207,7 +207,8 @@ rule process_sequence_data_for_nettcr:
         """
 
 rule data_external:
-    input: "data/processed/external_validation_data_selected"
+    input: "data/processed/external_structures_summary.csv",
+           "data/processed/external_structures"
 
 rule flatten_and_sanitize_external_structures_file_paths:
     input: "data/external/ClassI_ternaries"
@@ -225,7 +226,7 @@ rule flatten_and_sanitize_external_structures_file_paths:
 
 rule renumber_external_structures:
     input: "data/interim/external_structures_sanitized"
-    output: directory("data/interim/external_validation_data_renumbered")
+    output: directory("data/interim/external_structures_renumbered")
     resources:
         runtime="10m",
         mem="500MB",
@@ -240,7 +241,7 @@ rule renumber_external_structures:
         """
 
 rule identify_external_tcr_pmhc_interactions:
-    input: "data/interim/external_validation_data_renumbered"
+    input: "data/interim/external_structures_renumbered"
     output: "data/interim/external_structures_summary.csv"
     resources:
         runtime="10m",
@@ -274,8 +275,8 @@ rule identify_external_tcr_pmhc_interactions:
 rule isolate_external_tcr_pmhc_complexes:
     input:
         summary="data/interim/external_structures_summary.csv",
-        structures="data/interim/external_validation_data_renumbered"
-    output: directory("data/interim/external_validation_data_entities")
+        structures="data/interim/external_structures_renumbered"
+    output: directory("data/interim/external_structures_entities")
     resources:
         runtime="10m",
         mem="1GB",
@@ -293,10 +294,10 @@ rule isolate_external_tcr_pmhc_complexes:
 rule crop_external_structures:
     input:
         summary="data/interim/external_structures_summary.csv",
-        structures="data/interim/external_validation_data_entities"
+        structures="data/interim/external_structures_entities"
     output:
         summary="data/interim/external_structures_summary_cropped.csv",
-        structures=directory("data/interim/external_validation_data_entities_crop")
+        structures=directory("data/interim/external_structures_crop")
     resources:
         runtime="5m",
         mem="100mb",
@@ -345,9 +346,9 @@ rule crop_external_structures:
 rule get_external_structures_sequences:
     input:
         summary="data/interim/external_structures_summary_cropped.csv",
-        structures="data/interim/external_validation_data_entities_crop",
+        structures="data/interim/external_structures_crop",
         mhc_pseudo_imgt="data/interim/mhc_pseudo_seq_imgt_positions.json"
-    output: "data/interim/external_validation_data_annotated_sequences.csv"
+    output: "data/interim/external_structures_summary_annotated_sequences.csv"
     resources:
         runtime="5m",
         mem="100MB",
@@ -384,11 +385,11 @@ rule get_external_structures_sequences:
 
 rule select_external_structures:
     input:
-        data_dir="data/interim/external_validation_data_entities_crop",
-        summary_file="data/interim/external_validation_data_annotated_sequences.csv"
+        data_dir="data/interim/external_structures_crop",
+        summary_file="data/interim/external_structures_summary_annotated_sequences.csv"
     output:
         summary="data/processed/external_structures_summary.csv",
-        structures=directory("data/processed/external_validation_data_selected")
+        structures=directory("data/processed/external_structures")
     resources:
         runtime="10m",
         mem="1GB",
