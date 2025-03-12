@@ -241,6 +241,40 @@ rule renumber_external_structures:
 
 rule identify_external_tcr_pmhc_interactions:
     input: "data/interim/external_validation_data_renumbered"
+    output: "data/interim/external_structures_summary.csv"
+    resources:
+        runtime="10m",
+        mem="1GB",
+        tasks=1
+    shell:
+        """
+        echo "name,Achain,Bchain,antigen_chain,mhc_chain1,mhc_chain2,mhc_type" > {output}
+        for file_name in "{input}"/*; do
+            file_name_base=$(basename $file_name .pdb);
+            python -m tcr_antigen_prediction.data.apps.identify_tcr_pmhc_interactions --log-level {config[log_level]} $file_name \
+                | sed 1d \
+                | tr '\t' ',' \
+                | xargs -I % bash -c 'echo ${{1}}_$(echo % | cut -d, -f1-5 | sed s/,//g).pdb,%' _ $file_name_base \
+                > /tmp/${{file_name_base}}.csv
+            num_lines=$(cat /tmp/${{file_name_base}}.csv | wc -l)
+            line=1
+            while [ $line -le $num_lines ]; do
+                alpha_chain=$(sed -n "${{line}}p" /tmp/${{file_name_base}}.csv | cut -d, -f2)
+                beta_chain=$(sed -n "${{line}}p" /tmp/${{file_name_base}}.csv | cut -d, -f3)
+                antigen_chain=$(sed -n "${{line}}p" /tmp/${{file_name_base}}.csv | cut -d, -f4)
+                mhc_type=$(sed -n "${{line}}p" /tmp/${{file_name_base}}.csv | cut -d, -f7)
+                if [ "$alpha_chain" != "" ] && [ "$beta_chain" != "" ] && [ "$antigen_chain" != "" ] && [ "$mhc_type" != "" ]; then
+                   sed -n "${{line}}p" /tmp/${{file_name_base}}.csv >> {output}
+                fi
+                line=$(expr $line + 1)
+            done
+        done
+        """
+
+rule isolate_external_tcr_pmhc_complexes:
+    input:
+        summary="data/interim/external_structures_summary.csv",
+        structures="data/interim/external_validation_data_renumbered"
     output: directory("data/interim/external_validation_data_entities")
     resources:
         runtime="10m",
@@ -249,76 +283,69 @@ rule identify_external_tcr_pmhc_interactions:
     shell:
         """
         mkdir -p {output}
-        echo "name,Achain,Bchain,antigen_chain,mhc_chain1,mhc_chain2,mhc_type" > "{output}/structures_summary.csv"
-        for file_name in "{input}"/*; do
-            file_name_base=$(basename $file_name .pdb);
-            python -m tcr_antigen_prediction.data.apps.identify_tcr_pmhc_interactions --log-level {config[log_level]} -o "/tmp/$file_name_base.csv" $file_name
-            cat "/tmp/$file_name_base.csv" | sed 1d | cut -d, -f1-5 | tr ',' ' ' \
-                | xargs -I % bash -c \
-                'python -m tcr_antigen_prediction.data.apps.extract_chains_from_structure --chains % -o "${{3}}/${{1}}_$(echo "%" | tr -d " ").pdb" "$2"' \
-                _ $file_name_base $file_name {output} || continue
-            cat "/tmp/$file_name_base.csv" | sed 1d | xargs -I % bash -c 'echo ${{1}}_$(echo % | cut -d, -f1-5 | sed s/,//g),%' \
-            _ $file_name_base \
-            >> "{output}/structures_summary.csv"
-        done
+        cat "{input.summary}" | sed 1d | cut -d, -f1-6 \
+            | xargs -I % bash -c \
+                'python -m tcr_antigen_prediction.data.apps.extract_chains_from_structure \
+                    --chains $(echo "%" | cut -d, -f2-6 | tr "," " ") \
+                    -o {output}/$(echo "%" | cut -d, -f1) {input.structures}/$(echo "%" | cut -d, -f1 | rev | cut -d_ -f2- | rev ).pdb'
         """
 
 rule crop_external_structures:
-    input: "data/interim/external_validation_data_entities"
-    output: directory("data/interim/external_validation_data_entities_crop")
+    input:
+        summary="data/interim/external_structures_summary.csv",
+        structures="data/interim/external_validation_data_entities"
+    output:
+        summary="data/interim/external_structures_summary_cropped.csv",
+        structures=directory("data/interim/external_validation_data_entities_crop")
     resources:
         runtime="5m",
         mem="100mb",
         tasks=1
     shell:
         """
-        mkdir -p {output}
-        head -n1 "{input}/structures_summary.csv" > "{output}/structures_summary.csv"
-        num_lines=$(cat {input}/structures_summary.csv | wc -l)
+        mkdir -p {output.structures}
+        head -n1 {input.summary} > {output.summary}
+        num_lines=$(cat {input.summary} | wc -l)
         line=1
         while [ $line -lt $num_lines ]; do
             line=$(expr $line + 1)
-            name=$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f1)
-            alpha_chain=$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f2)
-            beta_chain=$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f3)
-            antigen_chain=$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f4)
-            mhc_chain1=$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f5)
-            mhc_chain2=$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f6)
-            mhc_type=$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f7)
+            file_name=$(sed -n "${{line}}p" {input.summary} | cut -d, -f1)
+            alpha_chain=$(sed -n "${{line}}p" {input.summary} | cut -d, -f2)
+            beta_chain=$(sed -n "${{line}}p" {input.summary} | cut -d, -f3)
+            antigen_chain=$(sed -n "${{line}}p" {input.summary} | cut -d, -f4)
+            mhc_chain1=$(sed -n "${{line}}p" {input.summary} | cut -d, -f5)
+            mhc_chain2=$(sed -n "${{line}}p" {input.summary} | cut -d, -f6)
+            mhc_type=$(sed -n "${{line}}p" {input.summary} | cut -d, -f7)
             chains="${{alpha_chain}}${{beta_chain}}${{antigen_chain}}${{mhc_chain1}}${{mhc_chain2}}"
-            file_name="${{name}}.pdb"
-            echo "Working on $name..."
-            if [ "$alpha_chain" = "" ] || [ "$beta_chain" = "" ]; then
-                echo "Skipping entry without TCR"
-                continue
-            fi
+            echo "Working on $file_name..."
             if [ "$mhc_type" = "MH1" ]; then
                 python -m tcr_antigen_prediction.data.apps.crop_tcr_pmhc \
                     --log-level {config[log_level]} \
-                    "{input}/$file_name" \
-                    -o "{output}/$file_name" \
+                    "{input.structures}/$file_name" \
+                    -o "{output.structures}/$file_name" \
                     --tcr-chains $alpha_chain $beta_chain \
                     --mhc-chains $mhc_chain1 \
-                    --antigen-chain $antigen_chain || continue
-                echo "$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f1-5),,$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f7-)" >> "{output}/structures_summary.csv"
+                    --antigen-chain $antigen_chain
+                echo $(sed -n "${{line}}p" {input.summary} \
+                    | cut -d, -f1-5),,$(sed -n "${{line}}p" {input.summary} \
+                    | cut -d, -f7-) >> {output.summary}
             elif [ "$mhc_type" = "MH2" ]; then
                 python -m tcr_antigen_prediction.data.apps.crop_tcr_pmhc \
                     --log-level {config[log_level]} \
-                    "{input}/$file_name" \
-                    -o "{output}/$file_name" \
+                    "{input.structures}/$file_name" \
+                    -o "{output.structures}/$file_name" \
                     --tcr-chains $alpha_chain $beta_chain \
                     --mhc-chains $mhc_chain1 $mhc_chain2 \
-                    --antigen-chain $antigen_chain || continue
-                sed -n "${{line}}p" {input}/structures_summary.csv >> "{output}/structures_summary.csv"
-            else
-                echo "Skipping entry without MHC"
-                continue
+                    --antigen-chain $antigen_chain
+                sed -n "${{line}}p" {input.summary} >> {output.summary}
             fi
         done
         """
 
 rule get_external_structures_sequences:
-    input: "data/interim/external_validation_data_entities_crop"
+    input:
+        summary="data/interim/external_structures_summary_cropped.csv",
+        structures="data/interim/external_validation_data_entities_crop"
     output: "data/interim/external_validation_data_annotated_sequences.csv"
     resources:
         runtime="5m",
@@ -326,19 +353,15 @@ rule get_external_structures_sequences:
         tasks=1
     shell:
         """
-        echo "$(head -n1 {input}/structures_summary.csv),cdr1_alpha,cdr2_alpha,cdr3_alpha,cdr1_beta,cdr2_beta,cdr3_beta,peptide" > {output}
-        num_lines=$(cat {input}/structures_summary.csv | wc -l)
+        echo "$(head -n1 {input.summary}),cdr1_alpha,cdr2_alpha,cdr3_alpha,cdr1_beta,cdr2_beta,cdr3_beta,peptide" > {output}
+        num_lines=$(cat {input.summary} | wc -l)
         line=1
         while [ $line -lt $num_lines ]; do
             line=$(expr $line + 1)
-            name=$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f1)
-            alpha_chain=$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f2)
-            beta_chain=$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f3)
-            antigen_chain=$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f4)
-            mhc_chain1=$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f5)
-            mhc_chain2=$(sed -n "${{line}}p" {input}/structures_summary.csv | cut -d, -f6)
-            chains="${{alpha_chain}}${{beta_chain}}${{antigen_chain}}${{mhc_chain1}}${{mhc_chain2}}"
-            file_name="${{name}}.pdb"
+            file_name=$(sed -n "${{line}}p" {input.summary} | cut -d, -f1)
+            alpha_chain=$(sed -n "${{line}}p" {input.summary} | cut -d, -f2)
+            beta_chain=$(sed -n "${{line}}p" {input.summary} | cut -d, -f3)
+            antigen_chain=$(sed -n "${{line}}p" {input.summary} | cut -d, -f4)
             output_name="/tmp/$(basename $file_name .pdb).csv"
             python -m tcr_antigen_prediction.data.apps.annotate_tcr_pmhc_sequences \
                 --log-level {config[log_level]} \
@@ -346,8 +369,8 @@ rule get_external_structures_sequences:
                 --beta-chain-id $beta_chain \
                 --antigen-chain-id $antigen_chain \
                 -o "$output_name" \
-                "{input}/$file_name" || continue
-            echo "$(sed -n "${{line}}p" {input}/structures_summary.csv),$(cat $output_name | sed 1d)" >> {output}
+                {input.structures}/$file_name
+            echo $(sed -n "${{line}}p" {input.summary}),$(cat $output_name | sed 1d) >> {output}
         done
         """
 
@@ -355,21 +378,23 @@ rule select_external_structures:
     input:
         data_dir="data/interim/external_validation_data_entities_crop",
         summary_file="data/interim/external_validation_data_annotated_sequences.csv"
-    output: directory("data/processed/external_validation_data_selected")
+    output:
+        summary="data/processed/external_structures_summary.csv",
+        structures=directory("data/processed/external_validation_data_selected")
     resources:
         runtime="10m",
         mem="1GB",
         tasks=1
     shell:
         """
-        mkdir -p {output}
+        mkdir -p {output.structures}
         python -m tcr_antigen_prediction.data.apps.filter_similar_structures \
             --log-level {config[log_level]} \
             --structural-similarity-cutoff 2.0 \
             --summary-csv {input.summary_file} \
-            -o "{output}/structures_summary.csv" \
+            -o {output.summary} \
             {input.data_dir}
-        cat "{output}/structures_summary.csv" | sed 1d | cut -d, -f1 | xargs -I % cp {input.data_dir}/%.pdb {output}/
+        cat {output.summary} | sed 1d | cut -d, -f1 | xargs -I % cp {input.data_dir}/% {output.structures}/
         """
 
 rule download_immrep_2025_data:

@@ -1,0 +1,5 @@
+outs:
+- md5: 82336797c4e7509312256ef3fb6b303c
+  size: 4163
+  hash: md5
+  path: external_structures_summary.csv
