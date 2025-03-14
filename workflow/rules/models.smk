@@ -8,7 +8,7 @@ rule models:
 rule train_TCRen:
     input:
         summary="data/processed/structures_summary.csv",
-        structures="data/processed/selected-stcrdab"
+        structures="data/processed/structures"
     output: directory("models/TCRen")
     resources:
         runtime="5m",

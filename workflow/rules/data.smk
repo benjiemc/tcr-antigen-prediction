@@ -1,6 +1,6 @@
 rule data:
     input:
-        "data/processed/selected-stcrdab",
+        "data/processed/structures",
         "data/processed/tcr_pmhc_contacts.csv",
         "data/processed/sequences.h5",
         "data/processed/contact_maps.h5"
@@ -16,7 +16,7 @@ rule download_stcrdab:
 rule select_stcrdab_structures:
     input: "data/raw/stcrdab"
     output:
-        structures=directory("data/processed/selected-stcrdab"),
+        structures=directory("data/processed/structures"),
         summary="data/interim/structures_summary.csv"
     resources:
         runtime="1h",
@@ -44,7 +44,7 @@ rule select_stcrdab_structures:
 
 rule create_contact_maps:
     input:
-        structures="data/processed/selected-stcrdab",
+        structures="data/processed/structures",
         summary="data/interim/structures_summary.csv"
     output: "data/processed/tcr_pmhc_contacts.csv"
     resources:
@@ -70,7 +70,7 @@ rule get_mhc_pseudo_sequence_imgt_numbers:
 
 rule add_mhc_pseudo_sequences:
     input:
-        structures="data/processed/selected-stcrdab",
+        structures="data/processed/structures",
         summary="data/interim/structures_summary.csv",
         mhc_pseudo_imgt="data/interim/mhc_pseudo_seq_imgt_positions.json"
     output: "data/processed/structures_summary.csv"
