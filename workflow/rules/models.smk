@@ -6,7 +6,9 @@ rule models:
         "models/ConfidencePredictor"
 
 rule train_TCRen:
-    input: "data/processed/selected-stcrdab"
+    input:
+        summary="data/processed/structures_summary.csv",
+        structures="data/processed/selected-stcrdab"
     output: directory("models/TCRen")
     resources:
         runtime="5m",
@@ -14,12 +16,12 @@ rule train_TCRen:
         tasks=1
     shell:
         """
-        @mkdir -p {output}
-        @python -m tcr_antigen_prediction.models.apps.train_tcr_en \
+        mkdir -p {output}
+        python -m tcr_antigen_prediction.models.apps.train_tcr_en \
             --log-level {config[log_level]} \
             -o {output}/TCRen_probabilities.csv \
-            --summary-csv "{input}/stcrdab_split.csv" \
-            $(cat "{input}/stcrdab_split.csv" | grep "train" | awk -F, -v dir="{input}" '{{ printf "%s/%s_%s%s%s%s%s.pdb ", dir, $1, $2, $3, $4, $5, $6 }}')
+            --summary-csv {input.summary} \
+            {input.structures}/*.pdb
         """
 
 rule train_TCRStructMap:

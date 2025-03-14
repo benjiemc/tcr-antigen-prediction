@@ -58,12 +58,10 @@ def load_data(paths: list[str], summary_df: pd.DataFrame, contact_distance: floa
     interacting_residues = defaultdict(list)
 
     for path in paths:
-        entry_name = os.path.basename(path).replace('.pdb', '')
+        entry_name = os.path.basename(path)
         logger.debug('Collecting contacts from %s', entry_name)
 
-        pdb_id, chains = entry_name.split('_')
-
-        row = summary_df[(summary_df['pdb'] == pdb_id) & (summary_df['chains'] == chains)].iloc[0]
+        row = summary_df[summary_df['path'] == entry_name].iloc[0]
 
         structure = pdb_parser.get_structure('', path)
         structure_df = bio_to_pandas(structure)
@@ -106,7 +104,13 @@ def load_data(paths: list[str], summary_df: pd.DataFrame, contact_distance: floa
         interacting_residues['mhc_chain1'] += [row['mhc_chain1']] * len(residue_contacts)
         interacting_residues['mhc_chain2'] += [row['mhc_chain2']] * len(residue_contacts)
 
-        interacting_residues['group_id'] += [row['group_id']] * len(residue_contacts)
+        interacting_residues['cdr1_alpha'] += [row['cdr1_alpha']] * len(residue_contacts)
+        interacting_residues['cdr2_alpha'] += [row['cdr2_alpha']] * len(residue_contacts)
+        interacting_residues['cdr3_alpha'] += [row['cdr3_alpha']] * len(residue_contacts)
+        interacting_residues['cdr1_beta'] += [row['cdr1_beta']] * len(residue_contacts)
+        interacting_residues['cdr2_beta'] += [row['cdr2_beta']] * len(residue_contacts)
+        interacting_residues['cdr3_beta'] += [row['cdr3_beta']] * len(residue_contacts)
+        interacting_residues['peptide'] += [row['peptide']] * len(residue_contacts)
 
         interacting_residues['tcr_cdr_residue'] += (
             residue_contacts['residue_name_cdr']
@@ -239,22 +243,19 @@ def main():
 
     elif args.strategy == 'leave-one-out':
         logger.info('Loading data and finding contacting residues')
-        summary_df['structure_name'] = summary_df['pdb'] + '_' + summary_df['chains']
 
-        relevant_data_names = [os.path.basename(path).replace('.pdb', '') for path in args.training_data]
-        relevant_summary_df = summary_df[summary_df['structure_name'].isin(relevant_data_names)]
+        relevant_data_names = [os.path.basename(path) for path in args.training_data]
+        relevant_summary_df = summary_df[summary_df['path'].isin(relevant_data_names)]
         relevant_data = load_data(args.training_data, relevant_summary_df, args.contact_distance)
 
-        groups = relevant_summary_df['group_id'].unique()
-
-        for group in groups:
-            logger.info('Fitting potentials to hold-out group: %d', group)
-            training_data = relevant_data[relevant_data['group_id'] != group]
-            evaluation_data = relevant_data[relevant_data['group_id'] == group]
+        for peptide in relevant_summary_df['peptide'].unique():
+            logger.info('Fitting potentials to hold-out peptide: %d', peptide)
+            training_data = relevant_data[relevant_data['peptide'] != peptide]
+            evaluation_data = relevant_data[relevant_data['peptide'] == peptide]
 
             tcren = fit_tcr_en(training_data[['tcr_cdr_residue', 'peptide_residue']])
 
-            logger.info('Evaluating leave-one-out group: %d', group)
+            logger.info('Evaluating leave-one-out peptide: %d', peptide)
             evaluation_tcr_ens = (
                 evaluation_data.merge(
                     tcren.reset_index(),
@@ -277,11 +278,11 @@ def main():
             ), eval_tcren in evaluation_tcr_ens.items():
                 logger.info(
                     (
-                        'Evaluating group_id=%d, '
+                        'Evaluating peptide=%s, '
                         'pdb=%s, Achain=%s, Bchain=%s, antigen_chain=%s, mhc_chain1=%s, mhc_chain2=%s: '
                         'TCRen=%f'
                     ),
-                    group,
+                    peptide,
                     pdb_id,
                     alpha_chain,
                     beta_chain,
@@ -294,7 +295,7 @@ def main():
             base_output_name = os.path.basename(args.output)
             output_name = os.path.join(
                 os.path.dirname(args.output),
-                f"{base_output_name.split('.', 1)[0]}_LOO_{group}.{base_output_name.split('.', 1)[-1]}",
+                f"{base_output_name.split('.', 1)[0]}_LOO_{peptide}.{base_output_name.split('.', 1)[-1]}",
             )
             logger.info('Outputting potentials to %s', output_name)
             tcren.sort_values(['tcr_cdr_residue', 'peptide_residue']).to_csv(output_name)
