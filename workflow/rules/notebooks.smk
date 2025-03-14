@@ -34,21 +34,21 @@ rule run_process_and_visualise_tcr_pmhc_contact_maps_notebook:
         tasks=1
     notebook: "../../notebooks/process_and_visualise_tcr_pmhc_contact_maps.ipynb"
 
-rule run_visualising_and_evaluating_tcr_contact_map_predictor_training_notebook:
-    input: "data/logs/train_tcr_contact_map_predictor.log"
+rule run_visualising_and_evaluating_tcr_struct_map_training_notebook:
+    input: "data/logs/train_tcr_struct_map.log"
     resources:
         runtime="1m",
         mem="500MB",
         tasks=1
-    notebook: "../../notebooks/visualising_and_evaluating_tcr_contact_map_predictor_training.ipynb"
+    notebook: "../../notebooks/visualising_and_evaluating_tcr_struct_map_training.ipynb"
 
-rule run_visualising_and_evaluating_tcr_contact_map_predictor_sequence_only_training_notebook:
-    input: "data/logs/train_tcr_contact_map_predictor_sequence_only.log"
+rule run_visualising_and_evaluating_tcr_struct_map_sequence_only_training_notebook:
+    input: "data/logs/train_tcr_struct_map_sequence_only.log"
     resources:
         runtime="1m",
         mem="500MB",
         tasks=1
-    notebook: "../../notebooks/visualising_and_evaluating_tcr_contact_map_predictor_sequence_only_training.ipynb"
+    notebook: "../../notebooks/visualising_and_evaluating_tcr_struct_map_sequence_only_training.ipynb"
 
 rule run_visualising_and_evaluating_nettcr_training_notebook:
     input: "data/logs/train_NetTCR.log"
@@ -63,8 +63,8 @@ rule run_benchmark_model_performance_notebook:
         "data/interim/peptides.txt",
         "data/interim/peptide_distances.txt",
         "data/processed/sequences.h5",
-        "models/TCRContactMapPredictor",
-        "models/TCRContactMapPredictor_sequence_only"
+        "models/TCRStructMap",
+        "models/TCRStructMap_sequence_only"
     resources:
         runtime="5m",
         mem="1GB",
@@ -82,7 +82,7 @@ rule run_evaluate_distance_based_confidence_predictor_performance_notebook:
 rule run_evaluate_confidence_predictions_notebook:
     input:
         "models/ConfidencePredictor",
-        "models/TCRContactMapPredictor",
+        "models/TCRStructMap",
         "data/processed/sequences.h5",
         "data/interim/peptides.txt",
         "data/interim/peptide_distances.txt"
@@ -107,7 +107,7 @@ rule run_immrep_2025_notebook:
             'hla_g',
         ]),
         "data/interim/mhc_pseudo_seq_imgt_positions.json",
-        "models/TCRContactMapPredictor"
+        "models/TCRStructMap"
     output: "data/processed/immrep_2025_submission.csv"
     resources:
         runtime="10m",
