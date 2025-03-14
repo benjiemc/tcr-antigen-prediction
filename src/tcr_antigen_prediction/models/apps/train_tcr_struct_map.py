@@ -12,7 +12,7 @@ from sklearn.metrics import roc_auc_score
 from torch import nn, optim
 
 from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
-from tcr_antigen_prediction.models import TCRContactMapPredictor
+from tcr_antigen_prediction.models import TCRStructMap
 
 logger = logging.getLogger()
 
@@ -213,7 +213,7 @@ def main():
         logger.debug('Number of validation data points: %d', len(validation_indices))
 
         logger.info('Initialising model')
-        model = TCRContactMapPredictor(
+        model = TCRStructMap(
             cdr_peptide_contact_maps,
             cdr_mhc_contact_maps,
             cdr_1_length=args.cdr_1_length,

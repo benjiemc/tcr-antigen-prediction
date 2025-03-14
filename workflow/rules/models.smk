@@ -1,8 +1,8 @@
 rule models:
     input:
         "models/TCRen",
-        "models/TCRContactMapPredictor",
-        "models/TCRContactMapPredictor_sequence_only",
+        "models/TCRStructMap",
+        "models/TCRStructMap_sequence_only",
         "models/ConfidencePredictor"
 
 rule train_TCRen:
@@ -22,19 +22,19 @@ rule train_TCRen:
             $(cat "{input}/stcrdab_split.csv" | grep "train" | awk -F, -v dir="{input}" '{{ printf "%s/%s_%s%s%s%s%s.pdb ", dir, $1, $2, $3, $4, $5, $6 }}')
         """
 
-rule train_TCRContactMapPredictor:
+rule train_TCRStructMap:
     input:
         data="data/processed/sequences.h5",
         contact_maps="data/processed/contact_maps.h5"
-    output: directory("models/TCRContactMapPredictor")
-    log: "data/logs/train_tcr_contact_map_predictor.log"
+    output: directory("models/TCRStructMap")
+    log: "data/logs/train_tcr_struct_map.log"
     resources:
         runtime="2h",
         mem="5GB",
         tasks=1
     shell:
         """
-        python -m tcr_antigen_prediction.models.apps.train_tcr_contact_map_predictor \
+        python -m tcr_antigen_prediction.models.apps.train_tcr_struct_map \
             --log-level {config[log_level]} \
             --log-file {log} \
             -o {output} \
@@ -42,9 +42,9 @@ rule train_TCRContactMapPredictor:
             {input.data}
         """
 
-rule train_TCRContactMapPredictor_sequence_only:
+rule train_TCRStructMap_sequence_only:
     input: "data/processed/sequences.h5"
-    output: directory("models/TCRContactMapPredictor_sequence_only")
+    output: directory("models/TCRStructMap_sequence_only")
     log: "data/logs/train_tcr_contact_map_predictor_sequence_only.log"
     resources:
         runtime="2h",

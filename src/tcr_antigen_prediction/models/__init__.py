@@ -4,7 +4,7 @@ import torch
 from torch import nn
 
 
-class TCRContactMapPredictor(nn.Module):
+class TCRStructMap(nn.Module):
     """Model for predicting interactions between TCRs and pMHCs using structurally constrained sequences.
 
     Args:

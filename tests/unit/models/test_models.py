@@ -3,10 +3,10 @@ from unittest import TestCase
 import numpy as np
 import torch
 
-from tcr_antigen_prediction.models import TCRContactMapPredictor
+from tcr_antigen_prediction.models import TCRStructMap
 
 
-class TestTCRContactMapPredictor(TestCase):
+class TestTCRStructMap(TestCase):
     def test(self):
         torch.manual_seed(0)
 
@@ -82,7 +82,7 @@ class TestTCRContactMapPredictor(TestCase):
             cdr_3_mhc_contact_map,
         )
 
-        model = TCRContactMapPredictor(
+        model = TCRStructMap(
             cdr_peptide_contact_maps,
             cdr_mhc_contact_maps,
             cdr_1_length=4,
@@ -165,7 +165,7 @@ class TestTCRContactMapPredictor(TestCase):
     def test_no_contact_maps(self):
         torch.manual_seed(0)
 
-        model = TCRContactMapPredictor(
+        model = TCRStructMap(
             cdr_1_length=4,
             cdr_2_length=4,
             cdr_3_length=6,
