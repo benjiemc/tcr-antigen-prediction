@@ -69,7 +69,6 @@ def load_data(paths: list[str], summary_df: pd.DataFrame, contact_distance: floa
         chain_map = {val: key for key, val in row.filter(regex=r'\w+chain[1-2]?').to_dict().items()}
         structure_df['chain_type'] = structure_df['chain_id'].map(chain_map)
         structure_df['cdr'] = None
-        structure_df['merge_key'] = 0
 
         tcr_selection = (structure_df['chain_type'] == 'Achain') | (structure_df['chain_type'] == 'Bchain')
         structure_df.loc[tcr_selection, 'cdr'] = structure_df[tcr_selection]['residue_seq_id'].map(assign_cdr_number)
@@ -77,9 +76,7 @@ def load_data(paths: list[str], summary_df: pd.DataFrame, contact_distance: floa
         cdr_df = structure_df[tcr_selection & (structure_df['cdr'].notna())]
         antigen_df = structure_df[structure_df['chain_type'] == 'antigen_chain']
 
-        # TODO replace with 'cross' when updating to a newer python version
-        interaction = cdr_df.merge(antigen_df, on='merge_key', suffixes=('_cdr', '_antigen'))
-        interaction = interaction.drop(columns=['merge_key'])
+        interaction = cdr_df.merge(antigen_df, how='cross', suffixes=('_cdr', '_antigen'))
 
         coords_cdr = interaction.filter(regex=r'pos_[xyz]_cdr').to_numpy()
         coords_antigen = interaction.filter(regex=r'pos_[xyz]_antigen').to_numpy()
@@ -147,11 +144,7 @@ def fit_tcr_en(interacting_residues: pd.DataFrame) -> pd.DataFrame:
     p_b.name = 'proportion'
     p_b = p_b.to_frame().reset_index()
 
-    # TODO replace with 'cross' when updating to a newer python version
-    p_a['merge_key'] = 0
-    p_b['merge_key'] = 0
-    p_exp = p_a.merge(p_b, on='merge_key')
-    p_exp = p_exp.drop(columns=['merge_key'])
+    p_exp = p_a.merge(p_b, how='cross')
     p_exp = p_exp.set_index(['tcr_cdr_residue', 'peptide_residue'])
     p_exp = p_exp['proportion_x'] * p_exp['proportion_y']
     p_exp.name = 'p_exp'
