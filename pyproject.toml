@@ -29,6 +29,7 @@ develop = [
     "myst-parser",
     "nbsphinx",
     "pytest",
+    "pytest-cov",
     "prysk",
     "pytest-prysk",
     "ruff",
@@ -91,3 +92,6 @@ multiline-quotes = "single"
 [tool.ruff.format]
 quote-style = "preserve"
 docstring-code-format = true
+
+[tool.coverage.run]
+omit = ["src/**/apps/*"]

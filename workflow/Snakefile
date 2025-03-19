@@ -32,7 +32,7 @@ rule lint:
         """
 
 rule test:
-    shell: "pytest tests"
+    shell: "pytest --cov=src tests"
 
 rule docs:
     shell:
