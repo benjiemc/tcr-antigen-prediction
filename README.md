@@ -35,7 +35,7 @@ If **only mamba is installed**, manually run the following steps to install the 
 
 ```
 # Create Environment
-git submodules init
+git submodule init
 mamba env create -f environment.yml
 mamba run -n tcr-antigen-prediction python -m pip install .
 
