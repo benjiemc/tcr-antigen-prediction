@@ -28,7 +28,7 @@ rule select_stcrdab_structures:
         python -m tcr_antigen_prediction.data.apps.select_stcrdab_tcr_pmhc_structures \
             --log-level {config[log_level]} \
             --log-file {log} \
-            --seed 123 \
+            --seed {config[seed]} \
             --tcr-types abTCR \
             --mhc-types MH1 MH2 \
             --antigen-types peptide \
@@ -175,7 +175,7 @@ rule process_sequence_data:
         """
         python -m tcr_antigen_prediction.data.apps.process_sequence_data \
             --log-level {config[log_level]} \
-            --seed 123 \
+            --seed {config[seed]} \
             -o {output} \
             {input.sequences}
         """
@@ -191,7 +191,7 @@ rule process_sequence_data_for_nettcr:
         """
         python -m tcr_antigen_prediction.data.apps.process_sequence_data \
             --log-level {config[log_level]} \
-            --seed 123 \
+            --seed {config[seed]} \
             --cdr1-alpha-length 7 \
             --cdr2-alpha-length 8 \
             --cdr3-alpha-length 22 \
