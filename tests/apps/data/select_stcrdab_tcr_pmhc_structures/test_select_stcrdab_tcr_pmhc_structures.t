@@ -1,7 +1,6 @@
 Test app (standard)
   $ python -m tcr_antigen_prediction.data.apps.select_stcrdab_tcr_pmhc_structures \
   > --log-level error \
-  > --seed 123 \
   > --tcr-types abTCR \
   > --mhc-types MH1 MH2 \
   > --antigen-types peptide \
@@ -18,7 +17,6 @@ Test app (standard)
 Test removing structures missing residues
   $ python -m tcr_antigen_prediction.data.apps.select_stcrdab_tcr_pmhc_structures \
   > --log-level error \
-  > --seed 123 \
   > --tcr-types abTCR \
   > --mhc-types MH1 MH2 \
   > --antigen-types peptide \
@@ -32,7 +30,6 @@ Test removing structures missing residues
 Test fixing structures missing reisdues
   $ python -m tcr_antigen_prediction.data.apps.select_stcrdab_tcr_pmhc_structures \
   > --log-level error \
-  > --seed 123 \
   > --tcr-types abTCR \
   > --mhc-types MH1 MH2 \
   > --antigen-types peptide \
@@ -49,7 +46,6 @@ Test fixing structures missing reisdues
 Test structural similarity cutoff
   $ python -m tcr_antigen_prediction.data.apps.select_stcrdab_tcr_pmhc_structures \
   > --log-level error \
-  > --seed 123 \
   > --tcr-types abTCR \
   > --mhc-types MH1 MH2 \
   > --antigen-types peptide \
@@ -63,7 +59,6 @@ Test structural similarity cutoff
 Test crop structures
   $ python -m tcr_antigen_prediction.data.apps.select_stcrdab_tcr_pmhc_structures \
   > --log-level error \
-  > --seed 123 \
   > --tcr-types abTCR \
   > --mhc-types MH1 MH2 \
   > --antigen-types peptide \
@@ -81,7 +76,6 @@ Test crop structures
 Test remove HETATMs
   $ python -m tcr_antigen_prediction.data.apps.select_stcrdab_tcr_pmhc_structures \
   > --log-level error \
-  > --seed 123 \
   > --tcr-types abTCR \
   > --mhc-types MH1 MH2 \
   > --antigen-types peptide \

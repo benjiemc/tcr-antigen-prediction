@@ -28,7 +28,6 @@ rule select_stcrdab_structures:
         python -m tcr_antigen_prediction.data.apps.select_stcrdab_tcr_pmhc_structures \
             --log-level {config[log_level]} \
             --log-file {log} \
-            --seed {config[seed]} \
             --tcr-types abTCR \
             --mhc-types MH1 MH2 \
             --antigen-types peptide \

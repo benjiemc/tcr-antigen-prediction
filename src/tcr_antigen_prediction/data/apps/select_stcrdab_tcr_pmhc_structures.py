@@ -3,7 +3,6 @@
 import argparse
 import logging
 import os
-import random
 import sys
 import tempfile
 
@@ -54,7 +53,6 @@ parser.add_argument('stcrdab', help='path to the STCRDab')
 
 parser.add_argument('--output', '-o', required=True, help='directory to output selected structures')
 parser.add_argument('--output-summary-csv', required=True, help='path to output summary csv file of structures')
-parser.add_argument('--seed', default=None, type=int, help='random seed for data splitting')
 
 structure_type_group = parser.add_argument_group('Structure Types')
 structure_type_group.add_argument(
@@ -409,9 +407,6 @@ def remove_similar_structures(df: pd.DataFrame, threshold: float) -> pd.DataFram
 def main():
     args = parser.parse_args()
     setup_logger(logger, args.log_level, args.log_file)
-
-    if args.seed:
-        random.seed(args.seed)
 
     if args.fix_structures_missing_residues:
         fix_dir = tempfile.TemporaryDirectory()
