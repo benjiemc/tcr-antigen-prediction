@@ -39,6 +39,7 @@ rule train_TCRStructMap:
         python -m tcr_antigen_prediction.models.apps.train_tcr_struct_map \
             --log-level {config[log_level]} \
             --log-file {log} \
+            --seed {config[seed]} \
             -o {output} \
             --contact-maps {input.contact_maps} \
             {input.data}
@@ -57,6 +58,7 @@ rule train_TCRStructMap_sequence_only:
         python -m tcr_antigen_prediction.models.apps.train_tcr_contact_map_predictor \
             --log-level {config[log_level]} \
             --log-file {log} \
+            --seed {config[seed]} \
             -o {output} \
             {input}
         """
@@ -74,6 +76,7 @@ rule train_NetTCR:
         python -m nettcr.apps.train_nettcr \
             --log-level {config[log_level]} \
             --log-file {log} \
+            --seed {config[seed]} \
             -o {output} \
             {input}
         """
@@ -92,6 +95,7 @@ rule train_confidence_predictor:
         python -m tcr_antigen_prediction.models.apps.train_confidence_predictor \
             --log-level {config[log_level]} \
             --log-file {log} \
+            --seed {config[seed]} \
             -o {output}/model.onnx \
             {input}
         """
