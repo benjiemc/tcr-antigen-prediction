@@ -3,6 +3,7 @@ rule models:
         "models/TCRen",
         "models/TCRStructMap",
         "models/TCRStructMap_sequence_only",
+        "models/NetTCR",
         "models/ConfidencePredictor"
 
 rule train_TCRen:
