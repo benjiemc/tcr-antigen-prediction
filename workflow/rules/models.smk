@@ -30,7 +30,7 @@ rule train_TCRStructMap:
         data="data/processed/sequences.h5",
         contact_maps="data/processed/contact_maps.h5"
     output: directory("models/TCRStructMap")
-    log: "data/logs/train_tcr_struct_map.log"
+    log: "data/logs/train_TCRStructMap.log"
     resources:
         runtime="2h",
         mem="5GB",
@@ -49,7 +49,7 @@ rule train_TCRStructMap:
 rule train_TCRStructMap_sequence_only:
     input: "data/processed/sequences.h5"
     output: directory("models/TCRStructMap_sequence_only")
-    log: "data/logs/train_tcr_contact_map_predictor_sequence_only.log"
+    log: "data/logs/train_TCRStructMap_sequence_only.log"
     resources:
         runtime="2h",
         mem="5GB",

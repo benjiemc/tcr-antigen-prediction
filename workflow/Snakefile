@@ -8,6 +8,7 @@ config = {**default_config, **config}
 include: "rules/data.smk"
 include: "rules/models.smk"
 include: "rules/notebooks.smk"
+include: "rules/visualisations.smk"
 
 rule environment:
     shell:
