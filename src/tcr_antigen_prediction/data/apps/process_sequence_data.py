@@ -20,6 +20,7 @@ import sys
 import h5py
 import numpy as np
 import pandas as pd
+from sklearn.cluster import AgglomerativeClustering
 
 from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
 from tcr_antigen_prediction.data.amino_acid_encodings import BLOSUM_50_ENCODING, ONE_HOT_ENCODING
@@ -110,12 +111,43 @@ data_group.add_argument(
 )
 data_group.add_argument(
     '--split-type',
-    choices=['random', 'tcr', 'peptide'],
+    choices=['random', 'tcr', 'peptide', 'levenshtein'],
     default='peptide',
     help=(
         "Method to partition data between folds (Default: 'peptide'). 'random' means to randomly shuffle data between"
-        " folds, 'tcr' means no TCRs are shared across folds, and 'peptide' means to ensure no peptides are shared "
-        "across folds."
+        " folds, 'tcr' means no TCRs are shared across folds, 'peptide' means to ensure no peptides are shared across "
+        "folds, and 'levenshtein' means to use a levenshtein distance to separate data points between folds "
+        "(more parameters below)."
+    ),
+)
+data_group.add_argument(
+    '--split-distance',
+    default=6,
+    type=int,
+    help=(
+        "If using a 'levenshtein' split, the mimimum distance between data points in two different folds (Default: 6)."
+    ),
+)
+data_group.add_argument(
+    '--split-entities',
+    nargs='+',
+    choices=[
+        'cdr1_alpha',
+        'cdr2_alpha',
+        'cdr3_alpha',
+        'cdr1_beta',
+        'cdr2_beta',
+        'cdr3_beta',
+        'peptide',
+        'mhc_pseudo',
+    ],
+    help="If using a 'levenshtein' split, the entities to consider as part of the split.",
+)
+data_group.add_argument(
+    '--distances',
+    help=(
+        "If using a 'levenshtein' split, the path to an hdf5 file containing the distances between each type of entity "
+        "considered."
     ),
 )
 
@@ -294,6 +326,49 @@ def main() -> None:
             sequence_data['fold'] = sequence_data['peptide'].map(
                 {peptide_sequence: i for i, fold in enumerate(folds, 1) for peptide_sequence in fold}
             )
+
+        case 'levenshtein':
+            logger.debug(
+                'Splitting data points across cross-validation folds based on a levenshtein distance of %d',
+                args.split_distance,
+            )
+
+            with h5py.File(args.distances) as fh:
+                distances = np.zeros((len(sequence_data), len(sequence_data)), dtype=int)
+
+                for entity in args.split_entities:
+                    names_map = {name.decode('utf-8'): idx for idx, name in enumerate(fh[entity]['names'][:])}
+                    indices = sequence_data[entity].map(names_map).to_numpy()
+
+                    distances += fh[entity]['distance_matrix'][:][np.ix_(indices, indices)]
+
+            clusters = AgglomerativeClustering(
+                n_clusters=None,
+                distance_threshold=args.split_distance,
+                metric='precomputed',
+                linkage='single',
+            ).fit_predict(distances)
+
+            cluster_sizes = {}
+            for cluster in clusters:
+                if cluster in cluster_sizes:
+                    cluster_sizes[cluster] += 1
+
+                else:
+                    cluster_sizes[cluster] = 1
+
+            cluster_sizes = sorted(cluster_sizes.items(), key=lambda cluster_size: cluster_size[1], reverse=True)
+
+            if len(cluster_sizes) < args.num_folds:
+                logger.warning(
+                    'Insufficient data to create %d folds. Only %d fold(s) will be created',
+                    args.num_folds,
+                    len(cluster_sizes),
+                )
+
+            folds = create_even_folds(cluster_sizes, num_folds=args.num_folds, seed=args.seed)
+            fold_map = {cluster: i for i, fold in enumerate(folds, 1) for cluster in fold}
+            sequence_data['fold'] = [fold_map[cluster] for cluster in clusters]
 
     processed_data = sequence_data.filter(regex='_processed$|label|fold')
     processed_data.columns = [column_name.replace('_processed', '') for column_name in processed_data.columns]

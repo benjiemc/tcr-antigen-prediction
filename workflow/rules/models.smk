@@ -4,6 +4,8 @@ rule models:
         "models/TCRStructMap",
         "models/TCRStructMap_sequence_only",
         "models/TCRStructMap_tcr_split_sequence_only",
+        "models/TCRStructMap_tcr_levenshtein_split",
+        "models/TCRStructMap_tcr_levenshtein_split_sequence_only",
         "models/NetTCR",
         "models/ConfidencePredictor"
 
@@ -71,6 +73,43 @@ rule train_TCRStructMap_tcr_split_sequence_only:
     log: "data/logs/train_tcr_struct_map_tcr_split.log"
     resources:
         runtime="2h",
+        mem="5GB",
+        tasks=1
+    shell:
+        """
+        python -m tcr_antigen_prediction.models.apps.train_tcr_struct_map \
+            --log-level {config[log_level]} \
+            --log-file {log} \
+            -o {output} \
+            {input}
+        """
+
+rule train_TCRStructMap_tcr_levenshtein_split:
+    input:
+        data="data/processed/sequences_tcr_levenshtein_split.h5",
+        contact_maps="data/processed/contact_maps.h5"
+    output: directory("models/TCRStructMap_tcr_levenshtein_split")
+    log: "data/logs/train_tcr_struct_map_tcr_levenshtein_split.log"
+    resources:
+        runtime="5h",
+        mem="5GB",
+        tasks=1
+    shell:
+        """
+        python -m tcr_antigen_prediction.models.apps.train_tcr_struct_map \
+            --log-level {config[log_level]} \
+            --log-file {log} \
+            --contact-maps {input.contact_maps} \
+            -o {output} \
+            {input.data}
+        """
+
+rule train_TCRStructMap_tcr_levenshtein_split_sequence_only:
+    input: "data/processed/sequences_tcr_levenshtein_split.h5"
+    output: directory("models/TCRStructMap_tcr_levenshtein_split_sequence_only")
+    log: "data/logs/train_tcr_struct_map_tcr_levenshtein_split_sequence_only.log"
+    resources:
+        runtime="5h",
         mem="5GB",
         tasks=1
     shell:

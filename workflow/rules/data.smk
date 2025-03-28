@@ -145,22 +145,65 @@ rule collate_sequence_data:
             -o {output}
         """
 
-rule calculate_peptide_distances:
+rule calculate_levenshtein_distances:
     input: "data/interim/sequences.csv"
     output:
-        distance_matrix="data/interim/peptide_distances.txt",
-        peptides="data/interim/peptides.txt"
+        distance_matrix="data/interim/{name}_distances.txt",
+        names="data/interim/{name}s.txt"
     resources:
-        runtime="1m",
+        runtime="1h",
         mem="1GB",
         tasks=1
     shell:
         """
-        cut -d"," -f7 {input} | sed 1d | sort | uniq > {output.peptides}
+        column_number=$(head -n1 {input} | tr ',' '\n' | nl | grep {wildcards.name} | cut -f1 | xargs)
+        cut -d"," -f $column_number {input} | sed 1d | sort | uniq > {output.names}
         python -m tcr_antigen_prediction.data.apps.compute_pw_distances \
             -o {output.distance_matrix} \
-            $(cat {output.peptides} | tr '\n' ' ')
+            $(cat {output.names} | tr '\n' ' ')
         """
+
+rule aggregate_levenshtein_distances:
+    input:
+        distance_matrices=expand("data/interim/{name}_distances.txt", name=[
+            'cdr1_alpha',
+            'cdr2_alpha',
+            'cdr3_alpha',
+            'cdr1_beta',
+            'cdr2_beta',
+            'cdr3_beta',
+            'peptide',
+            'mhc_pseudo',
+        ]),
+        names=expand("data/interim/{name}s.txt", name=[
+            'cdr1_alpha',
+            'cdr2_alpha',
+            'cdr3_alpha',
+            'cdr1_beta',
+            'cdr2_beta',
+            'cdr3_beta',
+            'peptide',
+            'mhc_pseudo',
+        ])
+    output: "data/interim/distance_matrices.h5"
+    resources:
+        runtime="5m",
+        mem="1GB",
+        tasks=1
+    run:
+        import os
+
+        import h5py
+        import numpy as np
+
+        with h5py.File(output[0], 'w') as hdf5:
+            for names, distance_matrix in zip(input.names, input.distance_matrices, strict=True):
+                group = hdf5.create_group(os.path.basename(names).replace('s.txt', ''))
+
+                with open(names, 'r') as fh:
+                    group['names'] = [line.strip() for line in fh.readlines() if line]
+
+                group['distance_matrix'] = np.loadtxt(distance_matrix, dtype=int)
 
 rule process_sequence_data:
     input:
@@ -193,6 +236,28 @@ rule process_sequence_data_tcr_split:
             --log-level {config[log_level]} \
             --seed 123 \
             --split-type tcr \
+            -o {output} \
+            {input.sequences}
+        """
+
+rule process_sequence_data_tcr_levenshtein_split:
+    input:
+        sequences="data/interim/sequences.csv",
+        distances="data/interim/distance_matrices.h5"
+    output: "data/processed/sequences_tcr_levenshtein_split.h5"
+    resources:
+        runtime="20m",
+        mem="275GB",
+        tasks=1
+    shell:
+        """
+        python -m tcr_antigen_prediction.data.apps.process_sequence_data \
+            --log-level {config[log_level]} \
+            --seed 123 \
+            --split-type levenshtein \
+            --split-distance 6 \
+            --split-entities cdr1_alpha cdr2_alpha cdr3_alpha cdr1_beta cdr2_beta cdr3_beta \
+            --distances {input.distances} \
             -o {output} \
             {input.sequences}
         """
