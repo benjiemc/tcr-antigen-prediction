@@ -30,30 +30,6 @@ rule run_visualise_tcr_pmhc_contact_maps_notebook:
         tasks=1
     notebook: "../../notebooks/visualise_tcr_pmhc_contact_maps.ipynb"
 
-rule run_visualising_and_evaluating_tcr_struct_map_training_notebook:
-    input: "data/logs/train_tcr_struct_map.log"
-    resources:
-        runtime="1m",
-        mem="500MB",
-        tasks=1
-    notebook: "../../notebooks/visualising_and_evaluating_tcr_struct_map_training.ipynb"
-
-rule run_visualising_and_evaluating_tcr_struct_map_sequence_only_training_notebook:
-    input: "data/logs/train_tcr_struct_map_sequence_only.log"
-    resources:
-        runtime="1m",
-        mem="500MB",
-        tasks=1
-    notebook: "../../notebooks/visualising_and_evaluating_tcr_struct_map_sequence_only_training.ipynb"
-
-rule run_visualising_and_evaluating_nettcr_training_notebook:
-    input: "data/logs/train_NetTCR.log"
-    resources:
-        runtime="1m",
-        mem="500MB",
-        tasks=1
-    notebook: "../../notebooks/visualising_and_evaluating_nettcr_training.ipynb"
-
 rule run_benchmark_model_performance_notebook:
     input:
         "data/interim/peptides.txt",
