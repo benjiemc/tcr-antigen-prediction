@@ -9,7 +9,7 @@ cli_apps = [app for app in cli_apps if not app.split('/')[-1].startswith('_')]
 app_names = []
 
 for app in cli_apps:
-    app_name = app.strip('src/').replace('/', '.').rstrip('.py')
+    app_name = app.strip('src/').replace('/', '.').replace('.py', '')
     app_doc = subprocess.run(  # noqa: S603
         ['python', '-m', app_name, '--help'],  # noqa: S607
         stdout=subprocess.PIPE,
