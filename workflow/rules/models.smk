@@ -56,7 +56,7 @@ rule train_TCRStructMap_sequence_only:
         tasks=1
     shell:
         """
-        python -m tcr_antigen_prediction.models.apps.train_tcr_contact_map_predictor \
+        python -m tcr_antigen_prediction.models.apps.train_tcr_struct_map \
             --log-level {config[log_level]} \
             --log-file {log} \
             --seed {config[seed]} \
