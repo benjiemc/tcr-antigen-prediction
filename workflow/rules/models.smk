@@ -3,6 +3,8 @@ rule models:
         "models/TCRen",
         "models/TCRStructMap",
         "models/TCRStructMap_sequence_only",
+        "models/TCRStructMap_pmhc_split",
+        "models/TCRStructMap_pmhc_split_sequence_only",
         "models/TCRStructMap_tcr_split_sequence_only",
         "models/TCRStructMap_tcr_levenshtein_split",
         "models/TCRStructMap_tcr_levenshtein_split_sequence_only",
@@ -55,6 +57,45 @@ rule train_TCRStructMap_sequence_only:
     log: "data/logs/train_TCRStructMap_sequence_only.log"
     resources:
         runtime="2h",
+        mem="5GB",
+        tasks=1
+    shell:
+        """
+        python -m tcr_antigen_prediction.models.apps.train_tcr_struct_map \
+            --log-level {config[log_level]} \
+            --log-file {log} \
+            --seed {config[seed]} \
+            -o {output} \
+            {input}
+        """
+
+rule train_TCRStructMap_pmhc_split:
+    input:
+        data="data/processed/sequences_pmhc_split.h5",
+        contact_maps="data/processed/contact_maps.h5"
+    output: directory("models/TCRStructMap_pmhc_split")
+    log: "data/logs/train_TCRStructMap_pmhc_split.log"
+    resources:
+        runtime="5h",
+        mem="5GB",
+        tasks=1
+    shell:
+        """
+        python -m tcr_antigen_prediction.models.apps.train_tcr_struct_map \
+            --log-level {config[log_level]} \
+            --log-file {log} \
+            --seed {config[seed]} \
+            -o {output} \
+            --contact-maps {input.contact_maps} \
+            {input.data}
+        """
+
+rule train_TCRStructMap_pmhc_split_sequence_only:
+    input: "data/processed/sequences_pmhc_split.h5"
+    output: directory("models/TCRStructMap_pmhc_split_sequence_only")
+    log: "data/logs/train_TCRStructMap_pmhc_split_sequence_only.log"
+    resources:
+        runtime="5h",
         mem="5GB",
         tasks=1
     shell:

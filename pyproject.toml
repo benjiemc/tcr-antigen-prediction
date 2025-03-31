@@ -53,6 +53,7 @@ ignore = ["COM812",     # Allow missing trailing comma: not recommended to be us
           "PERF203",    # Allow try-except blocks in loops
           "PLR0913",    # no maximum number of arguments for a function
           "PT009",      # allow unit test style asserts
+          "PT027",      # allow unit test style raises assertions
           "PTH",        # ignore recommendations for pathlib
           "RET504",     # Allow extra assignment to variable to improve readability
           "TD",         # allow TODOs, FIXMEs, etc

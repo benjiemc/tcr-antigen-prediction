@@ -24,7 +24,7 @@ from sklearn.cluster import AgglomerativeClustering
 
 from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
 from tcr_antigen_prediction.data.amino_acid_encodings import BLOSUM_50_ENCODING, ONE_HOT_ENCODING
-from tcr_antigen_prediction.data.utils import centre_pad, create_even_folds, left_pad, right_pad
+from tcr_antigen_prediction.data.utils import centre_pad, create_even_folds, find_common_groups, left_pad, right_pad
 
 logger = logging.getLogger()
 
@@ -111,13 +111,14 @@ data_group.add_argument(
 )
 data_group.add_argument(
     '--split-type',
-    choices=['random', 'tcr', 'peptide', 'levenshtein'],
+    choices=['random', 'tcr', 'peptide', 'pMHC', 'levenshtein'],
     default='peptide',
     help=(
         "Method to partition data between folds (Default: 'peptide'). 'random' means to randomly shuffle data between"
         " folds, 'tcr' means no TCRs are shared across folds, 'peptide' means to ensure no peptides are shared across "
-        "folds, and 'levenshtein' means to use a levenshtein distance to separate data points between folds "
-        "(more parameters below)."
+        "folds, 'pMHC' means that no peptides or MHCs (based on pseudo sequence) are shared across folds, and "
+        "'levenshtein' means to use a levenshtein distance to separate data points between folds (more parameters "
+        "below)."
     ),
 )
 data_group.add_argument(
@@ -325,6 +326,27 @@ def main() -> None:
             )
             sequence_data['fold'] = sequence_data['peptide'].map(
                 {peptide_sequence: i for i, fold in enumerate(folds, 1) for peptide_sequence in fold}
+            )
+
+        case 'pMHC':
+            logger.debug('Splitting peptides across cross-validation folds')
+            pmhc_groups = pd.Series(find_common_groups(sequence_data, ['peptide', 'mhc_pseudo']))
+            pmhc_group_counts = pmhc_groups.value_counts()
+
+            if len(pmhc_group_counts) < args.num_folds:
+                logger.warning(
+                    'Insufficient data to create %d folds. Only %d fold(s) will be created',
+                    args.num_folds,
+                    len(pmhc_group_counts),
+                )
+
+            folds = create_even_folds(
+                list(zip(pmhc_group_counts.index.tolist(), pmhc_group_counts.tolist(), strict=True)),
+                num_folds=args.num_folds,
+                seed=args.seed,
+            )
+            sequence_data['fold'] = pmhc_groups.map(
+                {group_id: i for i, fold in enumerate(folds, 1) for group_id in fold}
             )
 
         case 'levenshtein':

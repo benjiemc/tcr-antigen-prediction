@@ -2,6 +2,8 @@ rule visualisations:
     input:
         'report/figures/TCRStructMap_training.svg',
         'report/figures/TCRStructMap_sequence_only_training.svg',
+        'report/figures/TCRStructMap_pmhc_split_training.svg',
+        'report/figures/TCRStructMap_pmhc_split_sequence_only_training.svg',
         'report/figures/TCRStructMap_tcr_split_sequence_only_training.svg',
         'report/figures/TCRStructMap_tcr_levenshtein_split_training.svg',
         'report/figures/TCRStructMap_tcr_levenshtein_split_sequence_only_training.svg',
