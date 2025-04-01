@@ -1,6 +1,7 @@
 Test app centre-pad one-hot.
   $ python -m tcr_antigen_prediction.data.apps.process_sequence_data \
   > --seed 123 \
+  > --split-type peptide \
   > -o processed_sequences_centre_pad_one_hot.h5 \
   > $TESTDIR/data/sequences.csv
 
@@ -35,6 +36,7 @@ Test app centre-pad one-hot.
 Test right-pad blosum-50.
   $ python -m tcr_antigen_prediction.data.apps.process_sequence_data \
   > --seed 123 \
+  > --split-type peptide \
   > --cdr1-alpha-length 7 \
   > --cdr2-alpha-length 8 \
   > --cdr3-alpha-length 22 \
@@ -78,6 +80,7 @@ Test right-pad blosum-50.
 Test right-pad blosum-50 normalised.
   $ python -m tcr_antigen_prediction.data.apps.process_sequence_data \
   > --seed 123 \
+  > --split-type peptide \
   > --cdr1-alpha-length 7 \
   > --cdr2-alpha-length 8 \
   > --cdr3-alpha-length 22 \

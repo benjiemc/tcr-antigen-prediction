@@ -45,11 +45,11 @@ rule run_benchmark_model_performance_notebook:
 
 rule run_ablate_model_notebook:
     input:
-        "data/processed/sequences_pmhc_split.h5",
+        "data/processed/sequences.h5",
         "data/processed/contact_maps.h5",
-        "models/TCRStructMap_pmhc_split",
-        "models/TCRStructMap_pmhc_split_cdrs_peptide",
-        "models/TCRStructMap_pmhc_split_cdrs_mhc_pseudo",
+        "models/TCRStructMap",
+        "models/TCRStructMap_cdrs_peptide",
+        "models/TCRStructMap_cdrs_mhc_pseudo",
         "data/interim/peptides.txt",
         "data/interim/peptide_distances.txt"
     resources:

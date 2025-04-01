@@ -112,9 +112,9 @@ data_group.add_argument(
 data_group.add_argument(
     '--split-type',
     choices=['random', 'tcr', 'peptide', 'pMHC', 'levenshtein'],
-    default='peptide',
+    default='pMHC',
     help=(
-        "Method to partition data between folds (Default: 'peptide'). 'random' means to randomly shuffle data between"
+        "Method to partition data between folds (Default: 'pMHC'). 'random' means to randomly shuffle data between"
         " folds, 'tcr' means no TCRs are shared across folds, 'peptide' means to ensure no peptides are shared across "
         "folds, 'pMHC' means that no peptides or MHCs (based on pseudo sequence) are shared across folds, and "
         "'levenshtein' means to use a levenshtein distance to separate data points between folds (more parameters "

@@ -1,6 +1,6 @@
-2025-04-01 12:45:49,650 - INFO: Parameter: training_data='data/processed/sequences_pmhc_split.h5'
+2025-04-01 12:45:49,650 - INFO: Parameter: training_data='data/processed/sequences.h5'
 2025-04-01 12:45:49,650 - INFO: Parameter: contact_maps='data/processed/contact_maps.h5'
-2025-04-01 12:45:49,650 - INFO: Parameter: output='models/TCRStructMap_pmhc_split_cdrs_peptide'
+2025-04-01 12:45:49,650 - INFO: Parameter: output='models/TCRStructMap_cdrs_peptide'
 2025-04-01 12:45:49,650 - INFO: Parameter: seed=123
 2025-04-01 12:45:49,650 - INFO: Parameter: features_to_include=['cdr1_alpha', 'cdr2_alpha', 'cdr3_alpha', 'cdr1_beta', 'cdr2_beta', 'cdr3_beta', 'peptide']
 2025-04-01 12:45:49,650 - INFO: Parameter: cdr1_alpha_length=8
@@ -20,11 +20,11 @@
 2025-04-01 12:45:49,651 - INFO: Parameter: eval_interval=500
 2025-04-01 12:45:49,651 - INFO: Parameter: eval_batch_size=1000
 2025-04-01 12:45:49,651 - INFO: Parameter: log_level='info'
-2025-04-01 12:45:49,651 - INFO: Parameter: log_file='data/logs/train_TCRStructMap_pmhc_split_cdrs_peptide.log'
+2025-04-01 12:45:49,651 - INFO: Parameter: log_file='data/logs/train_TCRStructMap_cdrs_peptide.log'
 2025-04-01 12:45:49,652 - INFO: Setting random seed to 123
 2025-04-01 12:45:49,728 - INFO: Loading contact maps from data/processed/contact_maps.h5
-2025-04-01 12:45:49,846 - INFO: Loading training data from data/processed/sequences_pmhc_split.h5
-2025-04-01 12:45:53,882 - INFO: Creating models/TCRStructMap_pmhc_split_cdrs_peptide
+2025-04-01 12:45:49,846 - INFO: Loading training data from data/processed/sequences.h5
+2025-04-01 12:45:53,882 - INFO: Creating models/TCRStructMap_cdrs_peptide
 2025-04-01 12:45:54,206 - INFO: Starting fold 1
 2025-04-01 12:45:54,232 - INFO: Initialising model
 2025-04-01 12:46:22,174 - INFO: Starting training
@@ -653,7 +653,7 @@
 2025-04-01 12:58:22,494 - INFO: Loss: 0.155561
 2025-04-01 12:58:22,494 - INFO: Training ROC-AUC: 0.970370
 2025-04-01 12:58:22,494 - INFO: Validation ROC-AUC: 0.554952
-2025-04-01 12:58:23,447 - INFO: Saving model to models/TCRStructMap_pmhc_split_cdrs_peptide/model_1.pt
+2025-04-01 12:58:23,447 - INFO: Saving model to models/TCRStructMap_cdrs_peptide/model_1.pt
 2025-04-01 12:58:23,464 - INFO: Starting fold 2
 2025-04-01 12:58:23,483 - INFO: Initialising model
 2025-04-01 12:58:23,488 - INFO: Starting training
@@ -1282,7 +1282,7 @@
 2025-04-01 13:10:07,667 - INFO: Loss: 0.210585
 2025-04-01 13:10:07,667 - INFO: Training ROC-AUC: 0.903704
 2025-04-01 13:10:07,667 - INFO: Validation ROC-AUC: 0.695730
-2025-04-01 13:10:08,073 - INFO: Saving model to models/TCRStructMap_pmhc_split_cdrs_peptide/model_2.pt
+2025-04-01 13:10:08,073 - INFO: Saving model to models/TCRStructMap_cdrs_peptide/model_2.pt
 2025-04-01 13:10:08,084 - INFO: Starting fold 3
 2025-04-01 13:10:08,627 - INFO: Initialising model
 2025-04-01 13:10:08,632 - INFO: Starting training
@@ -1411,7 +1411,7 @@
 2025-04-01 13:12:54,798 - INFO: Loss: 0.137045
 2025-04-01 13:12:54,798 - INFO: Training ROC-AUC: 1.000000
 2025-04-01 13:12:54,798 - INFO: Validation ROC-AUC: 0.435439
-2025-04-01 13:12:59,787 - INFO: Saving model to models/TCRStructMap_pmhc_split_cdrs_peptide/model_3.pt
+2025-04-01 13:12:59,787 - INFO: Saving model to models/TCRStructMap_cdrs_peptide/model_3.pt
 2025-04-01 13:12:59,897 - INFO: Starting fold 4
 2025-04-01 13:12:59,946 - INFO: Initialising model
 2025-04-01 13:12:59,950 - INFO: Starting training
@@ -1940,7 +1940,7 @@
 2025-04-01 13:24:24,378 - INFO: Loss: 0.100750
 2025-04-01 13:24:24,378 - INFO: Training ROC-AUC: 0.988571
 2025-04-01 13:24:24,378 - INFO: Validation ROC-AUC: 0.566455
-2025-04-01 13:24:29,174 - INFO: Saving model to models/TCRStructMap_pmhc_split_cdrs_peptide/model_4.pt
+2025-04-01 13:24:29,174 - INFO: Saving model to models/TCRStructMap_cdrs_peptide/model_4.pt
 2025-04-01 13:24:29,185 - INFO: Starting fold 5
 2025-04-01 13:24:29,208 - INFO: Initialising model
 2025-04-01 13:24:29,213 - INFO: Starting training
@@ -2469,4 +2469,4 @@
 2025-04-01 13:35:52,461 - INFO: Loss: 0.289920
 2025-04-01 13:35:52,461 - INFO: Training ROC-AUC: 0.903846
 2025-04-01 13:35:52,461 - INFO: Validation ROC-AUC: 0.681838
-2025-04-01 13:35:57,796 - INFO: Saving model to models/TCRStructMap_pmhc_split_cdrs_peptide/model_5.pt
+2025-04-01 13:35:57,796 - INFO: Saving model to models/TCRStructMap_cdrs_peptide/model_5.pt
