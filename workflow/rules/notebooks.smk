@@ -43,6 +43,21 @@ rule run_benchmark_model_performance_notebook:
         tasks=1
     notebook: "../../notebooks/benchmark_model_performance.ipynb"
 
+rule run_ablate_model_notebook:
+    input:
+        "data/processed/sequences_pmhc_split.h5",
+        "data/processed/contact_maps.h5",
+        "models/TCRStructMap_pmhc_split",
+        "models/TCRStructMap_pmhc_split_cdrs_peptide",
+        "models/TCRStructMap_pmhc_split_cdrs_mhc_pseudo",
+        "data/interim/peptides.txt",
+        "data/interim/peptide_distances.txt"
+    resources:
+        runtime="5m",
+        mem="1GB",
+        tasks=1
+    notebook: "../../notebooks/ablate_model.ipynb"
+
 rule run_evaluate_distance_based_confidence_predictor_performance_notebook:
     input: "data/logs/train_confidence_predictor.log"
     resources:

@@ -108,6 +108,50 @@ rule train_TCRStructMap_pmhc_split_sequence_only:
             {input}
         """
 
+rule train_TCRStructMap_pmhc_split_cdrs_peptide:
+    input:
+        data="data/processed/sequences_pmhc_split.h5",
+        contact_maps="data/processed/contact_maps.h5"
+    output: directory("models/TCRStructMap_pmhc_split_cdrs_peptide")
+    log: "data/logs/train_TCRStructMap_pmhc_split_cdrs_peptide.log"
+    resources:
+        runtime="5h",
+        mem="5GB",
+        tasks=1
+    shell:
+        """
+        python -m tcr_antigen_prediction.models.apps.train_tcr_struct_map \
+            --log-level {config[log_level]} \
+            --log-file {log} \
+            --seed {config[seed]} \
+            -o {output} \
+            --features-to-include cdr1_alpha cdr2_alpha cdr3_alpha cdr1_beta cdr2_beta cdr3_beta peptide \
+            --contact-maps {input.contact_maps} \
+            {input.data}
+        """
+
+rule train_TCRStructMap_pmhc_split_cdrs_mhc_pseudo:
+    input:
+        data="data/processed/sequences_pmhc_split.h5",
+        contact_maps="data/processed/contact_maps.h5"
+    output: directory("models/TCRStructMap_pmhc_split_cdrs_mhc_pseudo")
+    log: "data/logs/train_TCRStructMap_pmhc_split_cdrs_mhc_pseudo.log"
+    resources:
+        runtime="5h",
+        mem="5GB",
+        tasks=1
+    shell:
+        """
+        python -m tcr_antigen_prediction.models.apps.train_tcr_struct_map \
+            --log-level {config[log_level]} \
+            --log-file {log} \
+            --seed {config[seed]} \
+            -o {output} \
+            --features-to-include cdr1_alpha cdr2_alpha cdr3_alpha cdr1_beta cdr2_beta cdr3_beta mhc_pseudo \
+            --contact-maps {input.contact_maps} \
+            {input.data}
+        """
+
 rule train_TCRStructMap_tcr_split_sequence_only:
     input: "data/processed/sequences_tcr_split.h5"
     output: directory("models/TCRStructMap_tcr_split_sequence_only")
