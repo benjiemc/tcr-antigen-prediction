@@ -6,4 +6,4 @@
 	url = git@github.com:benjiemc/NetTCR.git
 [submodule "report"]
 	path = report
-	url = https://git@git.overleaf.com/67ae21132aa58899c0af12e9
+	url = git@github.com:benjiemc/tcr-antigen-prediction-report.git
