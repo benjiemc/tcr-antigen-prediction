@@ -1,7 +1,6 @@
 rule data:
     input:
         "data/processed/structures",
-        "data/processed/tcr_pmhc_contacts.csv",
         "data/processed/sequences.h5",
         "data/processed/contact_maps.h5"
 
@@ -45,7 +44,7 @@ rule create_contact_maps:
     input:
         structures="data/processed/structures",
         summary="data/interim/structures_summary.csv"
-    output: "data/processed/tcr_pmhc_contacts.csv"
+    output: "data/interim/tcr_pmhc_contacts.csv"
     resources:
         runtime="10m",
         mem="500MB",
@@ -63,7 +62,7 @@ rule create_contact_maps:
         """
 
 rule get_mhc_pseudo_sequence_imgt_numbers:
-    input: "data/processed/tcr_pmhc_contacts.csv"
+    input: "data/interim/tcr_pmhc_contacts.csv"
     output: "data/interim/mhc_pseudo_seq_imgt_positions.json"
     shell: "python -m tcr_antigen_prediction.data.apps.get_mhc_pseudo_sequence_imgt_numbers --log-level {config[log_level]} -o {output} {input}"
 
@@ -89,7 +88,7 @@ rule add_mhc_pseudo_sequences:
 
 rule process_contact_maps:
     input:
-        contacts="data/processed/tcr_pmhc_contacts.csv",
+        contacts="data/interim/tcr_pmhc_contacts.csv",
         mhc_pseudo_imgt="data/interim/mhc_pseudo_seq_imgt_positions.json"
     output: "data/processed/contact_maps.h5"
     resources:
