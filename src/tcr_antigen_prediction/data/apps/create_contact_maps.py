@@ -45,14 +45,14 @@ parser.add_argument(
 parser.add_argument(
     '--mhc-norm',
     nargs='?',
-    choices=[None, 'mhc_type', 'chain_type', 'imgt_number'],
+    choices=[None, 'any', 'mhc_type', 'chain_type', 'imgt_number'],
     default='chain_type',
     help="Normalisation strategy for the MHC counts (Default: 'chain_type').",
 )
 parser.add_argument(
     '--peptide-norm',
     nargs='?',
-    choices=[None, 'peptide_position', 'relative_pos_centre'],
+    choices=[None, 'any', 'peptide_position', 'relative_pos_centre'],
     default='peptide_position',
     help="Normalisation strategy for the peptide counts (Default: 'peptide_position').",
 )
@@ -61,6 +61,11 @@ parser.add_argument(
     choices=['left', 'right'],
     default='left',
     help="Offset side when relative_pos_centre is selected (Default: 'left')",
+)
+parser.add_argument(
+    '--keep-residue-ids',
+    action='store_true',
+    help='Separate amino acid identities between contacting pairs',
 )
 parser.add_argument('--probability-filter', type=float, default=None, help='Filter out contacts below this cutoff')
 
@@ -248,6 +253,9 @@ def get_normalisation_columns(
             norm_columns.append('relative_pos_centre_tcr')
 
     match mhc_strategy:
+        case 'any':
+            pmhc_selection_columns += ['mhc_chain1', 'mhc_chain2']
+
         case 'mhc_type':
             pmhc_selection_columns += ['mhc_chain1', 'mhc_chain2']
             norm_columns.append('mhc_type')
@@ -264,6 +272,9 @@ def get_normalisation_columns(
             norm_columns.append('resi_pmhc')
 
     match peptide_strategy:
+        case 'any':
+            pmhc_selection_columns.append('antigen_chain')
+
         case 'peptide_position':
             pmhc_selection_columns.append('antigen_chain')
             norm_columns.append('peptide_position')
@@ -308,6 +319,10 @@ def main():
     norm_columns, pmhc_selection_columns = get_normalisation_columns(args.tcr_norm, args.mhc_norm, args.peptide_norm)
 
     contacts = contacts[contacts['chain_type_pmhc'].isin(pmhc_selection_columns)]
+
+    if args.keep_residue_ids:
+        norm_columns.append('residue_name_tcr')
+        norm_columns.append('residue_name_pmhc')
 
     contact_counts = contacts.value_counts(norm_columns, dropna=False, normalize=True)
 

@@ -61,6 +61,28 @@ rule create_contact_maps:
             {input.structures}/*.pdb \
         """
 
+rule get_contacting_residue_ids:
+    input:
+        structures="data/processed/structures",
+        summary="data/interim/structures_summary.csv"
+    output: "data/interim/tcr_pmhc_contacting_residues.csv"
+    resources:
+        runtime="10m",
+        mem="500MB",
+        tasks=1
+    shell:
+        """
+        python -m tcr_antigen_prediction.data.apps.create_contact_maps \
+            --log-level {config[log_level]} \
+            --tcr-norm \
+            --mhc-norm chain_type \
+            --peptide-norm any \
+            --keep-residue-ids \
+            -o {output} \
+            --summary-csv {input.summary} \
+            {input.structures}/*.pdb \
+        """
+
 rule get_mhc_pseudo_sequence_imgt_numbers:
     input: "data/interim/tcr_pmhc_contacts.csv"
     output: "data/interim/mhc_pseudo_seq_imgt_positions.json"

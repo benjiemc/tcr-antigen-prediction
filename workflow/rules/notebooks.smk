@@ -29,7 +29,10 @@ rule run_compairing_sequence_and_structure_data_notebook:
         """
 
 rule run_visualise_tcr_pmhc_contact_maps_notebook:
-    input: "data/interim/tcr_pmhc_contacts.csv", "data/interim/mhc_pseudo_seq_imgt_positions.json"
+    input:
+        "data/interim/tcr_pmhc_contacts.csv",
+        "data/interim/mhc_pseudo_seq_imgt_positions.json",
+        "data/interim/tcr_pmhc_contacting_residues.csv"
     resources:
         runtime="5m",
         mem="1GB",

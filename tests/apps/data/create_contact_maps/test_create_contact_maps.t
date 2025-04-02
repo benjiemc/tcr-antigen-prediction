@@ -54,6 +54,24 @@ Test filtering
   $ cut -d, -f 4 $TESTDIR/reference/test_mhc_resi_filtered.csv | sed 1d > reference_values
   $ python -c "import numpy as np; test_vals = np.loadtxt('test_values'); ref_vals = np.loadtxt('reference_values'); np.testing.assert_array_almost_equal(test_vals, ref_vals)"
 
+Test amino acid identities
+  $ python -m tcr_antigen_prediction.data.apps.create_contact_maps \
+  > --log-level warning \
+  > --tcr-norm \
+  > --peptide-norm any \
+  > --mhc-norm any \
+  > --keep-residue-ids \
+  > -o amino_acid_identities.csv \
+  > --summary-csv $TESTDIR/data/stcrdab_split.csv \
+  > $TESTDIR/data/*.pdb
+
+  $ cut -d, -f 1-2 amino_acid_identities.csv > test_entries
+  $ cut -d, -f 1-2 $TESTDIR/reference/test_amino_acid_identities.csv > reference_entries
+  $ diff test_entries reference_entries
+
+  $ cut -d, -f 3 amino_acid_identities.csv | sed 1d > test_values
+  $ cut -d, -f 3 $TESTDIR/reference/test_amino_acid_identities.csv | sed 1d > reference_values
+  $ python -c "import numpy as np; test_vals = np.loadtxt('test_values'); ref_vals = np.loadtxt('reference_values'); np.testing.assert_array_almost_equal(test_vals, ref_vals)"
 
 Test blank
   $ python -m tcr_antigen_prediction.data.apps.create_contact_maps \
