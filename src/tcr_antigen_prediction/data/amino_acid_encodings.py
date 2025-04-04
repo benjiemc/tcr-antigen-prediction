@@ -5,11 +5,11 @@ from collections import OrderedDict
 import numpy as np
 from Bio.SeqUtils import IUPACData
 
-PROTEIN_LETTERS = sorted(IUPACData.protein_letters_3to1.values())
+PROTEIN_LETTERS: list[str] = sorted(IUPACData.protein_letters_3to1.values())
 '''Amino acid one letter codes.'''
 
 
-def _create_one_hot_encoding() -> dict[np.ndarray]:
+def _create_one_hot_encoding() -> dict[str, np.ndarray]:
     one_hot_mapping = {}
 
     zero_arr = np.zeros(len(PROTEIN_LETTERS), dtype=int)
@@ -24,10 +24,10 @@ def _create_one_hot_encoding() -> dict[np.ndarray]:
     return one_hot_mapping
 
 
-ONE_HOT_ENCODING = _create_one_hot_encoding()
+ONE_HOT_ENCODING: dict[str, np.ndarray] = _create_one_hot_encoding()
 '''One hot encoding of amino acid letters.'''
 
-BLOSUM_50_ENCODING = OrderedDict()
+BLOSUM_50_ENCODING: OrderedDict[str, np.ndarray] = OrderedDict()
 '''BLOSUM 50 Encoding of amino acid substitutions based off of DOI: 10.1109/TENCONSpring.2014.6862994.'''
 
 BLOSUM_50_ENCODING['A'] = np.array([5, -1, -2, -1, -3, 0, -2, -1, -1, -2, -1, -1, -1, -1, -2, 1, 0, 0, -3, -2])

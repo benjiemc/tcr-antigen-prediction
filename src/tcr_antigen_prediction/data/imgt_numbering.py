@@ -28,7 +28,7 @@ IMGT_CDR: set[int] = IMGT_CDR1.union(IMGT_CDR2).union(IMGT_CDR3)
 IMGT_VARIABLE_DOMAIN: set[int] = set(range(1, 128 + 1))
 '''Variable domain range for IMGT numbered TCR structures.'''
 
-IMGT_FRAMEWORK_REGION = IMGT_VARIABLE_DOMAIN - IMGT_CDR
+IMGT_FRAMEWORK_REGION: set[int] = IMGT_VARIABLE_DOMAIN - IMGT_CDR
 '''Framework (Fw) region range for IMGT numbered TCR structures.'''
 
 IMGT_MH1_ABD: set[int] = set(range(1, 92)) | set(range(1001, 1092))
@@ -37,7 +37,7 @@ IMGT_MH1_ABD: set[int] = set(range(1, 92)) | set(range(1001, 1092))
 IMGT_MH2_ABD: set[int] = set(range(1, 92))
 '''IMGT ranges of the antigen binding domain of MHC class II molecules.'''
 
-MHC_I_IMGT_BETA_HELIX_START = 1000
+MHC_I_IMGT_BETA_HELIX_START: int = 1000
 '''Start of the beta helix of class I molecules.'''
 
 

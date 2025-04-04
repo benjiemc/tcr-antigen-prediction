@@ -24,5 +24,5 @@ RESIDUE_ATOMS: dict[set[str]] = {
 }
 '''Atoms in each amino acid residue.'''
 
-HEAVY_ATOMS = {'C', 'N', 'O', 'S'}
+HEAVY_ATOMS: set[str] = {'C', 'N', 'O', 'S'}
 '''Heavy atoms that make up amino acids.'''
