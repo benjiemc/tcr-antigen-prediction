@@ -83,6 +83,44 @@ rule get_contacting_residue_ids:
             {input.structures}/*.pdb \
         """
 
+rule get_contacting_residues_from_ppis:
+    input: "data/external/PPI3D/ppi3d_591adb630e3ab9c5b32a77eb2001f6c9.csv",
+    output: "data/interim/ppi_contacting_residues.{seed_offset}.csv"
+    params:
+        seed=lambda wildcards: str(int(config['seed']) + int(wildcards.seed_offset))
+    resources:
+        runtime="2h",
+        mem="350GB",
+        tasks=1
+    shell:
+        """
+        python -m tcr_antigen_prediction.data.apps.count_ppi_interactions \
+            --log-level debug \
+            --seed {params.seed} \
+            --sample-size 1000 \
+            --normalise \
+            --separate-interaction-types \
+            -o {output} \
+            {input}
+        """
+
+rule aggregate_contacting_residues_from_ppis:
+    input: expand("data/interim/ppi_contacting_residues.{sample_number}.csv", sample_number=range(5))
+    output: "data/interim/ppi_contacting_residues.csv"
+    resources:
+        runtime="5m",
+        mem="500MB",
+        tasks=1
+    run:
+        import pandas as pd
+
+        df = pd.concat([pd.read_csv(path) for path in input])
+        df = df.groupby(['interaction_type', 'residue_name_1', 'residue_name_2'])['proportion'].agg(
+            proportion_mean='mean', proportion_std='std', sample_size='count'
+        )
+
+        df.to_csv(output[0])
+
 rule get_mhc_pseudo_sequence_imgt_numbers:
     input: "data/interim/tcr_pmhc_contacts.csv"
     output: "data/interim/mhc_pseudo_seq_imgt_positions.json"
