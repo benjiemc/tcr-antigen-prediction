@@ -23,6 +23,7 @@ dependencies:
       - onnxruntime
       - openchord
       - pandas
+      - papermill
       - plotly
       - pyxdameraulevenshtein
       - seaborn

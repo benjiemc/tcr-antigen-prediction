@@ -4,7 +4,10 @@ rule run_visualise_structure_data_notebook:
         runtime="5m",
         mem="1GB",
         tasks=1
-    notebook: "../../notebooks/visualise_structure_data.ipynb"
+    shell:
+        """
+        papermill notebooks/visualise_structure_data.ipynb notebooks/visualise_structure_data.ipynb
+        """
 
 rule run_visualise_sequence_data_notebook:
     input: "data/interim/sequences.csv", "data/logs/collate_sequence_data.log"
@@ -20,7 +23,10 @@ rule run_compairing_sequence_and_structure_data_notebook:
         runtime="5m",
         mem="1GB",
         tasks=1
-    notebook: "../../notebooks/compairing_sequence_and_structure_data.ipynb"
+    shell:
+        """
+        papermill notebooks/compairing_sequence_and_structure_data.ipynb notebooks/compairing_sequence_and_structure_data.ipynb
+        """
 
 rule run_visualise_tcr_pmhc_contact_maps_notebook:
     input: "data/processed/tcr_pmhc_contacts.csv", "data/interim/mhc_pseudo_seq_imgt_positions.json"
@@ -28,7 +34,10 @@ rule run_visualise_tcr_pmhc_contact_maps_notebook:
         runtime="5m",
         mem="1GB",
         tasks=1
-    notebook: "../../notebooks/visualise_tcr_pmhc_contact_maps.ipynb"
+    shell:
+        """
+        papermill notebooks/visualise_tcr_pmhc_contact_maps.ipynb notebooks/visualise_tcr_pmhc_contact_maps.ipynb
+        """
 
 rule run_benchmark_model_performance_notebook:
     input:
@@ -41,7 +50,10 @@ rule run_benchmark_model_performance_notebook:
         runtime="5m",
         mem="1GB",
         tasks=1
-    notebook: "../../notebooks/benchmark_model_performance.ipynb"
+    shell:
+        """
+        papermill notebooks/benchmark_model_performance.ipynb notebooks/benchmark_model_performance.ipynb
+        """
 
 rule run_ablate_model_notebook:
     input:
@@ -56,7 +68,10 @@ rule run_ablate_model_notebook:
         runtime="5m",
         mem="1GB",
         tasks=1
-    notebook: "../../notebooks/ablate_model.ipynb"
+    shell:
+        """
+        papermill notebooks/ablate_model.ipynb notebooks/ablate_model.ipynb
+        """
 
 rule run_evaluate_distance_based_confidence_predictor_performance_notebook:
     input: "data/logs/train_confidence_predictor.log"
@@ -64,7 +79,10 @@ rule run_evaluate_distance_based_confidence_predictor_performance_notebook:
         runtime="1m",
         mem="1GB",
         tasks=1
-    notebook: "../../notebooks/evaluate_distance_based_confidence_predictor_performance.ipynb"
+    shell:
+        """
+        papermill notebooks/evaluate_distance_based_confidence_predictor_performance.ipynb notebooks/evaluate_distance_based_confidence_predictor_performance.ipynb
+        """
 
 rule run_evaluate_confidence_predictions_notebook:
     input:
@@ -77,7 +95,10 @@ rule run_evaluate_confidence_predictions_notebook:
         runtime="5m",
         mem="5GB",
         tasks=1
-    notebook: "../../notebooks/evaluate_confidence_predictions.ipynb"
+    shell:
+        """
+        papermill notebooks/evaluate_confidence_predictions.ipynb notebooks/evaluate_confidence_predictions.ipynb
+        """
 
 rule run_immrep_2025_notebook:
     input:
@@ -100,4 +121,7 @@ rule run_immrep_2025_notebook:
         runtime="10m",
         mem="5GB",
         tasks=1
-    notebook: "../../notebooks/immrep_2025.ipynb"
+    shell:
+        """
+        papermill notebooks/immrep_2025.ipynb notebooks/immrep_2025.ipynb
+        """
