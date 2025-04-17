@@ -26,7 +26,7 @@ cd tcr-antigen-prediction/
 If **both Mamba and Snakemake are installed**, simply run:
 
 ```
-snakemake environment
+snakemake environment --cores 1
 ```
 
 To create the tcr-antigen-prediction mamba environment.
@@ -71,7 +71,7 @@ pip install -e '.[develop]'
 This will install the required development dependencies. To verfiy the installation, run:
 
 ```
-snakemake test
+snakemake test --cores 1
 ```
 
 ## Database Notes

@@ -26,6 +26,6 @@ jobs:
             snakemake environment --quiet all --cores 1
             mamba run -n tcr-antigen-prediction pip install '.[develop]'
       - name: Lint package
-        run: mamba run -n tcr-antigen-prediction snakemake lint --quiet all
+        run: mamba run -n tcr-antigen-prediction snakemake lint  --cores 1 --quiet all
       - name: Test package
-        run: mamba run -n tcr-antigen-prediction snakemake test --quiet all
+        run: mamba run -n tcr-antigen-prediction snakemake test --cores 1 --quiet all
