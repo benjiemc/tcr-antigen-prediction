@@ -42,6 +42,17 @@ rule run_visualise_tcr_pmhc_contact_maps_notebook:
         papermill notebooks/visualise_tcr_pmhc_contact_maps.ipynb notebooks/visualise_tcr_pmhc_contact_maps.ipynb
         """
 
+rule run_compare_contacting_residue_identities_notebook:
+    input: "data/interim/tcr_pmhc_contacting_residues.csv"
+    resources:
+        runtime="5m",
+        mem="1GB",
+        tasks=1
+    shell:
+        """
+        papermill notebooks/compare_contacting_residue_identities.ipynb notebooks/compare_contacting_residue_identities.ipynb
+        """
+
 rule run_benchmark_model_performance_notebook:
     input:
         "data/interim/peptides.txt",
