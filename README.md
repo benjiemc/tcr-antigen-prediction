@@ -112,3 +112,51 @@ Several sequence databases were manually downloaded to make up the datasets for 
       * Meta - Sequencing: Sanger, High-throughput, Single-cell
       * Meta - Spurious CDR3: Include non-canonical, Include unmapped V/J
     * Result: All sequences downloaded (120849 of 120849)
+
+Additionally, Protein-Protein Interaction (PPI) data was downloaded from the [PPI-3D Dataset](https://bioinformatics.lt/ppi3d/) with the following criteria:
+
+```{json}
+{
+  "interaction_types": {
+    "protein_protein_interactions": 1,
+    "protein_peptide_interactions": 1,
+    "protein_nucleic_interactions": 0,
+    "domain_nucleic_interactions": 0,
+    "intra_chain_domain_interactions": 0
+  },
+  "PDB_data": {
+    "resolution": 3.5,
+    "release_date_from": "1973-01-01",
+    "release_date_to": "2025-03-26"
+  },
+  "complex": {
+    "min_number_of_subunits": 1,
+    "max_number_of_subunits": 10000,
+    "min_number_of_protein_subunits": 1,
+    "max_number_of_protein_subunits": 10000,
+    "min_number_of_different_subunits": 1,
+    "max_number_of_different_subunits": 10000,
+    "min_number_of_residues": 1,
+    "max_number_of_residues": 1000000000,
+    "min_number_of_residues_visible": 1,
+    "max_number_of_residues_visible": 1000000000
+  },
+  "subunits": {
+    "min_number_of_residues": 1,
+    "max_number_of_residues": 100000,
+    "min_number_of_residues_visible": 1,
+    "max_number_of_residues_visible": 100000
+  },
+  "interface": {
+    "min_area": 100,
+    "max_area": 100000,
+    "min_number_of_contacts": 1,
+    "max_number_of_contacts": 10000,
+    "allow_ligands": 0,
+    "homo": 1,
+    "hetero": 1
+  },
+  "clustering": "sequence95_structure50",
+  "include_clustering_data_in_table": 1
+}
+```
