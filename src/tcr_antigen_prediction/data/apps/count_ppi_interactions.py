@@ -10,6 +10,7 @@ import pandas as pd
 import requests
 from Bio.PDB import PDBParser
 from Bio.SeqUtils import IUPACData
+from scipy.spatial import KDTree
 
 from tcr_antigen_prediction.apps._log import add_logging_arguments, setup_logger
 from tcr_antigen_prediction.data.structure import bio_to_pandas
@@ -48,6 +49,35 @@ parser.add_argument(
 parser.add_argument('--separate-interaction-types', action='store_true', help='')
 
 add_logging_arguments(parser)
+
+
+def find_contacting_residues(
+    struct_df1: pd.DataFrame, struct_df2: pd.DataFrame, contact_distance: float
+) -> pd.DataFrame:
+    """Find contacting residues between two structures in pandas format."""
+    coords1 = struct_df1[['pos_x', 'pos_y', 'pos_z']].to_numpy()
+    coords2 = struct_df2[['pos_x', 'pos_y', 'pos_z']].to_numpy()
+
+    tree1 = KDTree(coords1)
+    tree2 = KDTree(coords2)
+
+    pairs = tree1.query_ball_tree(tree2, contact_distance)
+
+    contact_rows = []
+    for i, indices in enumerate(pairs):
+        for j in indices:
+            row_1 = struct_df1.iloc[i]
+            row_2 = struct_df2.iloc[j]
+            contact_rows.append(
+                {
+                    **{f'{col}_1': row_1[col] for col in struct_df1.columns},
+                    **{f'{col}_2': row_2[col] for col in struct_df2.columns},
+                }
+            )
+
+    contacts = pd.DataFrame(contact_rows)
+
+    return contacts
 
 
 def main() -> None:
@@ -117,13 +147,7 @@ def main() -> None:
         subunit_2_df = structure_df_clean[structure_df_clean['chain_id'] == 'B']
 
         logger.debug('Computing interface residues at a distance of <%d Å', args.contact_distance)
-        interface = subunit_1_df.merge(subunit_2_df, how='cross', suffixes=('_1', '_2'))
-        interface['distance'] = np.sqrt(
-            np.square(interface['pos_x_2'] - interface['pos_x_1'])
-            + np.square(interface['pos_y_2'] - interface['pos_y_1'])
-            + np.square(interface['pos_z_2'] - interface['pos_z_1'])
-        )
-        contacts = interface[interface['distance'] < args.contact_distance].copy()
+        contacts = find_contacting_residues(subunit_1_df, subunit_2_df, args.contact_distance)
         contacts = contacts.drop_duplicates(
             [
                 'chain_id_1',
