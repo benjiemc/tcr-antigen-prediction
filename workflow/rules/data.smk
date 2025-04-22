@@ -74,7 +74,7 @@ rule get_contacting_residue_ids:
         """
         python -m tcr_antigen_prediction.data.apps.create_contact_maps \
             --log-level {config[log_level]} \
-            --tcr-norm \
+            --tcr-norm cdr_type \
             --mhc-norm chain_type \
             --peptide-norm any \
             --keep-residue-ids \
