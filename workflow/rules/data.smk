@@ -121,6 +121,22 @@ rule aggregate_contacting_residues_from_ppis:
 
         df.to_csv(output[0])
 
+rule process_contacting_residues:
+    input: "data/interim/tcr_pmhc_contacting_residues.csv"
+    output: "data/processed/tcr_pmhc_contacting_residues.mat"
+    resources:
+        runtime="5m",
+        mem="500MB",
+        tasks=1
+    shell:
+        """
+        python -m tcr_antigen_prediction.data.apps.process_interacting_residues \
+            --log-level {config[log_level]} \
+            --residue-column-names residue_name_tcr residue_name_pmhc \
+            -o {output} \
+            {input}
+        """
+
 rule get_mhc_pseudo_sequence_imgt_numbers:
     input: "data/interim/tcr_pmhc_contacts.csv"
     output: "data/interim/mhc_pseudo_seq_imgt_positions.json"

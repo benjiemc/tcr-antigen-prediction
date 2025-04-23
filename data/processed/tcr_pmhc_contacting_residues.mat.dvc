@@ -1,0 +1,5 @@
+outs:
+- md5: 9f587d1c8db6b06d9010cf98f6d1baa3
+  size: 10000
+  hash: md5
+  path: tcr_pmhc_contacting_residues.mat
