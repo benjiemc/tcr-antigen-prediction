@@ -3,7 +3,7 @@ from unittest import TestCase
 import numpy as np
 import torch
 
-from tcr_antigen_prediction.models import TCRStructMap
+from tcr_antigen_prediction.models import ContactProbability, TCRStructMap
 
 
 class TestTCRStructMap(TestCase):
@@ -248,6 +248,174 @@ class TestTCRStructMap(TestCase):
             mhc_pseudo_batch,
         )
         np.testing.assert_array_almost_equal(predictions.detach(), np.array([[0.491717], [0.491649]]))
+
+    def test_with_contact_probabilities(self):
+        torch.manual_seed(0)
+
+        cdr_1_peptide_contact_map = torch.tensor(
+            [
+                [0.03, 0.03, 0.03, 0.03, 0.03],
+                [0.05, 0.09, 0.09, 0.09, 0.03],
+                [0.05, 0.09, 0.09, 0.09, 0.03],
+                [0.03, 0.03, 0.03, 0.03, 0.03],
+            ]
+        )
+        cdr_2_peptide_contact_map = torch.tensor(
+            [
+                [0.03, 0.03, 0.03, 0.03, 0.03],
+                [0.05, 0.09, 0.09, 0.09, 0.03],
+                [0.05, 0.09, 0.09, 0.09, 0.03],
+                [0.03, 0.03, 0.03, 0.03, 0.03],
+            ]
+        )
+        cdr_3_peptide_contact_map = torch.tensor(
+            [
+                [0.03, 0.03, 0.03, 0.03, 0.03],
+                [0.03, 0.05, 0.05, 0.03, 0.03],
+                [0.03, 0.05, 0.05, 0.03, 0.03],
+                [0.03, 0.03, 0.05, 0.03, 0.03],
+                [0.03, 0.03, 0.03, 0.03, 0.03],
+                [0.03, 0.03, 0.03, 0.03, 0.03],
+            ]
+        )
+
+        cdr_peptide_contact_maps = (
+            cdr_1_peptide_contact_map,
+            cdr_2_peptide_contact_map,
+            cdr_3_peptide_contact_map,
+            cdr_1_peptide_contact_map,
+            cdr_2_peptide_contact_map,
+            cdr_3_peptide_contact_map,
+        )
+
+        cdr_1_mhc_contact_map = torch.tensor(
+            [
+                [0.0, 0.03, 0.03, 0.03, 0.03, 0.03, 0.0, 0.0],
+                [0.0, 0.05, 0.09, 0.09, 0.09, 0.03, 0.0, 0.0],
+                [0.0, 0.05, 0.09, 0.09, 0.09, 0.03, 0.0, 0.0],
+                [0.0, 0.03, 0.03, 0.03, 0.03, 0.03, 0.0, 0.0],
+            ]
+        )
+        cdr_2_mhc_contact_map = torch.tensor(
+            [
+                [0.0, 0.03, 0.03, 0.03, 0.03, 0.03, 0.0, 0.0],
+                [0.0, 0.05, 0.09, 0.09, 0.09, 0.03, 0.0, 0.0],
+                [0.0, 0.05, 0.09, 0.09, 0.09, 0.03, 0.0, 0.0],
+                [0.0, 0.03, 0.03, 0.03, 0.03, 0.03, 0.0, 0.0],
+            ]
+        )
+        cdr_3_mhc_contact_map = torch.tensor(
+            [
+                [0.0, 0.03, 0.03, 0.03, 0.03, 0.03, 0.0, 0.0],
+                [0.0, 0.03, 0.05, 0.05, 0.03, 0.03, 0.0, 0.0],
+                [0.0, 0.03, 0.05, 0.05, 0.03, 0.03, 0.0, 0.0],
+                [0.0, 0.03, 0.03, 0.05, 0.03, 0.03, 0.0, 0.0],
+                [0.0, 0.03, 0.03, 0.03, 0.03, 0.03, 0.0, 0.0],
+                [0.0, 0.03, 0.03, 0.03, 0.03, 0.03, 0.0, 0.0],
+            ]
+        )
+
+        cdr_mhc_contact_maps = (
+            cdr_1_mhc_contact_map,
+            cdr_2_mhc_contact_map,
+            cdr_3_mhc_contact_map,
+            cdr_1_mhc_contact_map,
+            cdr_2_mhc_contact_map,
+            cdr_3_mhc_contact_map,
+        )
+
+        contact_probabilities = torch.tensor(
+            [
+                [0.05, 0.11, 0.03, 0.03],
+                [0.05, 0.05, 0.10, 0.06],
+                [0.05, 0.05, 0.10, 0.08],
+                [0.05, 0.05, 0.08, 0.06],
+            ]
+        )
+
+        model = TCRStructMap(
+            cdr_peptide_contact_maps,
+            cdr_mhc_contact_maps,
+            contact_probabilities,
+            cdr1_alpha_length=4,
+            cdr2_alpha_length=4,
+            cdr3_alpha_length=6,
+            cdr1_beta_length=4,
+            cdr2_beta_length=4,
+            cdr3_beta_length=6,
+            peptide_length=5,
+            mhc_length=8,
+            drop_out_rate=0.0,
+            input_depth=4,
+        )
+
+        cdr1_alpha_batch = torch.tensor(
+            [
+                [[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]],
+                [[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]],
+            ],
+            dtype=torch.float32,
+        )
+
+        cdr2_alpha_batch = cdr1_alpha_batch.clone().detach()
+        cdr1_beta_batch = cdr1_alpha_batch.clone().detach()
+        cdr2_beta_batch = cdr1_alpha_batch.clone().detach()
+
+        cdr3_alpha_batch = torch.tensor(
+            [
+                [[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]],
+                [[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]],
+            ],
+            dtype=torch.float32,
+        )
+
+        cdr3_beta_batch = cdr3_alpha_batch.clone().detach()
+
+        peptide_batch = torch.tensor(
+            [
+                [[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 1, 0]],
+                [[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 1, 0]],
+            ],
+            dtype=torch.float32,
+        )
+
+        mhc_pseudo_batch = torch.tensor(
+            [
+                [
+                    [0, 0, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 1, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 1, 0],
+                    [0, 0, 0, 0],
+                ],
+                [
+                    [0, 0, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 0, 0],
+                    [0, 0, 1, 0],
+                    [0, 0, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 1, 0],
+                    [0, 0, 0, 0],
+                ],
+            ],
+            dtype=torch.float32,
+        )
+
+        predictions = model.forward(
+            cdr1_alpha_batch,
+            cdr2_alpha_batch,
+            cdr3_alpha_batch,
+            cdr1_beta_batch,
+            cdr2_beta_batch,
+            cdr3_beta_batch,
+            peptide_batch,
+            mhc_pseudo_batch,
+        )
+        np.testing.assert_array_almost_equal(predictions.detach(), np.array([[0.491473], [0.491473]]))
 
     def test_no_peptide(self):
         torch.manual_seed(0)
@@ -657,3 +825,58 @@ class TestTCRStructMap(TestCase):
             mhc_pseudo_batch,
         )
         np.testing.assert_array_almost_equal(predictions.detach(), np.array([[0.518837], [0.518778]]))
+
+
+class TestContactProbability(TestCase):
+    def test(self):
+        contact_probabilities = torch.tensor(
+            [
+                [0.05, 0.11, 0.03, 0.03],
+                [0.05, 0.05, 0.10, 0.06],
+                [0.05, 0.05, 0.10, 0.08],
+                [0.05, 0.05, 0.08, 0.06],
+            ]
+        )
+
+        x = torch.tensor(
+            [
+                [[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]],
+                [[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]],
+            ],
+            dtype=torch.float32,
+        )
+
+        y = torch.tensor(
+            [
+                [[0, 0, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0]],
+                [[0, 1, 0, 0], [0, 0, 0, 1], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]],
+            ],
+            dtype=torch.float32,
+        )
+
+        layer = ContactProbability(contact_probabilities)
+        output = layer.forward(x, y)
+
+        np.testing.assert_array_almost_equal(
+            output.detach().numpy(),
+            np.array(
+                [
+                    [
+                        [0.00, 0.00, 0.00, 0.00, 0.00],
+                        [0.00, 0.05, 0.05, 0.05, 0.10],
+                        [0.00, 0.05, 0.05, 0.05, 0.10],
+                        [0.00, 0.05, 0.05, 0.05, 0.10],
+                        [0.00, 0.05, 0.05, 0.05, 0.10],
+                        [0.00, 0.00, 0.00, 0.00, 0.00],
+                    ],
+                    [
+                        [0.00, 0.00, 0.00, 0.00, 0.00],
+                        [0.05, 0.06, 0.05, 0.10, 0.00],
+                        [0.05, 0.08, 0.05, 0.10, 0.00],
+                        [0.05, 0.06, 0.05, 0.10, 0.00],
+                        [0.05, 0.08, 0.05, 0.10, 0.00],
+                        [0.00, 0.00, 0.00, 0.00, 0.00],
+                    ],
+                ]
+            ),
+        )

@@ -64,6 +64,29 @@ rule train_TCRStructMap_sequence_only:
             {input}
         """
 
+rule train_TCRStructMap_contact_probabilities:
+    input:
+        data="data/processed/sequences.h5",
+        contact_probabilities="data/processed/tcr_pmhc_contacting_residues.mat",
+        contact_maps="data/processed/contact_maps.h5"
+    output: directory("models/TCRStructMap_contact_probabilities")
+    log: "data/logs/train_TCRStructMap_contact_probabilities.log"
+    resources:
+        runtime="2h",
+        mem="5GB",
+        tasks=1
+    shell:
+        """
+        python -m tcr_antigen_prediction.models.apps.train_tcr_struct_map \
+            --log-level {config[log_level]} \
+            --log-file {log} \
+            --seed {config[seed]} \
+            -o {output} \
+            --contact-maps {input.contact_maps} \
+            --contact-probabilities {input.contact_probabilities} \
+            {input.data}
+        """
+
 rule train_TCRStructMap_cdrs_peptide:
     input:
         data="data/processed/sequences.h5",

@@ -11,6 +11,7 @@ class TCRStructMap(nn.Module):
         cdr_peptide_contact_maps: tensors with proportion of interacting residues between each CDR and the peptide
         cdr_mhc_contact_maps: tensors with proportion of interacting residues between each CDR and the mhc molecule
             pseudo sequence
+        cdr_pmhc_contact_probabilities: tensor with proportions of pair-wise amino acid interactions
         cdr1_alpha_length: maximum allowed length of CDR1 alphas
         cdr2_alpha_length: maximum allowed length of CDR2 alphas
         cdr3_alpha_length: maximum allowed length of CDR3 alphas
@@ -27,6 +28,8 @@ class TCRStructMap(nn.Module):
         cdr_peptide_contact_maps: tensors with proportion of interacting residues between each CDR and the peptide
         cdr_mhc_contact_maps: tensors with proportion of interacting residues between each CDR and the mhc molecule
                 pseudo sequence
+        cdr_pmhc_contact_probabilities: module for computing the pairwise interaction probabilities of one-hot encoded
+                amino acids
         cdr_embedding_layers: layers for embedding each of the 6 CDR loops
         peptide_embedding_layer: layer for embedding peptides
         mhc_embedding_layer: layer for embedding MHC pseudo sequences
@@ -40,6 +43,7 @@ class TCRStructMap(nn.Module):
         self,
         cdr_peptide_contact_maps: tuple[torch.Tensor] | None = None,
         cdr_mhc_contact_maps: tuple[torch.Tensor] | None = None,
+        cdr_pmhc_contact_probabilities: torch.Tensor | None = None,
         *,
         cdr1_alpha_length: int = 8,
         cdr2_alpha_length: int = 8,
@@ -92,24 +96,34 @@ class TCRStructMap(nn.Module):
             [nn.Parameter(contact_map, requires_grad=learn_contact_maps) for contact_map in cdr_mhc_contact_maps],
         )
 
-        self.cdr_embedding_layers = nn.ModuleList(
-            [
-                nn.Linear(size * input_depth, size) if size > 0 else nn.Identity()
-                for size in (
-                    cdr1_alpha_length,
-                    cdr2_alpha_length,
-                    cdr3_alpha_length,
-                    cdr1_beta_length,
-                    cdr2_beta_length,
-                    cdr3_beta_length,
-                )
-            ],
-        )
+        if cdr_pmhc_contact_probabilities is not None:
+            self.cdr_pmhc_contact_probabilities = ContactProbability(cdr_pmhc_contact_probabilities)
 
-        self.peptide_embedding_layer = (
-            nn.Linear(peptide_length * input_depth, peptide_length) if peptide_length > 0 else None
-        )
-        self.mhc_embedding_layer = nn.Linear(mhc_length * input_depth, mhc_length) if mhc_length > 0 else None
+            self.cdr_embedding_layers = None
+            self.peptide_embedding_layer = None
+            self.mhc_embedding_layer = None
+
+        else:
+            self.cdr_embedding_layers = nn.ModuleList(
+                [
+                    nn.Linear(size * input_depth, size) if size > 0 else nn.Identity()
+                    for size in (
+                        cdr1_alpha_length,
+                        cdr2_alpha_length,
+                        cdr3_alpha_length,
+                        cdr1_beta_length,
+                        cdr2_beta_length,
+                        cdr3_beta_length,
+                    )
+                ],
+            )
+
+            self.peptide_embedding_layer = (
+                nn.Linear(peptide_length * input_depth, peptide_length) if peptide_length > 0 else None
+            )
+            self.mhc_embedding_layer = nn.Linear(mhc_length * input_depth, mhc_length) if mhc_length > 0 else None
+
+            self.cdr_pmhc_contact_probabilities = None
 
         self.combined_fc = nn.Linear(
             (
@@ -158,11 +172,11 @@ class TCRStructMap(nn.Module):
             tensor (batch_size x 1) with the binding predictions (between 0 and 1) for each sequence in the batch
 
         """
-        if peptide is not None:
+        if peptide is not None and self.peptide_embedding_layer is not None:
             peptide_emb = torch.flatten(peptide, start_dim=1)  # batch_size x (12 * 20)
             peptide_emb = self.peptide_embedding_layer(peptide_emb)  # batch_size x 12
 
-        if mhc_pseudo is not None:
+        if mhc_pseudo is not None and self.mhc_embedding_layer is not None:
             mhc_emb = torch.flatten(mhc_pseudo, start_dim=1)  # batch_size x (26 * 20)
             mhc_emb = self.mhc_embedding_layer(mhc_emb)  # batch_size x 26
 
@@ -172,18 +186,29 @@ class TCRStructMap(nn.Module):
             if cdr is None:
                 continue
 
-            cdr_emb = torch.flatten(cdr, start_dim=1)  # batch_size x (cdr_length * 20)
-            cdr_emb = self.cdr_embedding_layers[i](cdr_emb)  # batch_size x cdr_length
+            if self.cdr_embedding_layers is not None:
+                cdr_emb = torch.flatten(cdr, start_dim=1)  # batch_size x (cdr_length * 20)
+                cdr_emb = self.cdr_embedding_layers[i](cdr_emb)  # batch_size x cdr_length
 
             if peptide is not None:
-                # batch_size x cdr_length x 12
-                cdr_peptide = (cdr_emb.unsqueeze(-1) * peptide_emb.unsqueeze(-2)) * self.cdr_peptide_contact_maps[i]
+                if self.cdr_pmhc_contact_probabilities is not None:
+                    cdr_peptide = self.cdr_pmhc_contact_probabilities(cdr, peptide)  # batch_size x cdr_length x 12
+
+                else:
+                    cdr_peptide = cdr_emb.unsqueeze(-1) * peptide_emb.unsqueeze(-2)  # batch_size x cdr_length x 12
+
+                cdr_peptide = cdr_peptide * self.cdr_peptide_contact_maps[i]  # batch_size x cdr_length x 12
                 cdr_peptide = torch.flatten(cdr_peptide, start_dim=1)  # batch_size x (cdr_length * 12)
                 peptide_interactions.append(cdr_peptide)
 
             if mhc_pseudo is not None:
-                # batch_size x cdr_length x 26
-                cdr_mhc = (cdr_emb.unsqueeze(-1) * mhc_emb.unsqueeze(-2)) * self.cdr_mhc_contact_maps[i]
+                if self.cdr_pmhc_contact_probabilities is not None:
+                    cdr_mhc = self.cdr_pmhc_contact_probabilities(cdr, mhc_pseudo)  # batch_size x cdr_length x 26
+
+                else:
+                    cdr_mhc = cdr_emb.unsqueeze(-1) * mhc_emb.unsqueeze(-2)  # batch_size x cdr_length x 26
+
+                cdr_mhc = cdr_mhc * self.cdr_mhc_contact_maps[i]  # batch_size x cdr_length x 26
                 cdr_mhc = torch.flatten(cdr_mhc, start_dim=1)  # batch_size x (cdr_length * 26)
                 mhc_interactions.append(cdr_mhc)
 
@@ -197,3 +222,38 @@ class TCRStructMap(nn.Module):
         prediction = nn.functional.sigmoid(x)  # batch_size x 1
 
         return prediction
+
+
+class ContactProbability(nn.Module):
+    """Module for holding information about and calculating contact probabilities.
+
+    Args:
+        contact_probabilities: tensor with proportions of pair-wise element interactions
+
+    Attributes:
+        contact_probabilities: parameter with proportions of pair-wise element interactions
+
+    """
+
+    def __init__(self, contact_probabilities: torch.Tensor) -> None:
+        super().__init__()
+        self.contact_probabilities = nn.Parameter(contact_probabilities, requires_grad=False)
+
+    def forward(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+        """Forward pass of the module.
+
+        Args:
+            x: one-hot-encoded values of the x sequence (batch_size x x_length x embedding_dimension)
+            y: one-hot-encoded values of the y sequence (batch_size x y_length x embedding_dimension)
+
+        Returns:
+            a matrix of shape batch_size x x_length x y_length where the values are computted from the contact
+            probabilities matrix
+
+        """
+        x_mask, x_idx = torch.max(x, dim=-1)
+        y_mask, y_idx = torch.max(y, dim=-1)
+
+        mask = x_mask.unsqueeze(-1) * y_mask.unsqueeze(-2)
+
+        return self.contact_probabilities[x_idx.unsqueeze(2), y_idx.unsqueeze(1)] * mask

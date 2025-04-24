@@ -2,6 +2,7 @@ rule visualisations:
     input:
         'report/figures/TCRStructMap_training.svg',
         'report/figures/TCRStructMap_sequence_only_training.svg',
+        'report/figures/TCRStructMap_contact_probabilities_training.svg'
         'report/figures/TCRStructMap_cdrs_peptide_training.svg',
         'report/figures/TCRStructMap_cdrs_mhc_pseudo_training.svg',
         'report/figures/NetTCR_training.svg'

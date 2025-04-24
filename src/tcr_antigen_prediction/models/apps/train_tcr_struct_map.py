@@ -36,6 +36,7 @@ parser = argparse.ArgumentParser(
 inputs = parser.add_argument_group('Inputs')
 inputs.add_argument('training_data', help='path to the training data (HDF5 file)')
 inputs.add_argument('--contact-maps', help='path to contact maps for each CDR-peptide/mhc interaction (HDF5 file)')
+inputs.add_argument('--contact-probabilities', help='path to table of amino acid pairing frequencies')
 
 outputs = parser.add_argument_group('Outputs')
 outputs.add_argument('--output', '-o', required=True, help='path to output directory for models')
@@ -197,6 +198,13 @@ def main():
         cdr_peptide_contact_maps = None
         cdr_mhc_contact_maps = None
 
+    if args.contact_probabilities:
+        logger.info('Loading contact probabilities from %s', args.contact_probabilities)
+        contact_probabilities = torch.tensor(np.loadtxt(args.contact_probabilities), dtype=torch.float32)
+
+    else:
+        contact_probabilities = None
+
     logger.info('Loading training data from %s', args.training_data)
     with h5py.File(args.training_data) as fh:
         input_data = {name: fh[name][:] for name in features}
@@ -226,6 +234,7 @@ def main():
         model = TCRStructMap(
             cdr_peptide_contact_maps,
             cdr_mhc_contact_maps,
+            contact_probabilities,
             cdr1_alpha_length=args.cdr1_alpha_length if 'cdr1_alpha' in features else 0,
             cdr2_alpha_length=args.cdr2_alpha_length if 'cdr2_alpha' in features else 0,
             cdr3_alpha_length=args.cdr3_alpha_length if 'cdr3_alpha' in features else 0,
