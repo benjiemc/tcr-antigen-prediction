@@ -21,7 +21,7 @@ dependencies = [
     "skl2onnx",
     "stitchr<=1.1.3",
     "tidytcells",
-    "torch",
+    "torch==2.5.1",
 ]
 
 [project.optional-dependencies]
