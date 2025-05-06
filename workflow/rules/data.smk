@@ -107,6 +107,10 @@ rule process_contact_maps:
             {input.contacts}
         """
 
+rule download_tcrvdb:
+    output: "data/external/TCRvdb.xlsx"
+    shell: "wget -O {output} https://www.biorxiv.org/content/biorxiv/early/2025/05/02/2025.04.28.651095/DC1/embed/media-1.xlsx?download=true"
+
 rule collate_sequence_data:
     input:
         iedb="data/raw/iedb.csv",
