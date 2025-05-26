@@ -2,7 +2,7 @@ rule data:
     input:
         "data/processed/structures",
         "data/processed/tcr_pmhc_contacts.csv",
-        "data/processed/sequences.h5",
+        "data/processed/sequences_pMHC_split.h5",
         "data/processed/contact_maps.h5"
 
 rule download_stcrdab:
@@ -205,71 +205,37 @@ rule aggregate_levenshtein_distances:
 
                 group['distance_matrix'] = np.loadtxt(distance_matrix, dtype=int)
 
-rule process_sequence_data:
-    input:
-        sequences="data/interim/sequences.csv",
-    output: "data/processed/sequences.h5"
+rule create_data_splits:
+    input: "data/interim/sequences.csv"
+    output: "data/interim/sequences_{split_type}_split.csv"
     resources:
         runtime="20m",
         mem="2GB",
         tasks=1
     shell:
         """
-        python -m tcr_antigen_prediction.data.apps.process_sequence_data \
+        python -m tcr_antigen_prediction.data.apps.create_data_splits \
             --log-level {config[log_level]} \
             --seed {config[seed]} \
+            --negative-proportion 5 \
+            --split-type {wildcards.split_type} \
+            --num-folds 5 \
             -o {output} \
-            {input.sequences}
+            {input}
         """
 
-rule process_sequence_data_peptide_split:
-    input:
-        sequences="data/interim/sequences.csv",
-    output: "data/processed/sequences_peptide_split.h5"
-    resources:
-        runtime="20m",
-        mem="2GB",
-        tasks=1
-    shell:
-        """
-        python -m tcr_antigen_prediction.data.apps.process_sequence_data \
-            --log-level {config[log_level]} \
-            --seed {config[seed]} \
-            --split-type peptide \
-            -o {output} \
-            {input.sequences}
-        """
-
-rule process_sequence_data_tcr_split:
-    input:
-        sequences="data/interim/sequences.csv",
-    output: "data/processed/sequences_tcr_split.h5"
-    resources:
-        runtime="20m",
-        mem="2GB",
-        tasks=1
-    shell:
-        """
-        python -m tcr_antigen_prediction.data.apps.process_sequence_data \
-            --log-level {config[log_level]} \
-            --seed 123 \
-            --split-type tcr \
-            -o {output} \
-            {input.sequences}
-        """
-
-rule process_sequence_data_tcr_levenshtein_split:
+rule create_tcr_split_levenshtein:
     input:
         sequences="data/interim/sequences.csv",
         distances="data/interim/distance_matrices.h5"
-    output: "data/processed/sequences_tcr_levenshtein_split.h5"
+    output: "data/interim/sequences_tcr_split_levenshtein.csv"
     resources:
         runtime="20m",
         mem="275GB",
         tasks=1
     shell:
         """
-        python -m tcr_antigen_prediction.data.apps.process_sequence_data \
+        python -m tcr_antigen_prediction.data.apps.create_data_splits \
             --log-level {config[log_level]} \
             --seed 123 \
             --split-type levenshtein \
@@ -280,18 +246,32 @@ rule process_sequence_data_tcr_levenshtein_split:
             {input.sequences}
         """
 
-rule process_sequence_data_for_nettcr:
-    input: "data/interim/sequences.csv"
-    output: "data/processed/sequences_right_pad_blosum.h5"
+rule process_sequence_data:
+    input: "data/interim/sequences_{split_type}.csv"
+    output: "data/processed/sequences_{split_type}.h5"
     resources:
         runtime="20m",
-        mem="2GB",
+        mem="10GB",
         tasks=1
     shell:
         """
         python -m tcr_antigen_prediction.data.apps.process_sequence_data \
             --log-level {config[log_level]} \
-            --seed {config[seed]} \
+            -o {output} \
+            {input}
+        """
+
+rule process_sequence_data_for_nettcr:
+    input: "data/interim/sequences_pMHC_split.csv"
+    output: "data/processed/sequences_right_pad_blosum.h5"
+    resources:
+        runtime="20m",
+        mem="20GB",
+        tasks=1
+    shell:
+        """
+        python -m tcr_antigen_prediction.data.apps.process_sequence_data \
+            --log-level {config[log_level]} \
             --cdr1-alpha-length 7 \
             --cdr2-alpha-length 8 \
             --cdr3-alpha-length 22 \

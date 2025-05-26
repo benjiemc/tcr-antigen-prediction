@@ -27,12 +27,12 @@ rule train_TCRen:
 
 rule train_TCRStructMap:
     input:
-        data="data/processed/sequences.h5",
+        data="data/processed/sequences_pMHC_split.h5",
         contact_maps="data/processed/contact_maps.h5"
     output: directory("models/TCRStructMap")
     log: "data/logs/train_TCRStructMap.log"
     resources:
-        runtime="2h",
+        runtime="5h",
         mem="5GB",
         tasks=1
     shell:
@@ -47,11 +47,11 @@ rule train_TCRStructMap:
         """
 
 rule train_TCRStructMap_sequence_only:
-    input: "data/processed/sequences.h5"
+    input: "data/processed/sequences_pMHC_split.h5"
     output: directory("models/TCRStructMap_sequence_only")
     log: "data/logs/train_TCRStructMap_sequence_only.log"
     resources:
-        runtime="2h",
+        runtime="5h",
         mem="5GB",
         tasks=1
     shell:
@@ -66,7 +66,7 @@ rule train_TCRStructMap_sequence_only:
 
 rule train_TCRStructMap_cdrs_peptide:
     input:
-        data="data/processed/sequences.h5",
+        data="data/processed/sequences_pMHC_split.h5",
         contact_maps="data/processed/contact_maps.h5"
     output: directory("models/TCRStructMap_cdrs_peptide")
     log: "data/logs/train_TCRStructMap_cdrs_peptide.log"
@@ -88,7 +88,7 @@ rule train_TCRStructMap_cdrs_peptide:
 
 rule train_TCRStructMap_cdrs_mhc_pseudo:
     input:
-        data="data/processed/sequences.h5",
+        data="data/processed/sequences_pMHC_split.h5",
         contact_maps="data/processed/contact_maps.h5"
     output: directory("models/TCRStructMap_cdrs_mhc_pseudo")
     log: "data/logs/train_TCRStructMap_cdrs_mhc_pseudo.log"
@@ -127,7 +127,7 @@ rule train_NetTCR:
         """
 
 rule train_confidence_predictor:
-    input: "data/processed/sequences.h5"
+    input: "data/processed/sequences_pMHC_split.h5"
     output: directory("models/ConfidencePredictor")
     log: "data/logs/train_confidence_predictor.log"
     resources:

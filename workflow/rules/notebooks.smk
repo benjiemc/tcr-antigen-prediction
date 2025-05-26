@@ -43,7 +43,7 @@ rule run_benchmark_model_performance_notebook:
     input:
         "data/interim/peptides.txt",
         "data/interim/peptide_distances.txt",
-        "data/processed/sequences.h5",
+        "data/processed/sequences_pMHC_split.h5",
         "models/TCRStructMap",
         "models/TCRStructMap_sequence_only"
     resources:
@@ -57,7 +57,7 @@ rule run_benchmark_model_performance_notebook:
 
 rule run_ablate_model_notebook:
     input:
-        "data/processed/sequences.h5",
+        "data/processed/sequences_pMHC_split.h5",
         "data/processed/contact_maps.h5",
         "models/TCRStructMap",
         "models/TCRStructMap_cdrs_peptide",
@@ -88,7 +88,7 @@ rule run_evaluate_confidence_predictions_notebook:
     input:
         "models/ConfidencePredictor",
         "models/TCRStructMap",
-        "data/processed/sequences.h5",
+        "data/processed/sequences_pMHC_split.h5",
         "data/interim/peptides.txt",
         "data/interim/peptide_distances.txt"
     resources:
