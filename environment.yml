@@ -10,6 +10,7 @@ dependencies:
   - hmmer
   - jupyter
   - modeller
+  - pingouin
   - pip
   - pygraphviz
   - python=3.11
