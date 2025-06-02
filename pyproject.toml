@@ -74,6 +74,17 @@ multiline-quotes = "single"
                "PLR0912",   # ignore too many branches in apps
                "PLR0915",   # ignore too many statements in apps
                "T201"]      # Allow prints in apps
+"**/scripts/*" = ["ANN",       # ignore type annotations in apps
+                  "C901",      # ignore complex warnings in apps
+                  "D101",      # ignore class docs in apps
+                  "D102",      # ignore methods docs in apps
+                  "D103",      # ignore function docs in apps
+                  "D104",      # ignore package docs in apps
+                  "D107",      # ignore constructor docs in apps
+                  "PLR0912",   # ignore too many branches in apps
+                  "PLR0915",   # ignore too many statements in apps
+                  "INP001",    # do not require __init__.py for scripts
+                  "T201"]      # Allow prints in apps
 "docs/*" = ["INP001",   # Do not require __init__.py for docs
             "D100",     # Do not require docstring for docs
             "A001"]     # Allow copyright for sphix docs

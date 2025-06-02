@@ -44,9 +44,9 @@ rule run_benchmark_model_performance_notebook:
         "data/interim/sequences_pMHC_split.csv",
         "data/interim/peptides.txt",
         "data/interim/peptide_distances.txt",
-        "data/processed/sequences_pMHC_split.h5",
-        "models/TCRStructMap",
-        "models/TCRStructMap_sequence_only"
+        "data/processed/TCRStructMap_predictions_on_sequences.csv",
+        "data/processed/TCRStructMap_sequence_only_predictions_on_sequences.csv",
+        "data/processed/NetTCR_predictions_on_sequences.csv",
     resources:
         runtime="5m",
         mem="1GB",
@@ -58,12 +58,10 @@ rule run_benchmark_model_performance_notebook:
 
 rule run_ablate_model_notebook:
     input:
-        "data/processed/sequences_pMHC_split.h5",
-        "data/processed/contact_maps.h5",
-        "models/TCRStructMap",
-        "models/TCRStructMap_cdrs_peptide",
-        "models/TCRStructMap_cdrs_mhc_pseudo",
         "data/interim/sequences_pMHC_split.csv",
+        "data/processed/TCRStructMap_predictions_on_sequences.csv",
+        "data/processed/TCRStructMap_cdrs_peptide_predictions_on_sequences.csv",
+        "data/processed/TCRStructMap_cdrs_mhc_pseudo_predictions_on_sequences.csv",
         "data/interim/peptides.txt",
         "data/interim/peptide_distances.txt"
     resources:

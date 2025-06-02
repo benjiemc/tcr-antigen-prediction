@@ -1,0 +1,5 @@
+outs:
+- md5: b9c51067a6bc500c4705210542c20dcc
+  size: 8207585
+  hash: md5
+  path: TCRStructMap_cdrs_mhc_pseudo_predictions_on_sequences_pMHC_split.csv
