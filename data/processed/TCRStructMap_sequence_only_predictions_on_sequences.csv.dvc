@@ -1,0 +1,5 @@
+outs:
+- md5: 18d8d7a07f3f80ac089816afd826135a
+  size: 8270983
+  hash: md5
+  path: TCRStructMap_sequence_only_predictions_on_sequences.csv

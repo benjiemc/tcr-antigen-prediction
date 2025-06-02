@@ -5,6 +5,7 @@ default_config = {
 
 config = {**default_config, **config}
 
+include: "rules/benchmarks.smk"
 include: "rules/data.smk"
 include: "rules/models.smk"
 include: "rules/notebooks.smk"

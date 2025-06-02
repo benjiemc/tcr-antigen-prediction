@@ -1,0 +1,5 @@
+outs:
+- md5: 3304b226b2a0a9e12b53296eb7dfeaa4
+  size: 8318798
+  hash: md5
+  path: TCRStructMap_cdrs_peptide_predictions_on_sequences.csv
