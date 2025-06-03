@@ -56,6 +56,22 @@ rule run_benchmark_model_performance_notebook:
         papermill notebooks/benchmark_model_performance.ipynb notebooks/benchmark_model_performance.ipynb
         """
 
+rule run_benchmark_model_performance_against_af3_notebook:
+    input:
+        "data/interim/sequences_pMHC_split.csv",
+        "data/processed/TCRStructMap_predictions_on_sequences.csv",
+        "data/processed/TCRStructMap_sequence_only_predictions_on_sequences.csv",
+        "data/processed/NetTCR_predictions_on_sequences.csv",
+        "data/external/af3_confidence_scores.csv"
+    resources:
+        runtime="5m",
+        mem="1GB",
+        tasks=1
+    shell:
+        """
+        papermill notebooks/benchmark_model_performance_against_af3.ipynb notebooks/benchmark_model_performance_against_af3.ipynb
+        """
+
 rule run_ablate_model_notebook:
     input:
         "data/interim/sequences_pMHC_split.csv",
