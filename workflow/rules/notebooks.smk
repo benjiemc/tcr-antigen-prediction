@@ -28,17 +28,6 @@ rule run_compairing_sequence_and_structure_data_notebook:
         papermill notebooks/compairing_sequence_and_structure_data.ipynb notebooks/compairing_sequence_and_structure_data.ipynb
         """
 
-rule run_visualise_tcr_pmhc_contact_maps_notebook:
-    input: "data/processed/tcr_pmhc_contacts.csv", "data/interim/mhc_pseudo_seq_imgt_positions.json"
-    resources:
-        runtime="5m",
-        mem="1GB",
-        tasks=1
-    shell:
-        """
-        papermill notebooks/visualise_tcr_pmhc_contact_maps.ipynb notebooks/visualise_tcr_pmhc_contact_maps.ipynb
-        """
-
 rule run_benchmark_model_performance_notebook:
     input:
         "data/interim/sequences_pMHC_split.csv",
