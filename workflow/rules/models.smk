@@ -34,6 +34,7 @@ rule train_TCRStructMap:
     resources:
         runtime="5h",
         mem="5GB",
+        gpu=1,
         tasks=1
     shell:
         """
@@ -53,6 +54,7 @@ rule train_TCRStructMap_sequence_only:
     resources:
         runtime="5h",
         mem="5GB",
+        gpu=1,
         tasks=1
     shell:
         """
@@ -73,6 +75,7 @@ rule train_TCRStructMap_cdrs_peptide:
     resources:
         runtime="5h",
         mem="5GB",
+        gpu=1,
         tasks=1
     shell:
         """
@@ -95,6 +98,7 @@ rule train_TCRStructMap_cdrs_mhc_pseudo:
     resources:
         runtime="5h",
         mem="5GB",
+        gpu=1,
         tasks=1
     shell:
         """
@@ -115,6 +119,7 @@ rule train_NetTCR:
     resources:
         runtime="10h",
         mem="20GB",
+        gpu=1,
         tasks=1
     shell:
         """

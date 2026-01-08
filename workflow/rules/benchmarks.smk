@@ -18,6 +18,7 @@ rule run_tcr_struct_map_predictions:
     resources:
         runtime="5m",
         mem="10GB",
+        gpu=1,
         tasks=1
     script: "../scripts/run_tcr_struct_map_predictions.py"
 
@@ -30,6 +31,7 @@ rule run_tcr_struct_map_predictions_cdr_peptide:
     resources:
         runtime="5m",
         mem="10GB",
+        gpu=1,
         tasks=1
     script: "../scripts/run_tcr_struct_map_predictions_cdrs_peptide.py"
 
@@ -42,6 +44,7 @@ rule run_tcr_struct_map_predictions_cdr_mhc_pseudo:
     resources:
         runtime="5m",
         mem="10GB",
+        gpu=1,
         tasks=1
     script: "../scripts/run_tcr_struct_map_predictions_cdrs_mhc_pseudo.py"
 
@@ -54,5 +57,6 @@ rule run_nettcr_predictions:
     resources:
         runtime="5m",
         mem="10GB",
+        gpu=1,
         tasks=1
     script: "../scripts/run_nettcr_predictions.py"
