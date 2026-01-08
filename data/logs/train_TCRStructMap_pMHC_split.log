@@ -1,6 +1,6 @@
 2025-05-23 15:40:19,072 - INFO: Parameter: training_data='data/processed/sequences_pMHC_split.h5'
 2025-05-23 15:40:19,072 - INFO: Parameter: contact_maps='data/processed/contact_maps.h5'
-2025-05-23 15:40:19,072 - INFO: Parameter: output='models/TCRStructMap'
+2025-05-23 15:40:19,072 - INFO: Parameter: output='models/TCRStructMap_pMHC_split'
 2025-05-23 15:40:19,073 - INFO: Parameter: seed=123
 2025-05-23 15:40:19,073 - INFO: Parameter: features_to_include='all'
 2025-05-23 15:40:19,073 - INFO: Parameter: cdr1_alpha_length=8
@@ -20,11 +20,11 @@
 2025-05-23 15:40:19,074 - INFO: Parameter: eval_interval=500
 2025-05-23 15:40:19,074 - INFO: Parameter: eval_batch_size=1000
 2025-05-23 15:40:19,074 - INFO: Parameter: log_level='info'
-2025-05-23 15:40:19,074 - INFO: Parameter: log_file='data/logs/train_TCRStructMap.log'
+2025-05-23 15:40:19,074 - INFO: Parameter: log_file='data/logs/train_TCRStructMap_pMHC_split.log'
 2025-05-23 15:40:19,074 - INFO: Setting random seed to 123
 2025-05-23 15:40:19,077 - INFO: Loading contact maps from data/processed/contact_maps.h5
 2025-05-23 15:40:19,110 - INFO: Loading training data from data/processed/sequences_pMHC_split.h5
-2025-05-23 15:40:27,221 - INFO: Creating models/TCRStructMap
+2025-05-23 15:40:27,221 - INFO: Creating models/TCRStructMap_pMHC_split
 2025-05-23 15:40:27,224 - INFO: Starting fold 1
 2025-05-23 15:40:27,239 - INFO: Initialising model
 2025-05-23 15:40:34,143 - INFO: Starting training
@@ -653,7 +653,7 @@
 2025-05-23 16:11:36,750 - INFO: Loss: 0.246693
 2025-05-23 16:11:36,750 - INFO: Training ROC-AUC: 0.962963
 2025-05-23 16:11:36,750 - INFO: Validation ROC-AUC: 0.640424
-2025-05-23 16:11:39,434 - INFO: Saving model to models/TCRStructMap/model_1.pt
+2025-05-23 16:11:39,434 - INFO: Saving model to models/TCRStructMap_pMHC_split/model_1.pt
 2025-05-23 16:11:39,445 - INFO: Starting fold 2
 2025-05-23 16:11:39,464 - INFO: Initialising model
 2025-05-23 16:11:39,477 - INFO: Starting training
@@ -1282,7 +1282,7 @@
 2025-05-23 16:42:56,928 - INFO: Loss: 0.112264
 2025-05-23 16:42:56,928 - INFO: Training ROC-AUC: 0.992593
 2025-05-23 16:42:56,928 - INFO: Validation ROC-AUC: 0.610325
-2025-05-23 16:42:58,053 - INFO: Saving model to models/TCRStructMap/model_2.pt
+2025-05-23 16:42:58,053 - INFO: Saving model to models/TCRStructMap_pMHC_split/model_2.pt
 2025-05-23 16:42:58,068 - INFO: Starting fold 3
 2025-05-23 16:42:58,597 - INFO: Initialising model
 2025-05-23 16:42:58,609 - INFO: Starting training
@@ -1411,7 +1411,7 @@
 2025-05-23 16:50:20,876 - INFO: Loss: 0.196104
 2025-05-23 16:50:20,877 - INFO: Training ROC-AUC: 0.948148
 2025-05-23 16:50:20,877 - INFO: Validation ROC-AUC: 0.427218
-2025-05-23 16:50:34,018 - INFO: Saving model to models/TCRStructMap/model_3.pt
+2025-05-23 16:50:34,018 - INFO: Saving model to models/TCRStructMap_pMHC_split/model_3.pt
 2025-05-23 16:50:34,031 - INFO: Starting fold 4
 2025-05-23 16:50:34,067 - INFO: Initialising model
 2025-05-23 16:50:34,080 - INFO: Starting training
@@ -1940,7 +1940,7 @@
 2025-05-23 17:20:40,193 - INFO: Loss: 0.188448
 2025-05-23 17:20:40,193 - INFO: Training ROC-AUC: 0.971429
 2025-05-23 17:20:40,193 - INFO: Validation ROC-AUC: 0.550465
-2025-05-23 17:20:53,510 - INFO: Saving model to models/TCRStructMap/model_4.pt
+2025-05-23 17:20:53,510 - INFO: Saving model to models/TCRStructMap_pMHC_split/model_4.pt
 2025-05-23 17:20:53,521 - INFO: Starting fold 5
 2025-05-23 17:20:53,544 - INFO: Initialising model
 2025-05-23 17:20:53,556 - INFO: Starting training
@@ -2469,4 +2469,4 @@
 2025-05-23 17:50:22,509 - INFO: Loss: 0.120096
 2025-05-23 17:50:22,509 - INFO: Training ROC-AUC: 1.000000
 2025-05-23 17:50:22,509 - INFO: Validation ROC-AUC: 0.685403
-2025-05-23 17:50:36,572 - INFO: Saving model to models/TCRStructMap/model_5.pt
+2025-05-23 17:50:36,572 - INFO: Saving model to models/TCRStructMap_pMHC_split/model_5.pt

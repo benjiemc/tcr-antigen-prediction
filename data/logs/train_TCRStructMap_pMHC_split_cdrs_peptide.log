@@ -1,6 +1,6 @@
 2025-05-23 13:32:45,691 - INFO: Parameter: training_data='data/processed/sequences_pMHC_split.h5'
 2025-05-23 13:32:45,691 - INFO: Parameter: contact_maps='data/processed/contact_maps.h5'
-2025-05-23 13:32:45,691 - INFO: Parameter: output='models/TCRStructMap_cdrs_peptide'
+2025-05-23 13:32:45,691 - INFO: Parameter: output='models/TCRStructMap_pMHC_split_cdrs_peptide'
 2025-05-23 13:32:45,692 - INFO: Parameter: seed=123
 2025-05-23 13:32:45,692 - INFO: Parameter: features_to_include=['cdr1_alpha', 'cdr2_alpha', 'cdr3_alpha', 'cdr1_beta', 'cdr2_beta', 'cdr3_beta', 'peptide']
 2025-05-23 13:32:45,692 - INFO: Parameter: cdr1_alpha_length=8
@@ -20,11 +20,11 @@
 2025-05-23 13:32:45,692 - INFO: Parameter: eval_interval=500
 2025-05-23 13:32:45,693 - INFO: Parameter: eval_batch_size=1000
 2025-05-23 13:32:45,693 - INFO: Parameter: log_level='info'
-2025-05-23 13:32:45,693 - INFO: Parameter: log_file='data/logs/train_TCRStructMap_cdrs_peptide.log'
+2025-05-23 13:32:45,693 - INFO: Parameter: log_file='data/logs/train_TCRStructMap_pMHC_split_cdrs_peptide.log'
 2025-05-23 13:32:45,693 - INFO: Setting random seed to 123
 2025-05-23 13:32:45,801 - INFO: Loading contact maps from data/processed/contact_maps.h5
 2025-05-23 13:32:45,860 - INFO: Loading training data from data/processed/sequences_pMHC_split.h5
-2025-05-23 13:32:49,083 - INFO: Creating models/TCRStructMap_cdrs_peptide
+2025-05-23 13:32:49,083 - INFO: Creating models/TCRStructMap_pMHC_split_cdrs_peptide
 2025-05-23 13:32:49,087 - INFO: Starting fold 1
 2025-05-23 13:32:49,099 - INFO: Initialising model
 2025-05-23 13:33:10,609 - INFO: Starting training
@@ -653,7 +653,7 @@
 2025-05-23 13:46:55,117 - INFO: Loss: 0.155561
 2025-05-23 13:46:55,117 - INFO: Training ROC-AUC: 0.970370
 2025-05-23 13:46:55,117 - INFO: Validation ROC-AUC: 0.554952
-2025-05-23 13:46:56,211 - INFO: Saving model to models/TCRStructMap_cdrs_peptide/model_1.pt
+2025-05-23 13:46:56,211 - INFO: Saving model to models/TCRStructMap_pMHC_split_cdrs_peptide/model_1.pt
 2025-05-23 13:46:56,221 - INFO: Starting fold 2
 2025-05-23 13:46:56,240 - INFO: Initialising model
 2025-05-23 13:46:56,246 - INFO: Starting training
@@ -1282,7 +1282,7 @@
 2025-05-23 14:00:25,978 - INFO: Loss: 0.210585
 2025-05-23 14:00:25,978 - INFO: Training ROC-AUC: 0.903704
 2025-05-23 14:00:25,978 - INFO: Validation ROC-AUC: 0.695730
-2025-05-23 14:00:26,446 - INFO: Saving model to models/TCRStructMap_cdrs_peptide/model_2.pt
+2025-05-23 14:00:26,446 - INFO: Saving model to models/TCRStructMap_pMHC_split_cdrs_peptide/model_2.pt
 2025-05-23 14:00:26,458 - INFO: Starting fold 3
 2025-05-23 14:00:27,070 - INFO: Initialising model
 2025-05-23 14:00:27,078 - INFO: Starting training
@@ -1411,7 +1411,7 @@
 2025-05-23 14:03:36,589 - INFO: Loss: 0.228779
 2025-05-23 14:03:36,589 - INFO: Training ROC-AUC: 0.903704
 2025-05-23 14:03:36,589 - INFO: Validation ROC-AUC: 0.441465
-2025-05-23 14:03:42,337 - INFO: Saving model to models/TCRStructMap_cdrs_peptide/model_3.pt
+2025-05-23 14:03:42,337 - INFO: Saving model to models/TCRStructMap_pMHC_split_cdrs_peptide/model_3.pt
 2025-05-23 14:03:42,351 - INFO: Starting fold 4
 2025-05-23 14:03:42,400 - INFO: Initialising model
 2025-05-23 14:03:42,406 - INFO: Starting training
@@ -1940,7 +1940,7 @@
 2025-05-23 14:16:48,022 - INFO: Loss: 0.100750
 2025-05-23 14:16:48,022 - INFO: Training ROC-AUC: 0.988571
 2025-05-23 14:16:48,022 - INFO: Validation ROC-AUC: 0.566455
-2025-05-23 14:16:53,574 - INFO: Saving model to models/TCRStructMap_cdrs_peptide/model_4.pt
+2025-05-23 14:16:53,574 - INFO: Saving model to models/TCRStructMap_pMHC_split_cdrs_peptide/model_4.pt
 2025-05-23 14:16:53,583 - INFO: Starting fold 5
 2025-05-23 14:16:53,611 - INFO: Initialising model
 2025-05-23 14:16:53,616 - INFO: Starting training
@@ -2469,4 +2469,4 @@
 2025-05-23 14:30:04,638 - INFO: Loss: 0.106883
 2025-05-23 14:30:04,638 - INFO: Training ROC-AUC: 0.987179
 2025-05-23 14:30:04,638 - INFO: Validation ROC-AUC: 0.687772
-2025-05-23 14:30:10,863 - INFO: Saving model to models/TCRStructMap_cdrs_peptide/model_5.pt
+2025-05-23 14:30:10,863 - INFO: Saving model to models/TCRStructMap_pMHC_split_cdrs_peptide/model_5.pt

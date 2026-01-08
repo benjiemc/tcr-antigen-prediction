@@ -247,8 +247,8 @@ rule create_tcr_split_levenshtein:
         """
 
 rule process_sequence_data:
-    input: "data/interim/sequences_{split_type}.csv"
-    output: "data/processed/sequences_{split_type}.h5"
+    input: "data/interim/sequences_{split_type}_split.csv"
+    output: "data/processed/sequences_{split_type}_split.h5"
     resources:
         runtime="20m",
         mem="10GB",
