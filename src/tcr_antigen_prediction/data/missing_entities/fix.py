@@ -69,14 +69,14 @@ class MissingResiduesModel(AutoModel):
         for missing_residue in self.missing_residue_selection:
             # Changing chain to A as required by MODELLER
             missing_residue_info = missing_residue.split(':')
-            missing_residue_path = ':'.join(missing_residue_info[:-1] + ['A'])
+            missing_residue_path = ':'.join([*missing_residue_info[:-1], 'A'])
 
             selection.add(self.residues[missing_residue_path])
 
         for missing_atom in self.missing_atom_selection:
             # Changing chain to A as required by MODELLER
             missing_atom_info = missing_atom.split(':')
-            missing_atom_path = ':'.join(missing_atom_info[:-1] + ['A'])
+            missing_atom_path = ':'.join([*missing_atom_info[:-1], 'A'])
 
             selection.add(self.atoms[missing_atom_path])
 
