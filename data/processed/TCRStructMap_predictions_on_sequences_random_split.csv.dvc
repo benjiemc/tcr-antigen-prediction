@@ -1,0 +1,5 @@
+outs:
+- md5: 66970a67e11839931832ba68a54db625
+  size: 8338071
+  hash: md5
+  path: TCRStructMap_predictions_on_sequences_random_split.csv

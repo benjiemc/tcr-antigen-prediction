@@ -1,0 +1,5 @@
+outs:
+- md5: fcfccd50576904648610b3534dadbc5f
+  size: 2115900
+  hash: md5
+  path: model_3.pt

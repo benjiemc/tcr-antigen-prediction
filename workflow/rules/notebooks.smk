@@ -62,6 +62,48 @@ rule run_ablate_model_notebook:
         papermill notebooks/ablate_model.ipynb notebooks/ablate_model.ipynb
         """
 
+rule run_evaluate_using_structures_vs_sequence_notebook:
+    input:
+        "data/interim/sequences_random_split.csv",
+        "data/interim/sequences_pMHC_split.csv",
+        "data/processed/TCRStructMap_predictions_on_sequences_random_split.csv",
+        "data/processed/TCRStructMap_sequence_only_predictions_on_sequences_random_split.csv",
+        "data/processed/TCRStructMap_predictions_on_sequences_peptide_split.csv",
+        "data/processed/TCRStructMap_sequence_only_predictions_on_sequences_peptide_split.csv",
+        "data/processed/TCRStructMap_predictions_on_sequences_pMHC_split.csv",
+        "data/processed/TCRStructMap_sequence_only_predictions_on_sequences_pMHC_split.csv",
+    resources:
+        runtime="5m",
+        mem="1GB"
+    shell:
+        """
+        papermill \
+            notebooks/evaluate_using_structures_vs_sequence.ipynb \
+            notebooks/evaluate_using_structures_vs_sequence.ipynb
+        """
+
+rule run_evaluate_model_on_data_splits_notebook:
+    input:
+        "data/interim/sequences_random_split.csv",
+        "data/interim/sequences_peptide_split.csv",
+        "data/interim/sequences_pMHC_split.csv",
+        "data/processed/TCRStructMap_predictions_on_sequences_random_split.csv",
+        "data/processed/TCRStructMap_cdrs_peptide_predictions_on_sequences_random_split.csv",
+        "data/processed/TCRStructMap_cdrs_mhc_pseudo_predictions_on_sequences_random_split.csv",
+        "data/processed/TCRStructMap_predictions_on_sequences_peptide_split.csv",
+        "data/processed/TCRStructMap_cdrs_peptide_predictions_on_sequences_peptide_split.csv",
+        "data/processed/TCRStructMap_cdrs_mhc_pseudo_predictions_on_sequences_peptide_split.csv",
+        "data/processed/TCRStructMap_predictions_on_sequences_pMHC_split.csv",
+        "data/processed/TCRStructMap_cdrs_peptide_predictions_on_sequences_pMHC_split.csv",
+        "data/processed/TCRStructMap_cdrs_mhc_pseudo_predictions_on_sequences_pMHC_split.csv",
+    resources:
+        runtime="5m",
+        mem="1GB"
+    shell:
+        """
+        papermill notebooks/evaluate_model_on_data_splits.ipynb notebooks/evaluate_model_on_data_splits.ipynb
+        """
+
 rule run_evaluate_distance_based_confidence_predictor_performance_notebook:
     input: "data/logs/train_confidence_predictor.log"
     resources:
