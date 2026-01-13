@@ -12,10 +12,10 @@ rule visualisations:
         'report/figures/CDR1beta_mhc_contacts.pdf',
         'report/figures/CDR2beta_mhc_contacts.pdf',
         'report/figures/CDR3beta_mhc_contacts.pdf',
-        'report/figures/TCRStructMap_training.svg',
-        'report/figures/TCRStructMap_sequence_only_training.svg',
-        'report/figures/TCRStructMap_cdrs_peptide_training.svg',
-        'report/figures/TCRStructMap_cdrs_mhc_pseudo_training.svg',
+        'report/figures/TCRStructMap_pMHC_split_training.svg',
+        'report/figures/TCRStructMap_pMHC_split_sequence_only_training.svg',
+        'report/figures/TCRStructMap_pMHC_split_cdrs_peptide_training.svg',
+        'report/figures/TCRStructMap_pMHC_split_cdrs_mhc_pseudo_training.svg',
         'report/figures/NetTCR_training.svg'
 
 rule visualise_model_training:
