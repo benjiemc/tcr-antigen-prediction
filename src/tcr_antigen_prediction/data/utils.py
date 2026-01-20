@@ -443,7 +443,7 @@ def find_common_groups(data: pd.DataFrame, columns: list[str]) -> np.ndarray:
 
     """
     if len(columns) == 0:
-        msg = 'No columnds input. Please input at least one column.'
+        msg = 'No columns input. Please input at least one column.'
         raise ValueError(msg)
 
     initial_groups = list(data.groupby(columns[0]))
