@@ -3,7 +3,7 @@ rule models:
         "models/TCRen",
         "models/TCRStructMap_pMHC_split",
         "models/TCRStructMap_pMHC_split_sequence_only",
-        "models/NetTCR",
+        "models/NetTCR_pMHC_split",
         "models/ConfidencePredictor_pMHC_split"
 
 rule train_TCRen:
@@ -113,9 +113,9 @@ rule train_TCRStructMap_cdrs_mhc_pseudo:
         """
 
 rule train_NetTCR:
-    input: "data/processed/sequences_right_pad_blosum.h5"
-    output: directory("models/NetTCR")
-    log: "data/logs/train_NetTCR.log"
+    input: "data/processed/sequences_right_pad_blosum_{split_type}_split.h5"
+    output: directory("models/NetTCR_{split_type}_split")
+    log: "data/logs/train_NetTCR_{split_type}_split.log"
     resources:
         runtime="10h",
         mem="20GB",

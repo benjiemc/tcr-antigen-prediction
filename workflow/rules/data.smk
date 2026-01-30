@@ -262,8 +262,8 @@ rule process_sequence_data:
         """
 
 rule process_sequence_data_for_nettcr:
-    input: "data/interim/sequences_pMHC_split.csv"
-    output: "data/processed/sequences_right_pad_blosum.h5"
+    input: "data/interim/sequences_{split_type}_split.csv"
+    output: "data/processed/sequences_right_pad_blosum_{split_type}_split.h5"
     resources:
         runtime="20m",
         mem="20GB",

@@ -16,7 +16,7 @@ rule visualisations:
         'report/figures/TCRStructMap_pMHC_split_sequence_only_training.svg',
         'report/figures/TCRStructMap_pMHC_split_cdrs_peptide_training.svg',
         'report/figures/TCRStructMap_pMHC_split_cdrs_mhc_pseudo_training.svg',
-        'report/figures/NetTCR_training.svg'
+        'report/figures/NetTCR_pMHC_split_training.svg'
 
 rule visualise_model_training:
     input: 'data/logs/train_{model_name}.log'

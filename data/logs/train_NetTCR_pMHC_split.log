@@ -1,6 +1,6 @@
 2025-05-23 22:40:54,234 - INFO: Parameter: seed=123
-2025-05-23 22:40:54,234 - INFO: Parameter: training_data='data/processed/sequences_right_pad_blosum.h5'
-2025-05-23 22:40:54,235 - INFO: Parameter: output='models/NetTCR'
+2025-05-23 22:40:54,234 - INFO: Parameter: training_data='data/processed/sequences_right_pad_blosum_pMHC_split.h5'
+2025-05-23 22:40:54,235 - INFO: Parameter: output='models/NetTCR_pMHC_split'
 2025-05-23 22:40:54,235 - INFO: Parameter: embedding_dim_size=20
 2025-05-23 22:40:54,235 - INFO: Parameter: batch_size=32
 2025-05-23 22:40:54,235 - INFO: Parameter: num_epochs=25
@@ -10,10 +10,10 @@
 2025-05-23 22:40:54,235 - INFO: Parameter: eval_interval=500
 2025-05-23 22:40:54,235 - INFO: Parameter: eval_batch_size=1000
 2025-05-23 22:40:54,235 - INFO: Parameter: log_level='info'
-2025-05-23 22:40:54,235 - INFO: Parameter: log_file='data/logs/train_NetTCR.log'
+2025-05-23 22:40:54,235 - INFO: Parameter: log_file='data/logs/train_NetTCR_pMHC_split.log'
 2025-05-23 22:40:54,235 - INFO: Setting random seed to 123
-2025-05-23 22:40:54,322 - INFO: Loading training data from data/processed/sequences_right_pad_blosum.h5
-2025-05-23 22:40:56,462 - INFO: Creating models/NetTCR
+2025-05-23 22:40:54,322 - INFO: Loading training data from data/processed/sequences_right_pad_blosum_pMHC_split.h5
+2025-05-23 22:40:56,462 - INFO: Creating models/NetTCR_pMHC_split
 2025-05-23 22:40:56,464 - INFO: Starting fold 1
 2025-05-23 22:40:56,465 - INFO: Initialising model
 2025-05-23 22:41:17,060 - INFO: Starting training
@@ -642,7 +642,7 @@
 2025-05-23 23:12:17,395 - INFO: Loss: 0.325486
 2025-05-23 23:12:17,395 - INFO: Training ROC-AUC: 0.866667
 2025-05-23 23:12:17,396 - INFO: Validation ROC-AUC: 0.591944
-2025-05-23 23:12:19,812 - INFO: Saving model to models/NetTCR/model_1.pt
+2025-05-23 23:12:19,812 - INFO: Saving model to models/NetTCR_pMHC_split/model_1.pt
 2025-05-23 23:12:19,824 - INFO: Starting fold 2
 2025-05-23 23:12:19,825 - INFO: Initialising model
 2025-05-23 23:12:19,837 - INFO: Starting training
@@ -1271,7 +1271,7 @@
 2025-05-23 23:43:11,143 - INFO: Loss: 0.281795
 2025-05-23 23:43:11,143 - INFO: Training ROC-AUC: 0.888889
 2025-05-23 23:43:11,143 - INFO: Validation ROC-AUC: 0.689083
-2025-05-23 23:43:12,211 - INFO: Saving model to models/NetTCR/model_2.pt
+2025-05-23 23:43:12,211 - INFO: Saving model to models/NetTCR_pMHC_split/model_2.pt
 2025-05-23 23:43:12,219 - INFO: Starting fold 3
 2025-05-23 23:43:12,219 - INFO: Initialising model
 2025-05-23 23:43:12,225 - INFO: Starting training
@@ -1400,7 +1400,7 @@
 2025-05-23 23:51:07,192 - INFO: Loss: 0.348210
 2025-05-23 23:51:07,192 - INFO: Training ROC-AUC: 0.740741
 2025-05-23 23:51:07,192 - INFO: Validation ROC-AUC: 0.427694
-2025-05-23 23:51:20,463 - INFO: Saving model to models/NetTCR/model_3.pt
+2025-05-23 23:51:20,463 - INFO: Saving model to models/NetTCR_pMHC_split/model_3.pt
 2025-05-23 23:51:20,472 - INFO: Starting fold 4
 2025-05-23 23:51:20,473 - INFO: Initialising model
 2025-05-23 23:51:20,478 - INFO: Starting training
@@ -1929,7 +1929,7 @@
 2025-05-24 00:21:18,098 - INFO: Loss: 0.258749
 2025-05-24 00:21:18,098 - INFO: Training ROC-AUC: 0.914286
 2025-05-24 00:21:18,098 - INFO: Validation ROC-AUC: 0.579665
-2025-05-24 00:21:30,326 - INFO: Saving model to models/NetTCR/model_4.pt
+2025-05-24 00:21:30,326 - INFO: Saving model to models/NetTCR_pMHC_split/model_4.pt
 2025-05-24 00:21:30,334 - INFO: Starting fold 5
 2025-05-24 00:21:30,335 - INFO: Initialising model
 2025-05-24 00:21:30,341 - INFO: Starting training
@@ -2458,4 +2458,4 @@
 2025-05-24 00:51:44,012 - INFO: Loss: 0.392128
 2025-05-24 00:51:44,012 - INFO: Training ROC-AUC: 0.762821
 2025-05-24 00:51:44,012 - INFO: Validation ROC-AUC: 0.667261
-2025-05-24 00:51:57,703 - INFO: Saving model to models/NetTCR/model_5.pt
+2025-05-24 00:51:57,703 - INFO: Saving model to models/NetTCR_pMHC_split/model_5.pt

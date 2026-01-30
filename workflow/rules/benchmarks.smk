@@ -51,9 +51,9 @@ rule run_tcr_struct_map_predictions_cdr_mhc_pseudo:
 
 rule run_nettcr_predictions:
     input:
-        sequences="data/processed/sequences_right_pad_blosum.h5",
-        model="models/NetTCR"
-    output: "data/processed/NetTCR_predictions_on_sequences_pMHC_split.csv"
+        sequences="data/processed/sequences_right_pad_blosum_{split_type}_split.h5",
+        model="models/NetTCR_{split_type}_split"
+    output: "data/processed/NetTCR_predictions_on_sequences_{split_type}_split.csv"
     resources:
         runtime="5m",
         mem="10GB",

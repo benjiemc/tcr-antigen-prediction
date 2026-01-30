@@ -35,7 +35,7 @@ rule run_benchmark_model_performance_notebook:
         "data/interim/peptide_distances.txt",
         "data/processed/TCRStructMap_predictions_on_sequences.csv",
         "data/processed/TCRStructMap_sequence_only_predictions_on_sequences.csv",
-        "data/processed/NetTCR_predictions_on_sequences.csv",
+        "data/processed/NetTCR_predictions_on_sequences_pMHC_split.csv",
     resources:
         runtime="5m",
         mem="1GB",
