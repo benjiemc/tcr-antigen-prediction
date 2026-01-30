@@ -33,8 +33,8 @@ rule run_benchmark_model_performance_notebook:
         "data/interim/sequences_pMHC_split.csv",
         "data/interim/peptides.txt",
         "data/interim/peptide_distances.txt",
-        "data/processed/TCRStructMap_predictions_on_sequences.csv",
-        "data/processed/TCRStructMap_sequence_only_predictions_on_sequences.csv",
+        "data/processed/TCRStructMap_predictions_on_sequences_pMHC_split.csv",
+        "data/processed/TCRStructMap_sequence_only_predictions_on_sequences_pMHC_split.csv",
         "data/processed/NetTCR_predictions_on_sequences_pMHC_split.csv",
     resources:
         runtime="5m",
@@ -48,9 +48,9 @@ rule run_benchmark_model_performance_notebook:
 rule run_ablate_model_notebook:
     input:
         "data/interim/sequences_pMHC_split.csv",
-        "data/processed/TCRStructMap_predictions_on_sequences.csv",
-        "data/processed/TCRStructMap_cdrs_peptide_predictions_on_sequences.csv",
-        "data/processed/TCRStructMap_cdrs_mhc_pseudo_predictions_on_sequences.csv",
+        "data/processed/TCRStructMap_predictions_on_sequences_pMHC_split.csv",
+        "data/processed/TCRStructMap_cdrs_peptide_predictions_on_sequences_pMHC_split.csv",
+        "data/processed/TCRStructMap_cdrs_mhc_pseudo_predictions_on_sequences_pMHC_split.csv",
         "data/interim/peptides.txt",
         "data/interim/peptide_distances.txt"
     resources:
@@ -105,7 +105,7 @@ rule run_evaluate_model_on_data_splits_notebook:
         """
 
 rule run_evaluate_distance_based_confidence_predictor_performance_notebook:
-    input: "data/logs/train_confidence_predictor.log"
+    input: "data/logs/train_confidence_predictor_pMHC_split.log"
     resources:
         runtime="1m",
         mem="1GB",
@@ -117,8 +117,8 @@ rule run_evaluate_distance_based_confidence_predictor_performance_notebook:
 
 rule run_evaluate_confidence_predictions_notebook:
     input:
-        "models/ConfidencePredictor",
-        "models/TCRStructMap",
+        "models/ConfidencePredictor_pMHC_split",
+        "models/TCRStructMap_pMHC_split",
         "data/processed/sequences_pMHC_split.h5",
         "data/interim/sequences_pMHC_split.csv",
         "data/interim/peptides.txt",
@@ -147,7 +147,7 @@ rule run_immrep_2025_notebook:
             'hla_g',
         ]),
         "data/interim/mhc_pseudo_seq_imgt_positions.json",
-        "models/TCRStructMap"
+        "models/TCRStructMap_pMHC_split"
     output: "data/processed/immrep_2025_submission.csv"
     resources:
         runtime="10m",

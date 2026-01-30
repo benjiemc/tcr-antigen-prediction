@@ -91,7 +91,7 @@ rule train_TCRStructMap_cdrs_peptide:
 
 rule train_TCRStructMap_cdrs_mhc_pseudo:
     input:
-        data="data/processed/sequences_pMHC_split.h5",
+        data="data/processed/sequences_{split_type}_split.h5",
         contact_maps="data/processed/contact_maps.h5"
     output: directory("models/TCRStructMap_{split_type}_split_cdrs_mhc_pseudo")
     log: "data/logs/train_TCRStructMap_{split_type}_split_cdrs_mhc_pseudo.log"
