@@ -25,7 +25,7 @@ def get_missing_residues(header: str) -> list[dict]:
             'residue_name': res_name,
             'chain_id': chain,
             'residue_seq_id': int(seq_id),
-            'residue_insert_code': insert_id if insert_id else None,
+            'residue_insert_code': insert_id or None,
         }
         for res_name, chain, seq_id, insert_id in lines
     ]
@@ -39,7 +39,7 @@ def get_missing_atoms(header: str) -> list[dict]:
             'residue_name': res_name,
             'chain_id': chain,
             'residue_seq_id': int(seq_id),
-            'residue_insert_code': insert_id if insert_id else None,
+            'residue_insert_code': insert_id or None,
             'atoms': atoms.split(),
         }
         for res_name, chain, seq_id, insert_id, atoms in lines
@@ -326,7 +326,7 @@ def screen_chain(
         [
             IUPACData.protein_letters_3to1[res.get_resname().title()],
             res.id[1],
-            res.id[2].strip() if res.id[2].strip() else None,
+            res.id[2].strip() or None,
             'not-missing',
         ]
         for res in raw_structure[0][chain_id].get_residues()
@@ -336,7 +336,7 @@ def screen_chain(
         [
             IUPACData.protein_letters_3to1[res.get_resname().title()],
             res.id[1],
-            res.id[2].strip() if res.id[2].strip() else None,
+            res.id[2].strip() or None,
         ]
         for res in structure[0][chain_id].get_residues()
         if res.id[0] == ' '
