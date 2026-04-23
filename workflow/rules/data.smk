@@ -501,3 +501,26 @@ rule uncompress_immrep_2025_data:
         "data/interim/test.csv",
         "data/interim/vdjdb_positives.csv"
     shell: "unzip {input} -d data/interim/"
+
+rule download_immrep_2025_evaluation_data:
+    output: "data/external/immrep2025_evalutaion.zip"
+    shell:
+        """
+        wget -O {output} "https://figshare.com/ndownloader/articles/30491582/versions/1"
+        """
+
+rule uncompress_immrep_2025_evaluation_data:
+    input: "data/external/immrep2025_evalutaion.zip"
+    output: "data/interim/immrep2025_labels.tsv"
+    shell:
+        """
+        temp_dir=$TMPDIR/immrep
+
+        if [ -d $temp_dir ]; then
+            rm -r $temp_dir
+        fi
+
+        mkdir $temp_dir
+        unzip {input} -d $temp_dir
+        cp $temp_dir/immrep2025_for_release.tsv {output}
+        """

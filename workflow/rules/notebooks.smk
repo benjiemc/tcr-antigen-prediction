@@ -135,6 +135,7 @@ rule run_evaluate_confidence_predictions_notebook:
 rule run_immrep_2025_notebook:
     input:
         "data/interim/test.csv",
+        "data/interim/immrep2025_labels.tsv",
         expand("data/external/hla_sequences/{mhc}.json", mhc=[
             'h2_d',
             'h2_k',
@@ -148,9 +149,8 @@ rule run_immrep_2025_notebook:
         ]),
         "data/interim/mhc_pseudo_seq_imgt_positions.json",
         "models/TCRStructMap_pMHC_split"
-    output: "data/processed/immrep_2025_submission.csv"
     resources:
-        runtime="10m",
+        runtime="15m",
         mem="5GB",
         tasks=1
     shell:
