@@ -1,5 +1,5 @@
 outs:
-- md5: 1d21f124f9f1ad41fb4cee3287ef92b7
-  size: 4452284
+- md5: 81e2181efccbe9cb754965c0d9478102
+  size: 4360234
   hash: md5
   path: model_4.pt

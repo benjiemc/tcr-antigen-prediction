@@ -1,5 +1,5 @@
 outs:
-- md5: 97816ba996f32f78ca0118e0ee583155
-  size: 8335798
+- md5: 466759929ab88f729916a47ca7a93c73
+  size: 8131666
   hash: md5
   path: TCRStructMap_predictions_on_sequences_peptide_split.csv

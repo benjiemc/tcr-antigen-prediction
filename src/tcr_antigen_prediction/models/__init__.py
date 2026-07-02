@@ -4,6 +4,28 @@ import torch
 from torch import nn
 
 
+class Embedding(nn.Module):
+    """Amino acid sequence embedding module.
+
+    Args:
+        size: length of amino acid sequence
+        input_depth: depth of amino acide representation (Default: 20)
+
+    Attributes:
+        layers: Linear layers for the embedding size and depth
+
+    """
+
+    def __init__(self, size: int, input_depth: int = 20) -> None:
+        super().__init__()
+        self.layers = nn.ModuleList([nn.Linear(input_depth, 1) for _ in range(size)])
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:  # batch_size x size x input_depth
+        """Forward pass of embedding module."""
+        embeddings = [embedding(x[:, i, :]) for i, embedding in enumerate(self.layers)]
+        return torch.cat(embeddings, dim=-1)  # batch_size x size
+
+
 class TCRStructMap(nn.Module):
     """Model for predicting interactions between TCRs and pMHCs using structurally constrained sequences.
 
@@ -94,7 +116,7 @@ class TCRStructMap(nn.Module):
 
         self.cdr_embedding_layers = nn.ModuleList(
             [
-                nn.Linear(size * input_depth, size) if size > 0 else nn.Identity()
+                Embedding(size, input_depth) if size > 0 else nn.Identity()
                 for size in (
                     cdr1_alpha_length,
                     cdr2_alpha_length,
@@ -106,10 +128,8 @@ class TCRStructMap(nn.Module):
             ],
         )
 
-        self.peptide_embedding_layer = (
-            nn.Linear(peptide_length * input_depth, peptide_length) if peptide_length > 0 else None
-        )
-        self.mhc_embedding_layer = nn.Linear(mhc_length * input_depth, mhc_length) if mhc_length > 0 else None
+        self.peptide_embedding_layer = Embedding(peptide_length, input_depth) if peptide_length > 0 else None
+        self.mhc_embedding_layer = Embedding(mhc_length, input_depth) if mhc_length > 0 else None
 
         self.combined_fc = nn.Linear(
             (
@@ -159,12 +179,10 @@ class TCRStructMap(nn.Module):
 
         """
         if peptide is not None:
-            peptide_emb = torch.flatten(peptide, start_dim=1)  # batch_size x (12 * 20)
-            peptide_emb = self.peptide_embedding_layer(peptide_emb)  # batch_size x 12
+            peptide_emb = self.peptide_embedding_layer(peptide)  # batch_size x 12
 
         if mhc_pseudo is not None:
-            mhc_emb = torch.flatten(mhc_pseudo, start_dim=1)  # batch_size x (26 * 20)
-            mhc_emb = self.mhc_embedding_layer(mhc_emb)  # batch_size x 26
+            mhc_emb = self.mhc_embedding_layer(mhc_pseudo)  # batch_size x 26
 
         peptide_interactions = []
         mhc_interactions = []
@@ -172,8 +190,7 @@ class TCRStructMap(nn.Module):
             if cdr is None:
                 continue
 
-            cdr_emb = torch.flatten(cdr, start_dim=1)  # batch_size x (cdr_length * 20)
-            cdr_emb = self.cdr_embedding_layers[i](cdr_emb)  # batch_size x cdr_length
+            cdr_emb = self.cdr_embedding_layers[i](cdr)  # batch_size x cdr_length
 
             if peptide is not None:
                 # batch_size x cdr_length x 12

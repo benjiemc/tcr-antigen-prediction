@@ -3,7 +3,27 @@ from unittest import TestCase
 import numpy as np
 import torch
 
-from tcr_antigen_prediction.models import TCRStructMap
+from tcr_antigen_prediction.models import Embedding, TCRStructMap
+
+
+class TestEmbedding(TestCase):
+    def test(self):
+        torch.manual_seed(0)
+        batch = torch.tensor(
+            [
+                [[0, 0, 0], [0, 1, 0], [0, 0, 1], [0, 0, 0]],
+                [[0, 0, 0], [0, 1, 0], [0, 0, 1], [0, 0, 0]],
+            ],
+            dtype=torch.float32,
+        )
+
+        embbeding = Embedding(4, 3)
+        predictions = embbeding.forward(batch)
+
+        np.testing.assert_array_almost_equal(
+            predictions.detach(),
+            np.array([[-0.424895, 0.612596, -0.28797, 0.021387], [-0.424895, 0.612596, -0.28797, 0.021387]]),
+        )
 
 
 class TestTCRStructMap(TestCase):
@@ -163,7 +183,7 @@ class TestTCRStructMap(TestCase):
             peptide_batch,
             mhc_pseudo_batch,
         )
-        np.testing.assert_array_almost_equal(predictions.detach(), np.array([[0.491795], [0.491714]]))
+        np.testing.assert_array_almost_equal(predictions.detach(), np.array([[0.49223], [0.492225]]))
 
     def test_no_contact_maps(self):
         torch.manual_seed(0)
@@ -247,7 +267,7 @@ class TestTCRStructMap(TestCase):
             peptide_batch,
             mhc_pseudo_batch,
         )
-        np.testing.assert_array_almost_equal(predictions.detach(), np.array([[0.491717], [0.491649]]))
+        np.testing.assert_array_almost_equal(predictions.detach(), np.array([[0.492367], [0.492405]]))
 
     def test_no_peptide(self):
         torch.manual_seed(0)
@@ -396,7 +416,7 @@ class TestTCRStructMap(TestCase):
             None,
             mhc_pseudo_batch,
         )
-        np.testing.assert_array_almost_equal(predictions.detach(), np.array([[0.510418], [0.51038]]))
+        np.testing.assert_array_almost_equal(predictions.detach(), np.array([[0.484286], [0.484282]]))
 
     def test_no_peptide_no_contact_maps(self):
         torch.manual_seed(0)
@@ -510,7 +530,7 @@ class TestTCRStructMap(TestCase):
             None,
             mhc_pseudo_batch,
         )
-        np.testing.assert_array_almost_equal(predictions.detach(), np.array([[0.510418], [0.51038]]))
+        np.testing.assert_array_almost_equal(predictions.detach(), np.array([[0.484286], [0.484282]]))
 
     def test_no_cdr_1_or_2(self):
         torch.manual_seed(0)
@@ -656,4 +676,4 @@ class TestTCRStructMap(TestCase):
             peptide_batch,
             mhc_pseudo_batch,
         )
-        np.testing.assert_array_almost_equal(predictions.detach(), np.array([[0.518837], [0.518778]]))
+        np.testing.assert_array_almost_equal(predictions.detach(), np.array([[0.50095], [0.500902]]))
