@@ -62,6 +62,28 @@ rule run_ablate_model_notebook:
         papermill notebooks/ablate_model.ipynb notebooks/ablate_model.ipynb
         """
 
+rule run_benchmark_model_performance_against_nettcr_notebook:
+    input:
+        "data/interim/sequences_random_split.csv",
+        "data/interim/sequences_peptide_split.csv",
+        "data/interim/sequences_pMHC_split.csv",
+        "data/processed/TCRStructMap_predictions_on_sequences_random_split.csv",
+        "data/processed/TCRStructMap_predictions_on_sequences_peptide_split.csv",
+        "data/processed/TCRStructMap_predictions_on_sequences_pMHC_split.csv",
+        "data/processed/NetTCR_predictions_on_sequences_random_split.csv",
+        "data/processed/NetTCR_predictions_on_sequences_peptide_split.csv",
+        "data/processed/NetTCR_predictions_on_sequences_pMHC_split.csv",
+    resources:
+        runtime="5m",
+        mem="1GB",
+        tasks=1
+    shell:
+        """
+        papermill \
+            notebooks/benchmark_model_performance_against_nettcr.ipynb \
+            notebooks/benchmark_model_performance_against_nettcr.ipynb
+        """
+
 rule run_evaluate_using_structures_vs_sequence_notebook:
     input:
         "data/interim/sequences_random_split.csv",
