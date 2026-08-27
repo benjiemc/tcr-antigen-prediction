@@ -99,7 +99,7 @@ def main() -> None:
         logger.info('RMSE: %f', rmse)
 
         logger.info('Saving model')
-        onnx = to_onnx(confidence_model, tcr_pmhc_flat[:1].astype(np.float32))
+        onnx = to_onnx(confidence_model, tcr_pmhc_flat[:1].astype(np.float32), target_opset=21)
 
         output_name = os.path.join(
             os.path.dirname(args.output),
