@@ -14,7 +14,7 @@ dependencies:
   - pip
   - pygraphviz
   - python=3.11
-  - snakemake
+  - snakemake=9.14
   - pip:
       - biopython
       - logomaker
