@@ -5,7 +5,7 @@ Test training model.
   > -o test.onnx \
   > $TESTDIR/data/test.h5
 
-  $ python <<EOF
+  $ python <<EOF > /dev/null 2>&1
   > import os
   > import h5py
   > import numpy as np
