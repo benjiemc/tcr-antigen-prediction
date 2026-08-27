@@ -45,6 +45,7 @@ exclude = ["third_party"]
 select = ["ALL"]
 extend-select = ["E501"]
 ignore = ["COM812",     # Allow missing trailing comma: not recommended to be used with the formatter
+          "CPY001",     # Don't require copy right notices in each file
           "D107",       # do not require __init__ methods to have a docstring
           "D203",       # one-blank-line-before-class: ignoring because it clashes with D211
           "D213",       # multi-line-summary-second-line: ignoring because it clashes with D212
@@ -100,6 +101,9 @@ multiline-quotes = "single"
              "D103",      # ignore function docs in tests
              "D104",      # ignore package docs in tests
              "D107"]      # ignore constructor docs in tests
+
+[tool.ruff.lint.pylint]
+max-positional-args = 10
 
 [tool.ruff.format]
 quote-style = "preserve"
