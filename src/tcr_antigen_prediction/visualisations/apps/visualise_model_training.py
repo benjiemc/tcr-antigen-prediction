@@ -37,11 +37,14 @@ def main() -> None:
     args = parser.parse_args()
     setup_logger(logger, args.log_level, args.log_file)
 
+    logger.info('Reading training log: %s', args.training_log)
     with open(args.training_log) as fh:
         training_log = fh.read()
 
+    logger.debug('Processing training log')
     lines = [(i, line) for i, line in enumerate(training_log.split('\n')) if line]
 
+    logger.debug('Extracting training folds')
     fold_pattern = re.compile(r'(\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d,\d\d\d) - INFO: Starting fold (\d+)')
     folds = [
         (
@@ -53,6 +56,7 @@ def main() -> None:
         if re.match(fold_pattern, line)
     ]
 
+    logger.debug('Extracting training epochs')
     epoch_pattern = re.compile(r'(\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d,\d\d\d) - INFO: Starting epoch (\d+)')
     epochs = [
         (
@@ -64,6 +68,7 @@ def main() -> None:
         if re.match(epoch_pattern, line)
     ]
 
+    logger.debug('Extracting evaluation information')
     evaluation_pattern = re.compile(r'(\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d,\d\d\d) - INFO: Evaluating at iteration (\d+)')
     evaluation_steps = [
         (
@@ -75,9 +80,11 @@ def main() -> None:
         if re.match(evaluation_pattern, line)
     ]
 
+    logger.debug('Extracting loss information')
     loss_pattern = re.compile(r'\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d,\d\d\d - INFO: Loss: (\d+\.\d+)')
     losses = [float(re.match(loss_pattern, line).group(1)) for _, line in lines if re.match(loss_pattern, line)]
 
+    logger.debug('Extracting ROC-AUC scores on training data')
     training_roc_auc_pattern = re.compile(
         r'\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d,\d\d\d - INFO: Training ROC-AUC: (\d+\.\d+|nan)',
     )
@@ -87,6 +94,7 @@ def main() -> None:
         if re.match(training_roc_auc_pattern, line)
     ]
 
+    logger.debug('Extracting ROC-AUC scores on validation data')
     validation_roc_auc_pattern = re.compile(
         r'\d\d\d\d-\d\d-\d\d \d\d:\d\d:\d\d,\d\d\d - INFO: Validation ROC-AUC: (\d+\.\d+)',
     )
@@ -125,6 +133,7 @@ def main() -> None:
 
     training_log_df['relative_training_step'] = training_log_df.groupby('fold').cumcount() + 1
 
+    logger.info('Creating plot')
     fig, ax1 = plt.subplots(figsize=(10, 6))
 
     if args.title:
@@ -169,6 +178,8 @@ def main() -> None:
     ax1.legend(lines_1 + lines_2, labels_1 + labels_2, loc='upper left', fontsize=12)
 
     plt.tight_layout()
+
+    logger.info('Saving plot to %s', args.output)
     plt.savefig(args.output)
 
 
