@@ -28,6 +28,7 @@ rule visualise_model_training:
     shell:
         """
         python -m tcr_antigen_prediction.visualisations.apps.visualise_model_training \
+            --log-level {config[log_level]} \
             --title {wildcards.model_name} \
             -o {output} \
             {input}
@@ -45,6 +46,7 @@ rule create_contact_map_plots:
     shell:
         """
         python -m tcr_antigen_prediction.visualisations.apps.visualise_contact_maps \
+            --log-level {config[log_level]} \
             --separate-plots \
             -o report/figures/peptide_contacts.pdf \
             --mhc-types MH1 \
@@ -53,6 +55,7 @@ rule create_contact_map_plots:
             {input.contacts}
 
         python -m tcr_antigen_prediction.visualisations.apps.visualise_contact_maps \
+            --log-level {config[log_level]} \
             --separate-plots \
             -o report/figures/mhc_contacts.pdf \
             --mhc-types MH1 \
