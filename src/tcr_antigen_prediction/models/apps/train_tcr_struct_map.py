@@ -239,7 +239,13 @@ def main():
         )
         model.train()
 
-        device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+        if torch.cuda.is_available():
+            device = torch.device('cuda:0')
+
+        else:
+            logger.warning('No CUDA compatible device found. The model will be trained on the CPU which will be slow.')
+            device = torch.device('cpu')
+
         logger.debug('Transferring model to %s', str(device))
         model.to(device)
 

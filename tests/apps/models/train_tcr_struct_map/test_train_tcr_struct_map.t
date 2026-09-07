@@ -1,5 +1,6 @@
 Test training model.
   $ python -m tcr_antigen_prediction.models.apps.train_tcr_struct_map \
+  > --log-level error \
   > --seed 123 \
   > --batch-size 1 \
   > --num-epochs 1 \
@@ -113,6 +114,7 @@ Test training model.
 
 Test training model without MHC.
   $ python -m tcr_antigen_prediction.models.apps.train_tcr_struct_map \
+  > --log-level error \
   > --seed 123 \
   > --features-to-include cdr1_alpha cdr2_alpha cdr3_alpha cdr1_beta cdr2_beta cdr3_beta peptide \
   > --batch-size 1 \
@@ -239,6 +241,7 @@ Test training model without MHC.
 
 Test training model without CDR1-2.
   $ python -m tcr_antigen_prediction.models.apps.train_tcr_struct_map \
+  > --log-level error \
   > --seed 123 \
   > --features-to-include cdr3_alpha cdr3_beta peptide mhc_pseudo \
   > --batch-size 1 \
