@@ -348,10 +348,6 @@ def collate_sequence_data(
         )
     )
 
-    sequence_data[['v_alpha', 'j_alpha', 'v_beta', 'j_beta']] = sequence_data[
-        ['v_alpha', 'j_alpha', 'v_beta', 'j_beta']
-    ].map(lambda gene: gene.split('/')[0] if gene else gene)
-
     logger.debug('Standardising CDR3 junctions')
     sequence_data[['cdr3_alpha', 'cdr3_beta']] = sequence_data[['cdr3_alpha', 'cdr3_beta']].map(
         tidytcells.junction.standardise,

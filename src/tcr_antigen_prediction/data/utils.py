@@ -5,6 +5,7 @@ import random
 import re
 import typing
 import warnings
+from functools import lru_cache
 
 import numpy as np
 import pandas as pd
@@ -91,23 +92,26 @@ def assign_species(allele: str) -> str | None:
     return None
 
 
+@lru_cache
 def stitch_sequence(v_gene: str, j_gene: str, cdr3: str, species: str) -> str | None:
     """Create full length TCR sequence from V gene, J, gene, CDR3 and species information."""
 
     def create_input_args(args: dict, gene_types: list) -> tuple:
         input_args, chain = fxn.sort_input(args)
         codons = fxn.get_optimal_codons(input_args['codon_usage_path'], input_args['species'])
-        imgt_dat, tcr_functionality, partial = fxn.get_imgt_data(chain, gene_types, input_args['species'])
+        j_res, low_conf_js = fxn.get_j_motifs(input_args['species'])
+        c_res = fxn.get_c_motifs(input_args['species'])
+        tcr_dat, tcr_functionality, partial = fxn.get_ref_data(chain, gene_types, input_args['species'])
 
         if input_args['extra_genes']:
-            imgt_dat, tcr_functionality = fxn.get_additional_genes(imgt_dat, tcr_functionality)
+            tcr_dat, tcr_functionality = fxn.get_additional_genes(tcr_dat, tcr_functionality)
             input_args['skip_c_checks'] = True
 
         if input_args['preferred_alleles_path']:
             preferred_alleles = fxn.get_preferred_alleles(
                 input_args['preferred_alleles_path'],
                 gene_types,
-                imgt_dat,
+                tcr_dat,
                 partial,
                 chain,
             )
@@ -115,9 +119,14 @@ def stitch_sequence(v_gene: str, j_gene: str, cdr3: str, species: str) -> str | 
         else:
             preferred_alleles = {}
 
-        return input_args, imgt_dat, tcr_functionality, partial, codons, preferred_alleles
+        return input_args, tcr_dat, tcr_functionality, partial, codons, preferred_alleles, c_res, j_res, low_conf_js
 
     gene_types = list(fxn.regions.values())
+
+    start = 'C' if not cdr3.startswith('C') else ''
+    end = 'F' if not cdr3.startswith('C') else ''
+
+    cdr3 = start + cdr3 + end
 
     args = {
         'v': v_gene,
@@ -132,37 +141,42 @@ def stitch_sequence(v_gene: str, j_gene: str, cdr3: str, species: str) -> str | 
         '5_prime_seq': '',
         '3_prime_seq': '',
         'extra_genes': False,
+        'mode': 'AA',
         'preferred_alleles_path': '',
         'codon_usage_path': '',
         'j_warning_threshold': 3,
         'skip_c_checks': False,
+        'skip_n_checks': False,
         'suppress_warnings': False,
+        'no_leader': False,
     }
 
-    try:
-        (
-            input_args,
-            imgt_dat,
-            tcr_functionality,
-            partial,
-            codons,
-            preferred_alleles,
-        ) = create_input_args(args, gene_types)
-
-    except ValueError as err:
-        logger.debug(err, args)
+    (
+        input_args,
+        tcr_dat,
+        tcr_functionality,
+        partial,
+        codons,
+        preferred_alleles,
+        c_res,
+        j_res,
+        low_conf_js,
+    ) = create_input_args(args, gene_types)
 
     try:
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
-            _, stitched, offset = st.stitch(
+            stitched = st.stitch(
                 input_args,
-                imgt_dat,
+                tcr_dat,
                 tcr_functionality,
                 partial,
                 codons,
                 input_args['j_warning_threshold'],
                 preferred_alleles,
+                c_res,
+                j_res,
+                low_conf_js,
             )
 
     except ValueError:
@@ -176,33 +190,32 @@ def stitch_sequence(v_gene: str, j_gene: str, cdr3: str, species: str) -> str | 
 
         (
             input_args,
-            imgt_dat,
+            tcr_dat,
             tcr_functionality,
             partial,
             codons,
             preferred_alleles,
+            c_res,
+            j_res,
+            low_conf_js,
         ) = create_input_args(args, gene_types)
 
-        try:
-            with warnings.catch_warnings():
-                warnings.simplefilter('ignore')
-                _, stitched, offset = st.stitch(
-                    input_args,
-                    imgt_dat,
-                    tcr_functionality,
-                    partial,
-                    codons,
-                    input_args['j_warning_threshold'],
-                    preferred_alleles,
-                )
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            stitched = st.stitch(
+                input_args,
+                tcr_dat,
+                tcr_functionality,
+                partial,
+                codons,
+                input_args['j_warning_threshold'],
+                preferred_alleles,
+                c_res,
+                j_res,
+                low_conf_js,
+            )
 
-        except ValueError:
-            return None
-
-    except Exception:  # noqa: BLE001 Stitchr will throw a base exception sometimes
-        return None
-
-    return fxn.translate_nt('N' * offset + stitched)
+    return fxn.translate_nt('N' * stitched['translation_offset'] + stitched['stitched_nt'])
 
 
 def get_cdr_sequences(sequence: str) -> tuple[str | None, str | None, str | None]:
