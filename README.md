@@ -2,6 +2,11 @@
 
 Models and methods for predicting TCR antigen specificity.
 
+## Key Links
+
+* Source code: [https://github.com/benjiemc/tcr-antigen-prediction](https://github.com/benjiemc/tcr-antigen-prediction)
+* Documentation: [https://benjiemc.github.io/tcr-antigen-prediction/](https://benjiemc.github.io/tcr-antigen-prediction/)
+
 ## Installation and Setup
 
 To install this project, first clone the repo:
