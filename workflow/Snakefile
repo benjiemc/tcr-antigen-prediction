@@ -20,9 +20,8 @@ rule environment:
         mamba run -n tcr-antigen-prediction stitchrdl -s human
         mamba run -n tcr-antigen-prediction stitchrdl -s mouse
         git submodule update --remote third_party/anarci
-        mamba_prefix=$(mamba run -n tcr-antigen-prediction mamba info --json | jq '."env location"' | sed s/\\"//g)
-        python_version=$(mamba run -n tcr-antigen-prediction python --version | cut -d " " -f2 | cut -d "." -f1-2)
-        cp -r third_party/anarci $mamba_prefix/lib/python$python_version/site-packages
+        site_packages=$(mamba run -n tcr-antigen-prediction python -c 'import sysconfig; print(sysconfig.get_path("purelib"))')
+        cp -r third_party/anarci "$site_packages/"
         git submodule update --remote third_party/NetTCR
         mamba run -n tcr-antigen-prediction pip install third_party/NetTCR
         """
