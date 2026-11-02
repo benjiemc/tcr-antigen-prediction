@@ -1,0 +1,29 @@
+tcr_antigen_prediction.data.apps.identify_tcr_pmhc_interactions
+===============================================================
+.. code-block:: text
+
+   usage: python -m tcr_antigen_prediction.data.apps.identify_tcr_pmhc_interactions
+          [-h] [--contact-distance CONTACT_DISTANCE] [--output OUTPUT]
+          [--log-level {debug,info,warning,error}] [--log-file LOG_FILE]
+          structure
+   
+   Identify the interacting pairs of TCR:pMHC molecules in a PDB file.
+   
+   positional arguments:
+     structure             path to pdb structure
+   
+   options:
+     -h, --help            show this help message and exit
+     --contact-distance CONTACT_DISTANCE
+                           distance to consider two chains part of the same
+                           complex (Default: 5.0)
+     --output OUTPUT, -o OUTPUT
+                           path to output csv file
+   
+   Logging:
+     Options for logging
+   
+     --log-level {debug,info,warning,error}
+                           Level to log messages at (Default: 'warning')
+     --log-file LOG_FILE   File to output logs (default is to write to stderr)
+   

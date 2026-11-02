@@ -1,0 +1,17 @@
+Notebooks
+=========
+
+.. toctree::
+   :maxdepth: 1
+
+   ablate_model
+   benchmark_model_performance
+   benchmark_model_performance_against_nettcr
+   compairing_sequence_and_structure_data
+   evaluate_confidence_predictions
+   evaluate_distance_based_confidence_predictor_performance
+   evaluate_model_on_data_splits
+   evaluate_using_structures_vs_sequence
+   immrep_2025
+   visualise_sequence_data
+   visualise_structure_data

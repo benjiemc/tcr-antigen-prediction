@@ -1,0 +1,27 @@
+Command Line Applications
+=========================
+
+.. toctree::
+   :maxdepth: 1
+
+   tcr_antigen_prediction.data.apps.annotate_mhc_pseudo_sequences
+   tcr_antigen_prediction.data.apps.annotate_tcr_pmhc_sequences
+   tcr_antigen_prediction.data.apps.collate_sequence_data
+   tcr_antigen_prediction.data.apps.compute_pw_distances
+   tcr_antigen_prediction.data.apps.create_contact_maps
+   tcr_antigen_prediction.data.apps.create_data_splits
+   tcr_antigen_prediction.data.apps.crop_tcr_pmhc
+   tcr_antigen_prediction.data.apps.download_stcrdab
+   tcr_antigen_prediction.data.apps.extract_chains_from_structure
+   tcr_antigen_prediction.data.apps.filter_similar_structures
+   tcr_antigen_prediction.data.apps.get_mhc_pseudo_sequence_imgt_numbers
+   tcr_antigen_prediction.data.apps.identify_tcr_pmhc_interactions
+   tcr_antigen_prediction.data.apps.process_contact_maps
+   tcr_antigen_prediction.data.apps.process_sequence_data
+   tcr_antigen_prediction.data.apps.renumber_tcr_pmhc_structure
+   tcr_antigen_prediction.data.apps.select_stcrdab_tcr_pmhc_structures
+   tcr_antigen_prediction.models.apps.train_confidence_predictor
+   tcr_antigen_prediction.models.apps.train_tcr_en
+   tcr_antigen_prediction.models.apps.train_tcr_struct_map
+   tcr_antigen_prediction.visualisations.apps.visualise_contact_maps
+   tcr_antigen_prediction.visualisations.apps.visualise_model_training

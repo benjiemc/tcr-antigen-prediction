@@ -1,0 +1,53 @@
+tcr_antigen_prediction.data.apps.create_contact_maps
+====================================================
+.. code-block:: text
+
+   usage: python -m tcr_antigen_prediction.data.apps.create_contact_maps
+          [-h] --summary-csv SUMMARY_CSV --output OUTPUT
+          [--cutoff-distance CUTOFF_DISTANCE]
+          [--tcr-norm [{None,cdr_type,imgt_number,cdr_position,relative_pos_centre}]]
+          [--mhc-norm [{None,mhc_type,chain_type,imgt_number}]]
+          [--peptide-norm [{None,peptide_position,relative_pos_centre}]]
+          [--even-offset-side {left,right}]
+          [--probability-filter PROBABILITY_FILTER]
+          [--log-level {debug,info,warning,error}] [--log-file LOG_FILE]
+          input [input ...]
+   
+   Create contact maps between TCRs and pMHCs.
+   
+   options:
+     -h, --help            show this help message and exit
+     --cutoff-distance CUTOFF_DISTANCE
+                           maximum distance to consider a contact (default: 5.0
+                           Å)
+     --tcr-norm [{None,cdr_type,imgt_number,cdr_position,relative_pos_centre}]
+                           Normalisation strategy for the TCR counts (Default:
+                           'cdr_type').
+     --mhc-norm [{None,mhc_type,chain_type,imgt_number}]
+                           Normalisation strategy for the MHC counts (Default:
+                           'chain_type').
+     --peptide-norm [{None,peptide_position,relative_pos_centre}]
+                           Normalisation strategy for the peptide counts
+                           (Default: 'peptide_position').
+     --even-offset-side {left,right}
+                           Offset side when relative_pos_centre is selected
+                           (Default: 'left')
+     --probability-filter PROBABILITY_FILTER
+                           Filter out contacts below this cutoff
+   
+   Inputs:
+     input                 paths to the input PDB files
+     --summary-csv SUMMARY_CSV
+                           path to the summary csv describing the PDB files
+   
+   Output:
+     --output OUTPUT, -o OUTPUT
+                           path to output CSV
+   
+   Logging:
+     Options for logging
+   
+     --log-level {debug,info,warning,error}
+                           Level to log messages at (Default: 'warning')
+     --log-file LOG_FILE   File to output logs (default is to write to stderr)
+   

@@ -1,0 +1,7 @@
+tcr\_antigen\_prediction.data.structure module
+==============================================
+
+.. automodule:: tcr_antigen_prediction.data.structure
+   :members:
+   :show-inheritance:
+   :undoc-members:

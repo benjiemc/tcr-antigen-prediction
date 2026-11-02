@@ -1,0 +1,68 @@
+tcr_antigen_prediction.data.apps.process_sequence_data
+======================================================
+.. code-block:: text
+
+   usage: python -m tcr_antigen_prediction.data.apps.process_sequence_data
+          [-h] --output OUTPUT [--cdr1-alpha-length CDR1_ALPHA_LENGTH]
+          [--cdr2-alpha-length CDR2_ALPHA_LENGTH]
+          [--cdr3-alpha-length CDR3_ALPHA_LENGTH]
+          [--cdr1-beta-length CDR1_BETA_LENGTH]
+          [--cdr2-beta-length CDR2_BETA_LENGTH]
+          [--cdr3-beta-length CDR3_BETA_LENGTH] [--peptide-length PEPTIDE_LENGTH]
+          [--pad-direction {centre,left,right}] [--encoding {blosum50,one-hot}]
+          [--normalisation-factor NORMALISATION_FACTOR]
+          [--log-level {debug,info,warning,error}] [--log-file LOG_FILE]
+          input_data
+   
+   Process sequence data to create training data for machine learning models.
+   
+   Required columns:
+   
+       - cdr1_alpha
+       - cdr2_alpha
+       - cdr3_alpha
+       - cdr1_beta
+       - cdr2_beta
+       - cdr3_beta
+       - peptide
+       - mhc_pseudo
+       - label
+       - fold
+   
+   positional arguments:
+     input_data            path to the input csv file
+   
+   options:
+     -h, --help            show this help message and exit
+     --output OUTPUT, -o OUTPUT
+                           path to output HDF5 file with processed sequences
+   
+   Data:
+     --cdr1-alpha-length CDR1_ALPHA_LENGTH
+                           Length to pad CDR 1a sequences to (Default: 8)
+     --cdr2-alpha-length CDR2_ALPHA_LENGTH
+                           Length to pad CDR 2a sequences to (Default: 8)
+     --cdr3-alpha-length CDR3_ALPHA_LENGTH
+                           Length to pad CDR 3a sequences to (Default: 24)
+     --cdr1-beta-length CDR1_BETA_LENGTH
+                           Length to pad CDR 1b sequences to (Default: 8)
+     --cdr2-beta-length CDR2_BETA_LENGTH
+                           Length to pad CDR 2b sequences to (Default: 8)
+     --cdr3-beta-length CDR3_BETA_LENGTH
+                           Length to pad CDR 3b sequences to (Default: 24)
+     --peptide-length PEPTIDE_LENGTH
+                           Length to pad peptide sequences to (Default: 12)
+     --pad-direction {centre,left,right}
+                           Direction to pad sequences (Default: 'centre')
+     --encoding {blosum50,one-hot}
+                           numerical encoding to use for the sequences.
+     --normalisation-factor NORMALISATION_FACTOR
+                           normalise encoding values by factor
+   
+   Logging:
+     Options for logging
+   
+     --log-level {debug,info,warning,error}
+                           Level to log messages at (Default: 'warning')
+     --log-file LOG_FILE   File to output logs (default is to write to stderr)
+   

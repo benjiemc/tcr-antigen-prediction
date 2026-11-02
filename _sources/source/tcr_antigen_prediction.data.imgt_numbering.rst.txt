@@ -1,0 +1,7 @@
+tcr\_antigen\_prediction.data.imgt\_numbering module
+====================================================
+
+.. automodule:: tcr_antigen_prediction.data.imgt_numbering
+   :members:
+   :show-inheritance:
+   :undoc-members:

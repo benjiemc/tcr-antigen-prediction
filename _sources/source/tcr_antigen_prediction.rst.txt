@@ -1,0 +1,20 @@
+tcr\_antigen\_prediction package
+================================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   tcr_antigen_prediction.data
+   tcr_antigen_prediction.models
+   tcr_antigen_prediction.visualisations
+
+Module contents
+---------------
+
+.. automodule:: tcr_antigen_prediction
+   :members:
+   :show-inheritance:
+   :undoc-members:

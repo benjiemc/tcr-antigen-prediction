@@ -1,0 +1,28 @@
+tcr_antigen_prediction.data.apps.extract_chains_from_structure
+==============================================================
+.. code-block:: text
+
+   usage: python -m tcr_antigen_prediction.data.apps.extract_chains_from_structure
+          [-h] --output OUTPUT --chains CHAINS [CHAINS ...]
+          [--log-level {debug,info,warning,error}] [--log-file LOG_FILE]
+          structure
+   
+   Extract chains from a PDB structue into a new PDB file.
+   
+   positional arguments:
+     structure             path to pdb file
+   
+   options:
+     -h, --help            show this help message and exit
+     --output OUTPUT, -o OUTPUT
+                           path to output pdb file
+     --chains CHAINS [CHAINS ...]
+                           chains to extract
+   
+   Logging:
+     Options for logging
+   
+     --log-level {debug,info,warning,error}
+                           Level to log messages at (Default: 'warning')
+     --log-file LOG_FILE   File to output logs (default is to write to stderr)
+   

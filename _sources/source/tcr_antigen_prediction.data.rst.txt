@@ -1,0 +1,32 @@
+tcr\_antigen\_prediction.data package
+=====================================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   tcr_antigen_prediction.data.missing_entities
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 4
+
+   tcr_antigen_prediction.data.aligners
+   tcr_antigen_prediction.data.amino_acid_encodings
+   tcr_antigen_prediction.data.chemistry
+   tcr_antigen_prediction.data.comparisons
+   tcr_antigen_prediction.data.imgt_numbering
+   tcr_antigen_prediction.data.structure
+   tcr_antigen_prediction.data.utils
+
+Module contents
+---------------
+
+.. automodule:: tcr_antigen_prediction.data
+   :members:
+   :show-inheritance:
+   :undoc-members:

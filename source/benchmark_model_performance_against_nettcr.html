@@ -1,0 +1,654 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Model Size &mdash; tcr_antigen_prediction  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Compairing sequence and structure data" href="compairing_sequence_and_structure_data.html" />
+    <link rel="prev" title="Benchmark model performance" href="benchmark_model_performance.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            tcr_antigen_prediction
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Results</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="notebooks.html">Notebooks</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="ablate_model.html">Ablate model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="benchmark_model_performance.html">Benchmark model performance</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Model Size</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Bootstrap-ROC-AUC">Bootstrap ROC-AUC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compairing_sequence_and_structure_data.html">Compairing sequence and structure data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluate_confidence_predictions.html">Evaluating confidence predictor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluate_distance_based_confidence_predictor_performance.html">Evaluate distance based confidence predictor performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluate_model_on_data_splits.html">Evaluate model on data splits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluate_using_structures_vs_sequence.html">Evaluate structures and sequences versus sequences only</a></li>
+<li class="toctree-l2"><a class="reference internal" href="immrep_2025.html">IMMRep 2025</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualise_sequence_data.html">Sequence Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualise_structure_data.html">Data Summary</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Line Applications</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="apps.html">Command Line Applications</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Python API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">tcr_antigen_prediction</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">tcr_antigen_prediction</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="notebooks.html">Notebooks</a></li>
+      <li class="breadcrumb-item active">Model Size</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/source/benchmark_model_performance_against_nettcr.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">seaborn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sns</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.lines</span><span class="w"> </span><span class="kn">import</span> <span class="n">Line2D</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">nettcr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">NetTCR</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">stats</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">roc_auc_score</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">tcr_antigen_prediction.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">TCRStructMap</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">SIGNIFICANCE_LEVEL</span> <span class="o">=</span> <span class="mf">0.05</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">model_names</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'TCRStructMap'</span><span class="p">,</span> <span class="s1">'NetTCR'</span><span class="p">)</span>
+<span class="n">data_splits</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'random'</span><span class="p">,</span> <span class="s1">'peptide'</span><span class="p">,</span> <span class="s1">'pMHC'</span><span class="p">)</span>
+
+<span class="n">base_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s1">'data/processed/'</span><span class="p">)</span>
+
+<span class="n">predictions</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">data_split</span> <span class="ow">in</span> <span class="n">data_splits</span><span class="p">:</span>
+    <span class="n">sequences</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="sa">f</span><span class="s1">'data/interim/sequences_</span><span class="si">{</span><span class="n">data_split</span><span class="si">}</span><span class="s1">_split.csv'</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="s1">'index'</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">model_name</span> <span class="ow">in</span> <span class="n">model_names</span><span class="p">:</span>
+        <span class="n">prediction_set</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">base_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s1">_predictions_on_sequences_</span><span class="si">{</span><span class="n">data_split</span><span class="si">}</span><span class="s1">_split.csv'</span><span class="p">))</span>
+
+        <span class="n">prediction_set</span><span class="p">[</span><span class="s1">'model_name'</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_name</span>
+        <span class="n">prediction_set</span><span class="p">[</span><span class="s1">'data_split'</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_split</span>
+
+        <span class="n">prediction_set</span> <span class="o">=</span> <span class="n">prediction_set</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">sequences</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s1">'left'</span><span class="p">,</span> <span class="n">left_on</span><span class="o">=</span><span class="s1">'index'</span><span class="p">,</span> <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">predictions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prediction_set</span><span class="p">)</span>
+
+<span class="n">predictions</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">predictions</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">predictions</span> <span class="o">=</span> <span class="n">predictions</span><span class="p">[</span><span class="n">predictions</span><span class="p">[</span><span class="s1">'fold'</span><span class="p">]</span> <span class="o">==</span> <span class="n">predictions</span><span class="p">[</span><span class="s1">'sub_model_number'</span><span class="p">]]</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">overall_roc_auc</span> <span class="o">=</span> <span class="n">predictions</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">'data_split'</span><span class="p">,</span> <span class="s1">'model_name'</span><span class="p">])</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+    <span class="k">lambda</span> <span class="n">group</span><span class="p">:</span> <span class="n">roc_auc_score</span><span class="p">(</span><span class="n">group</span><span class="p">[</span><span class="s1">'label'</span><span class="p">],</span> <span class="n">group</span><span class="p">[</span><span class="s1">'prediction'</span><span class="p">]),</span> <span class="n">include_groups</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>
+<span class="n">overall_roc_auc</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">'roc_auc_score'</span>
+
+<span class="n">overall_roc_auc</span> <span class="o">=</span> <span class="n">overall_roc_auc</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span>
+    <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_product</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">data_splits</span><span class="p">,</span> <span class="n">model_names</span><span class="p">],</span>
+        <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">'data_split'</span><span class="p">,</span> <span class="s1">'model_name'</span><span class="p">],</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+
+<span class="n">overall_roc_auc</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+data_split  model_name
+random      TCRStructMap    0.876085
+            NetTCR          0.775211
+peptide     TCRStructMap    0.666831
+            NetTCR          0.524658
+pMHC        TCRStructMap    0.471265
+            NetTCR          0.452818
+Name: roc_auc_score, dtype: float64
+</pre></div></div>
+</div>
+<section id="Model-Size">
+<h1>Model Size<a class="headerlink" href="#Model-Size" title="Link to this heading"></a></h1>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">count_parameters</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Count the number of parmeters in a pytorch model."""</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">parameter</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span> <span class="k">for</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">()</span> <span class="k">if</span> <span class="n">parameter</span><span class="o">.</span><span class="n">requires_grad</span><span class="p">)</span>
+
+
+<span class="n">model_sizes</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">count_parameters</span><span class="p">(</span><span class="n">model</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">model</span> <span class="ow">in</span> <span class="p">((</span><span class="s1">'TCRStructMap'</span><span class="p">,</span> <span class="n">TCRStructMap</span><span class="p">()),</span> <span class="p">(</span><span class="s1">'NetTCR'</span><span class="p">,</span> <span class="n">NetTCR</span><span class="p">()))</span>
+<span class="p">]</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="p">[</span><span class="n">model_name</span> <span class="k">for</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">model_sizes</span><span class="p">],</span> <span class="n">height</span><span class="o">=</span><span class="p">[</span><span class="n">model_size</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">model_size</span> <span class="ow">in</span> <span class="n">model_sizes</span><span class="p">])</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">'Model Size Comparison'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'Model Name'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'Number of Parameters'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s1"> size: </span><span class="si">{</span><span class="n">model_size</span><span class="si">}</span><span class="s1">'</span> <span class="k">for</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">model_size</span> <span class="ow">in</span> <span class="n">model_sizes</span><span class="p">]))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/source_benchmark_model_performance_against_nettcr_5_0.png" src="../_images/source_benchmark_model_performance_against_nettcr_5_0.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+TCRStructMap size: 1559983
+NetTCR size: 92529
+</pre></div></div>
+</div>
+</section>
+<section id="Bootstrap-ROC-AUC">
+<h1>Bootstrap ROC-AUC<a class="headerlink" href="#Bootstrap-ROC-AUC" title="Link to this heading"></a></h1>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">NUM_SAMPLES</span> <span class="o">=</span> <span class="mi">25</span>
+<span class="n">SAMPLE_SIZE</span> <span class="o">=</span> <span class="mi">500</span>
+
+<span class="n">indices</span> <span class="o">=</span> <span class="n">predictions</span><span class="p">[</span><span class="s1">'index'</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+<span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span>
+
+<span class="n">samples_metric_scores</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">sample_num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">NUM_SAMPLES</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="n">sample_indices</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">SAMPLE_SIZE</span><span class="p">)</span>
+
+    <span class="n">sample</span> <span class="o">=</span> <span class="n">predictions</span><span class="p">[</span><span class="n">predictions</span><span class="p">[</span><span class="s1">'index'</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">sample_indices</span><span class="p">)]</span>
+
+    <span class="k">for</span> <span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">data_split</span><span class="p">),</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">sample</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">'model_name'</span><span class="p">,</span> <span class="s1">'data_split'</span><span class="p">]):</span>
+        <span class="n">score</span> <span class="o">=</span> <span class="n">roc_auc_score</span><span class="p">(</span><span class="n">group</span><span class="p">[</span><span class="s1">'label'</span><span class="p">],</span> <span class="n">group</span><span class="p">[</span><span class="s1">'prediction'</span><span class="p">])</span>
+        <span class="n">samples_metric_scores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s1">'sample_num'</span><span class="p">:</span> <span class="n">sample_num</span><span class="p">,</span>
+                <span class="s1">'data_split'</span><span class="p">:</span> <span class="n">data_split</span><span class="p">,</span>
+                <span class="s1">'model_name'</span><span class="p">:</span> <span class="n">model_name</span><span class="p">,</span>
+                <span class="s1">'roc_auc_score'</span><span class="p">:</span> <span class="n">score</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+
+<span class="n">samples_metric_scores</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">samples_metric_scores</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">grid</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">FacetGrid</span><span class="p">(</span><span class="n">samples_metric_scores</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="s1">'data_split'</span><span class="p">,</span> <span class="n">col_order</span><span class="o">=</span><span class="n">data_splits</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+<span class="n">grid</span><span class="o">.</span><span class="n">map_dataframe</span><span class="p">(</span>
+    <span class="n">sns</span><span class="o">.</span><span class="n">boxplot</span><span class="p">,</span>
+    <span class="n">x</span><span class="o">=</span><span class="s1">'model_name'</span><span class="p">,</span>
+    <span class="n">y</span><span class="o">=</span><span class="s1">'roc_auc_score'</span><span class="p">,</span>
+    <span class="n">order</span><span class="o">=</span><span class="n">model_names</span><span class="p">,</span>
+    <span class="n">showfliers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">boxprops</span><span class="o">=</span><span class="p">{</span><span class="s1">'alpha'</span><span class="p">:</span> <span class="mf">0.85</span><span class="p">},</span>
+    <span class="n">zorder</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">grid</span><span class="o">.</span><span class="n">map_dataframe</span><span class="p">(</span>
+    <span class="n">sns</span><span class="o">.</span><span class="n">stripplot</span><span class="p">,</span>
+    <span class="n">x</span><span class="o">=</span><span class="s1">'model_name'</span><span class="p">,</span>
+    <span class="n">y</span><span class="o">=</span><span class="s1">'roc_auc_score'</span><span class="p">,</span>
+    <span class="n">order</span><span class="o">=</span><span class="n">model_names</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="s1">'grey'</span><span class="p">,</span>
+    <span class="n">marker</span><span class="o">=</span><span class="s1">'o'</span><span class="p">,</span>
+    <span class="n">size</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+    <span class="n">edgecolor</span><span class="o">=</span><span class="s1">'black'</span><span class="p">,</span>
+    <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">alpha</span><span class="o">=</span><span class="mf">0.70</span><span class="p">,</span>
+    <span class="n">zorder</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">grid</span><span class="o">.</span><span class="n">refline</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'red'</span><span class="p">)</span>
+<span class="n">refline_handle</span> <span class="o">=</span> <span class="n">Line2D</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">'red'</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">'--'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">'Random'</span><span class="p">)</span>
+<span class="n">grid</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="o">=</span><span class="p">[</span><span class="n">refline_handle</span><span class="p">],</span> <span class="n">loc</span><span class="o">=</span><span class="s1">'upper right'</span><span class="p">)</span>
+
+<span class="n">grid</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="mf">0.35</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
+<span class="n">grid</span><span class="o">.</span><span class="n">set_axis_labels</span><span class="p">(</span><span class="s1">'Model Name'</span><span class="p">,</span> <span class="s1">'ROC-AUC'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">'report/figures/comparison_TCRStructMap_NetTCR.svg'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/source_benchmark_model_performance_against_nettcr_8_0.png" src="../_images/source_benchmark_model_performance_against_nettcr_8_0.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">metric_scores_agg</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+    <span class="p">[</span>
+        <span class="n">overall_roc_auc</span><span class="p">,</span>
+        <span class="n">samples_metric_scores</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">'data_split'</span><span class="p">,</span> <span class="s1">'model_name'</span><span class="p">])[</span><span class="s1">'roc_auc_score'</span><span class="p">]</span>
+        <span class="o">.</span><span class="n">agg</span><span class="p">([</span><span class="s1">'std'</span><span class="p">])</span>
+        <span class="o">.</span><span class="n">sort_index</span><span class="p">(</span><span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+    <span class="p">],</span>
+    <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">norm_val</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">SIGNIFICANCE_LEVEL</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">metric_scores_agg</span><span class="p">[</span><span class="s1">'ci'</span><span class="p">]</span> <span class="o">=</span> <span class="n">metric_scores_agg</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+    <span class="k">lambda</span> <span class="n">row</span><span class="p">,</span> <span class="n">norm_val</span><span class="o">=</span><span class="n">norm_val</span><span class="p">:</span> <span class="p">(</span>
+        <span class="n">row</span><span class="p">[</span><span class="s1">'roc_auc_score'</span><span class="p">]</span> <span class="o">-</span> <span class="n">norm_val</span> <span class="o">*</span> <span class="n">row</span><span class="p">[</span><span class="s1">'std'</span><span class="p">],</span>
+        <span class="n">row</span><span class="p">[</span><span class="s1">'roc_auc_score'</span><span class="p">]</span> <span class="o">+</span> <span class="n">norm_val</span> <span class="o">*</span> <span class="n">row</span><span class="p">[</span><span class="s1">'std'</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">metric_scores_agg</span> <span class="o">=</span> <span class="n">metric_scores_agg</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span>
+    <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_product</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">data_splits</span><span class="p">,</span> <span class="n">model_names</span><span class="p">],</span>
+        <span class="n">names</span><span class="o">=</span><span class="p">[</span><span class="s1">'data_split'</span><span class="p">,</span> <span class="s1">'model_name'</span><span class="p">],</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+
+<span class="n">metric_scores_agg</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>roc_auc_score</th>
+      <th>std</th>
+      <th>ci</th>
+    </tr>
+    <tr>
+      <th>data_split</th>
+      <th>model_name</th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="2" valign="top">random</th>
+      <th>TCRStructMap</th>
+      <td>0.876085</td>
+      <td>0.019209</td>
+      <td>(0.8384358432460358, 0.9137340200255891)</td>
+    </tr>
+    <tr>
+      <th>NetTCR</th>
+      <td>0.775211</td>
+      <td>0.028028</td>
+      <td>(0.720277923896987, 0.8301439047589794)</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">peptide</th>
+      <th>TCRStructMap</th>
+      <td>0.666831</td>
+      <td>0.032473</td>
+      <td>(0.6031860937066418, 0.730476027153012)</td>
+    </tr>
+    <tr>
+      <th>NetTCR</th>
+      <td>0.524658</td>
+      <td>0.029321</td>
+      <td>(0.4671894522130795, 0.5821264370421424)</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">pMHC</th>
+      <th>TCRStructMap</th>
+      <td>0.471265</td>
+      <td>0.028396</td>
+      <td>(0.4156106231659526, 0.5269193794332403)</td>
+    </tr>
+    <tr>
+      <th>NetTCR</th>
+      <td>0.452818</td>
+      <td>0.026165</td>
+      <td>(0.4015344111526581, 0.5041006683757264)</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">calculate_differences</span><span class="p">(</span><span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">:</span>
+    <span class="n">groups</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">'model_name'</span><span class="p">))</span>
+    <span class="n">groups</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">groups</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">item</span><span class="p">:</span> <span class="n">model_names</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+    <span class="n">differences</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">'group_name_i'</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s1">'group_name_j'</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s1">'difference_roc_auc'</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">group_name_i</span><span class="p">,</span> <span class="n">group_i</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">groups</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="k">for</span> <span class="n">group_name_j</span><span class="p">,</span> <span class="n">group_j</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]:</span>
+            <span class="n">differences</span><span class="p">[</span><span class="s1">'difference_roc_auc'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">group_i</span><span class="p">[</span><span class="s1">'roc_auc_score'</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">group_j</span><span class="p">[</span><span class="s1">'roc_auc_score'</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="p">)</span>
+
+            <span class="n">differences</span><span class="p">[</span><span class="s1">'group_name_i'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">group_name_i</span><span class="p">)</span>
+            <span class="n">differences</span><span class="p">[</span><span class="s1">'group_name_j'</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">group_name_j</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">differences</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s1">'group_name_i'</span><span class="p">,</span> <span class="s1">'group_name_j'</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">overall_roc_auc_difference</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">overall_roc_auc</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">'data_split'</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">calculate_differences</span><span class="p">,</span> <span class="n">include_groups</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="n">samples_metric_scores_differences</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">samples_metric_scores</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">'sample_num'</span><span class="p">,</span> <span class="s1">'data_split'</span><span class="p">])</span>
+    <span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">calculate_differences</span><span class="p">,</span> <span class="n">include_groups</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">'data_split'</span><span class="p">,</span> <span class="s1">'group_name_i'</span><span class="p">,</span> <span class="s1">'group_name_j'</span><span class="p">])</span>
+    <span class="o">.</span><span class="n">agg</span><span class="p">([</span><span class="s1">'std'</span><span class="p">])</span>
+<span class="p">)</span>
+<span class="n">samples_metric_scores_differences</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'_'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">column</span><span class="p">)</span> <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">samples_metric_scores_differences</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+
+
+<span class="n">metric_scores_difference</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">overall_roc_auc_difference</span><span class="p">,</span> <span class="n">samples_metric_scores_differences</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+
+<span class="n">norm_value</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">t</span><span class="o">.</span><span class="n">ppf</span><span class="p">((</span><span class="mi">2</span> <span class="o">-</span> <span class="n">SIGNIFICANCE_LEVEL</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">NUM_SAMPLES</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">metric_scores_difference</span><span class="p">[</span><span class="s1">'ci'</span><span class="p">]</span> <span class="o">=</span> <span class="n">metric_scores_difference</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+    <span class="k">lambda</span> <span class="n">row</span><span class="p">,</span> <span class="n">norm_value</span><span class="o">=</span><span class="n">norm_value</span><span class="p">:</span> <span class="p">(</span>
+        <span class="n">row</span><span class="p">[</span><span class="s1">'difference_roc_auc'</span><span class="p">]</span> <span class="o">-</span> <span class="n">norm_value</span> <span class="o">*</span> <span class="n">row</span><span class="p">[</span><span class="s1">'difference_roc_auc_std'</span><span class="p">],</span>
+        <span class="n">row</span><span class="p">[</span><span class="s1">'difference_roc_auc'</span><span class="p">]</span> <span class="o">+</span> <span class="n">norm_value</span> <span class="o">*</span> <span class="n">row</span><span class="p">[</span><span class="s1">'difference_roc_auc_std'</span><span class="p">],</span>
+    <span class="p">),</span>
+    <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">metric_scores_difference</span> <span class="o">=</span> <span class="n">metric_scores_difference</span><span class="o">.</span><span class="n">sort_index</span><span class="p">(</span>
+    <span class="n">level</span><span class="o">=</span><span class="s1">'data_split'</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">index</span><span class="p">:</span> <span class="n">index</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">data_splits</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+<span class="p">)</span>
+
+<span class="n">metric_scores_difference</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th></th>
+      <th>difference_roc_auc</th>
+      <th>difference_roc_auc_std</th>
+      <th>ci</th>
+    </tr>
+    <tr>
+      <th>data_split</th>
+      <th>group_name_i</th>
+      <th>group_name_j</th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>random</th>
+      <th>TCRStructMap</th>
+      <th>NetTCR</th>
+      <td>0.100874</td>
+      <td>0.027986</td>
+      <td>(0.04311433232932853, 0.15863370228633006)</td>
+    </tr>
+    <tr>
+      <th>peptide</th>
+      <th>TCRStructMap</th>
+      <th>NetTCR</th>
+      <td>0.142173</td>
+      <td>0.031486</td>
+      <td>(0.07718933365372059, 0.20715689795071124)</td>
+    </tr>
+    <tr>
+      <th>pMHC</th>
+      <th>TCRStructMap</th>
+      <th>NetTCR</th>
+      <td>0.018447</td>
+      <td>0.021791</td>
+      <td>(-0.026527441736019057, 0.06342236480682739)</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">grid</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">FacetGrid</span><span class="p">(</span>
+    <span class="n">samples_metric_scores</span><span class="p">,</span>
+    <span class="n">row</span><span class="o">=</span><span class="s1">'data_split'</span><span class="p">,</span>
+    <span class="n">col</span><span class="o">=</span><span class="s1">'model_name'</span><span class="p">,</span>
+    <span class="n">row_order</span><span class="o">=</span><span class="n">data_splits</span><span class="p">,</span>
+    <span class="n">col_order</span><span class="o">=</span><span class="n">model_names</span><span class="p">,</span>
+    <span class="n">sharex</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">grid</span><span class="o">.</span><span class="n">map_dataframe</span><span class="p">(</span><span class="n">sns</span><span class="o">.</span><span class="n">histplot</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="s1">'roc_auc_score'</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/source_benchmark_model_performance_against_nettcr_12_0.png" src="../_images/source_benchmark_model_performance_against_nettcr_12_0.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">data_split</span><span class="p">,</span> <span class="n">data_group</span> <span class="ow">in</span> <span class="n">samples_metric_scores</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">'sample_num'</span><span class="p">)</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">'data_split'</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">data_split</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="n">stats</span><span class="o">.</span><span class="n">ttest_rel</span><span class="p">(</span>
+            <span class="n">data_group</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">"model_name == 'TCRStructMap'"</span><span class="p">)[</span><span class="s1">'roc_auc_score'</span><span class="p">],</span>
+            <span class="n">data_group</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">"model_name == 'NetTCR'"</span><span class="p">)[</span><span class="s1">'roc_auc_score'</span><span class="p">],</span>
+            <span class="n">alternative</span><span class="o">=</span><span class="s1">'greater'</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+pMHC
+TtestResult(statistic=np.float64(4.148521862974196), pvalue=np.float64(0.00018089579144915609), df=np.int64(24))
+
+peptide
+TtestResult(statistic=np.float64(22.813321976373004), pvalue=np.float64(4.429610003763589e-18), df=np.int64(24))
+
+random
+TtestResult(statistic=np.float64(18.29891634313508), pvalue=np.float64(6.66343198786044e-16), df=np.int64(24))
+
+</pre></div></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="benchmark_model_performance.html" class="btn btn-neutral float-left" title="Benchmark model performance" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="compairing_sequence_and_structure_data.html" class="btn btn-neutral float-right" title="Compairing sequence and structure data" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Benjamin McMaster.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

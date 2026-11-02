@@ -1,0 +1,29 @@
+tcr_antigen_prediction.data.apps.renumber_tcr_pmhc_structure
+============================================================
+.. code-block:: text
+
+   usage: python -m tcr_antigen_prediction.data.apps.renumber_tcr_pmhc_structure
+          [-h] [--output OUTPUT] [--log-level {debug,info,warning,error}]
+          [--log-file LOG_FILE]
+          structure
+   
+   Renumber TCR structure following either IMGT or Aho numbering.
+   
+   Requirements:
+       - ANARCI: https://github.com/oxpig/ANARCI
+   
+   positional arguments:
+     structure             path to the pdb structure file
+   
+   options:
+     -h, --help            show this help message and exit
+     --output OUTPUT, -o OUTPUT
+                           name of output structure file
+   
+   Logging:
+     Options for logging
+   
+     --log-level {debug,info,warning,error}
+                           Level to log messages at (Default: 'warning')
+     --log-file LOG_FILE   File to output logs (default is to write to stderr)
+   

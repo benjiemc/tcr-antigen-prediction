@@ -1,0 +1,30 @@
+tcr_antigen_prediction.models.apps.train_confidence_predictor
+=============================================================
+.. code-block:: text
+
+   usage: python -m tcr_antigen_prediction.models.apps.train_confidence_predictor
+          [-h] --output OUTPUT [--test-size TEST_SIZE] [--seed SEED]
+          [--log-level {debug,info,warning,error}] [--log-file LOG_FILE]
+          training_data
+   
+   Train a model to provide a confidence score for TCR:pMHC pairing predictions.
+   
+   positional arguments:
+     training_data         path to HDF5 file with the training data.
+   
+   options:
+     -h, --help            show this help message and exit
+     --output OUTPUT, -o OUTPUT
+                           path to output model file to (ONNX format)
+     --test-size TEST_SIZE
+                           Proportion of data to use for evaluation (Default:
+                           0.15)
+     --seed SEED           Seed for random processes (Default: None)
+   
+   Logging:
+     Options for logging
+   
+     --log-level {debug,info,warning,error}
+                           Level to log messages at (Default: 'warning')
+     --log-file LOG_FILE   File to output logs (default is to write to stderr)
+   

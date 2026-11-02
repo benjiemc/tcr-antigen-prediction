@@ -1,0 +1,56 @@
+tcr_antigen_prediction.visualisations.apps.visualise_contact_maps
+=================================================================
+.. code-block:: text
+
+   usage: python -m tcr_antigen_prediction.visualisations.apps.visualise_contact_maps
+          [-h] [--output OUTPUT] [--smooth] [--normalise] [--separate-plots]
+          [--pad] [--cdr-1-length CDR_1_LENGTH] [--cdr-2-length CDR_2_LENGTH]
+          [--cdr-3-length CDR_3_LENGTH] [--peptide-length PEPTIDE_LENGTH]
+          [--mhc-pseudo-seq-positions MHC_PSEUDO_SEQ_POSITIONS]
+          [--interaction {peptide,MHC}] [--mhc-types MHC_TYPES [MHC_TYPES ...]]
+          [--log-level {debug,info,warning,error}] [--log-file LOG_FILE]
+          contacts
+   
+   Visualise TCR:pMHC Contact Maps.
+   
+   CDR loops and peptides are standardised by position relative to the apex of the loop. In cases where the entities length
+   is even, the position to the left of the middle of the loop is taken as the centre.
+   
+   positional arguments:
+     contacts              path to csv with contact data
+   
+   options:
+     -h, --help            show this help message and exit
+     --output OUTPUT, -o OUTPUT
+                           path to output plot
+     --smooth              fit data to a 2D gaussian to smooth
+     --normalise           normalise data for all proportions to sum to 1
+     --separate-plots      save a separate plot for each CDR
+   
+   Padding:
+     --pad                 centre pad sequences to specified length
+     --cdr-1-length CDR_1_LENGTH
+                           pad length for CDR1s (Default: 8)
+     --cdr-2-length CDR_2_LENGTH
+                           pad length for CDR2s (Default: 8)
+     --cdr-3-length CDR_3_LENGTH
+                           pad length for CDR3s (Default: 24)
+     --peptide-length PEPTIDE_LENGTH
+                           pad length for peptides (Default: 12)
+     --mhc-pseudo-seq-positions MHC_PSEUDO_SEQ_POSITIONS
+                           MHC pseudo sequence positions to use for padding MHCs
+   
+   Selection:
+     --interaction {peptide,MHC}
+                           choice of entity to plot interactions. eg: TCR:peptide
+                           or TCR:MHC (Default: 'peptide')
+     --mhc-types MHC_TYPES [MHC_TYPES ...]
+                           MHC types to include (Default: 'MH1' and 'MH2')
+   
+   Logging:
+     Options for logging
+   
+     --log-level {debug,info,warning,error}
+                           Level to log messages at (Default: 'warning')
+     --log-file LOG_FILE   File to output logs (default is to write to stderr)
+   

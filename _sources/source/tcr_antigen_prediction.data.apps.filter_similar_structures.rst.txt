@@ -1,0 +1,32 @@
+tcr_antigen_prediction.data.apps.filter_similar_structures
+==========================================================
+.. code-block:: text
+
+   usage: python -m tcr_antigen_prediction.data.apps.filter_similar_structures
+          [-h] [--output OUTPUT] --summary-csv SUMMARY_CSV
+          --structural-similarity-cutoff STRUCTURAL_SIMILARITY_CUTOFF
+          [--log-level {debug,info,warning,error}] [--log-file LOG_FILE]
+          structures
+   
+   Filter TCR:pMHC structures with the same sequence (TCR CDRs and peptide) to an RMSD threshold.
+   
+   positional arguments:
+     structures            path to directory containing structures
+   
+   options:
+     -h, --help            show this help message and exit
+     --output OUTPUT, -o OUTPUT
+                           path to output csv
+     --summary-csv SUMMARY_CSV
+                           path to summary csv file
+     --structural-similarity-cutoff STRUCTURAL_SIMILARITY_CUTOFF
+                           RMSD threshold for structures with the same CDR and
+                           peptide sequences (in Å)
+   
+   Logging:
+     Options for logging
+   
+     --log-level {debug,info,warning,error}
+                           Level to log messages at (Default: 'warning')
+     --log-file LOG_FILE   File to output logs (default is to write to stderr)
+   

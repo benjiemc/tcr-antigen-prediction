@@ -1,0 +1,35 @@
+tcr_antigen_prediction.data.apps.annotate_tcr_pmhc_sequences
+============================================================
+.. code-block:: text
+
+   usage: python -m tcr_antigen_prediction.data.apps.annotate_tcr_pmhc_sequences
+          [-h] [--output OUTPUT] [--alpha-chain-id ALPHA_CHAIN_ID]
+          [--beta-chain-id BETA_CHAIN_ID] [--antigen-chain-id ANTIGEN_CHAIN_ID]
+          [--log-level {debug,info,warning,error}] [--log-file LOG_FILE]
+          structure
+   
+   Get TCR CDR sequences and peptide sequences for a TCR:pMHC structure. Structure must be IMGT numbered.
+   
+   positional arguments:
+     structure             path to TCR:pMHC pdb structure
+   
+   options:
+     -h, --help            show this help message and exit
+     --output OUTPUT, -o OUTPUT
+                           output path
+   
+   Chain IDs:
+     --alpha-chain-id ALPHA_CHAIN_ID
+                           TCR alpha chain id (Default: None)
+     --beta-chain-id BETA_CHAIN_ID
+                           TCR beta chain id (Default: None)
+     --antigen-chain-id ANTIGEN_CHAIN_ID
+                           antigen-chain-id (Default: None)
+   
+   Logging:
+     Options for logging
+   
+     --log-level {debug,info,warning,error}
+                           Level to log messages at (Default: 'warning')
+     --log-file LOG_FILE   File to output logs (default is to write to stderr)
+   

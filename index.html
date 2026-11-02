@@ -1,0 +1,297 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TCR Antigen Prediction &mdash; tcr_antigen_prediction  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Notebooks" href="source/notebooks.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            tcr_antigen_prediction
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Results</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="source/notebooks.html">Notebooks</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Line Applications</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="source/apps.html">Command Line Applications</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Python API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="source/modules.html">tcr_antigen_prediction</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">tcr_antigen_prediction</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">TCR Antigen Prediction</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="tcr-antigen-prediction">
+<h1>TCR Antigen Prediction<a class="headerlink" href="#tcr-antigen-prediction" title="Link to this heading"></a></h1>
+<p>Models and methods for predicting TCR antigen specificity.</p>
+<section id="installation-and-setup">
+<h2>Installation and Setup<a class="headerlink" href="#installation-and-setup" title="Link to this heading"></a></h2>
+<p>To install this project, first clone the repo:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">git</span><span class="nd">@github</span><span class="o">.</span><span class="n">com</span><span class="p">:</span><span class="n">benjiemc</span><span class="o">/</span><span class="n">tcr</span><span class="o">-</span><span class="n">antigen</span><span class="o">-</span><span class="n">prediction</span><span class="o">.</span><span class="n">git</span>
+<span class="n">cd</span> <span class="n">tcr</span><span class="o">-</span><span class="n">antigen</span><span class="o">-</span><span class="n">prediction</span><span class="o">/</span>
+
+<span class="c1"># Or using HTTPS</span>
+<span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">benjiemc</span><span class="o">/</span><span class="n">tcr</span><span class="o">-</span><span class="n">antigen</span><span class="o">-</span><span class="n">prediction</span><span class="o">.</span><span class="n">git</span>
+<span class="n">cd</span> <span class="n">tcr</span><span class="o">-</span><span class="n">antigen</span><span class="o">-</span><span class="n">prediction</span><span class="o">/</span>
+</pre></div>
+</div>
+<blockquote>
+<div><p class="rubric" id="using-modeller-to-fix-missing-residues-and-atoms">Using MODELLER to fix missing residues and atoms</p>
+<p>Parts of the data pipeline for this project use <a class="reference external" href="https://salilab.org/modeller/">MODELLER</a> to fix structures missing atoms and residues. A license is required to use MODELLER. Please <a class="reference external" href="https://salilab.org/modeller/registration.html">register for a license</a> and then set the license key as an evironment variable using the following command: <code class="docutils literal notranslate"><span class="pre">export</span> <span class="pre">KEY_MODELLER='XXXXXX'</span></code>, replacing XXXXXX with your assigned license key.</p>
+<p>Alternatively, the use of MODELLER can be manually disabled in the workflow steps.</p>
+</div></blockquote>
+<p><a class="reference external" href="https://mamba.readthedocs.io/en/latest/index.html">Mamba</a> and <a class="reference external" href="https://snakemake.readthedocs.io/en/stable/">Snakemake</a> are used to setup and manage the dependencies and workflows in this project. At a minimum, Mamba is required to install the dependencies for the project (a version of Snakemake will be installed as a dependency).</p>
+<p>If <strong>both Mamba and Snakemake are installed</strong>, simply run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">snakemake</span> <span class="n">environment</span> <span class="o">--</span><span class="n">cores</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p>To create the tcr-antigen-prediction mamba environment.</p>
+<p>If <strong>only mamba is installed</strong>, manually run the following steps to install the project dependencies (including Snakemake):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># Create Environment
+git submodule init
+mamba env create -f environment.yml
+mamba run -n tcr-antigen-prediction python -m pip install .
+
+# Download Stitchr Data
+mamba run -n tcr-antigen-prediction stitchrdl -s human
+mamba run -n tcr-antigen-prediction stitchrdl -s mouse
+
+# Install ANARCI
+git submodule update --remote third_party/anarci
+mamba_prefix=$(mamba run -n tcr-antigen-prediction mamba info --json | jq '."env location"' | sed s/\"//g)
+python_version=$(mamba run -n tcr-antigen-prediction python --version | cut -d " " -f2 | cut -d "." -f1-2)
+cp -r third_party/anarci $mamba_prefix/lib/python$python_version/site-packages
+
+# Install NetTCR-clone
+git submodule update --remote third_party/NetTCR
+mamba run -n tcr-antigen-prediction pip install third_party/NetTCR
+</pre></div>
+</div>
+<p>The environment can then be activated:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mamba</span> <span class="n">activate</span> <span class="n">tcr</span><span class="o">-</span><span class="n">antigen</span><span class="o">-</span><span class="n">prediction</span>
+</pre></div>
+</div>
+<section id="installing-for-development">
+<h3>Installing for Development<a class="headerlink" href="#installing-for-development" title="Link to this heading"></a></h3>
+<p>To install the required dependencies for development, run the above and additionally run the command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="s1">'.[develop]'</span>
+</pre></div>
+</div>
+<p>This will install the required development dependencies. To verfiy the installation, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">snakemake</span> <span class="n">test</span> <span class="o">--</span><span class="n">cores</span> <span class="mi">1</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="database-notes">
+<h2>Database Notes<a class="headerlink" href="#database-notes" title="Link to this heading"></a></h2>
+<p>Several sequence databases were manually downloaded to make up the datasets for this project:</p>
+<ol class="arabic simple">
+<li><p>IEDB</p>
+<ul class="simple">
+<li><p>URL: https://www.iedb.org/</p></li>
+<li><p>Date: 2025/01/14</p></li>
+<li><p>Selection Criteria:</p>
+<ul>
+<li><p>Assay: T cell, MHC Ligand, Outcome - Positive</p></li>
+<li><p>Epitope: Any</p></li>
+<li><p>MHC Restriction: Any</p></li>
+<li><p>Host: Any</p></li>
+<li><p>Disease: Any</p></li>
+<li><p>Reference: Any</p></li>
+</ul>
+</li>
+<li><p>Export T Cell Receptors with Epitopes (single headers as csv)</p></li>
+<li><p>Result: 224498 sequences downloaded</p></li>
+</ul>
+</li>
+<li><p>ITRAP</p>
+<ul class="simple">
+<li><p>URL: https://doi.org/10.11583/DTU.22645342.v1</p></li>
+<li><p>Date: 2025/01/14</p></li>
+<li><p>Complete download of TCR (highest quality) dataset (2833 sequences)</p></li>
+</ul>
+</li>
+<li><p>McPas-TCR</p>
+<ul class="simple">
+<li><p>URL: https://friedmanlab.weizmann.ac.il/McPAS-TCR/</p></li>
+<li><p>Date: 2025/01/10</p></li>
+<li><p>Download complete database (40779 sequences)</p></li>
+</ul>
+</li>
+<li><p>VDJdb</p>
+<ul class="simple">
+<li><p>URL: https://vdjdb.cdr3.net/</p></li>
+<li><p>Date: 2025/01/10</p></li>
+<li><p>Selection Criteria:</p>
+<ul>
+<li><p>CDR3 - Species: Human, Monkey, Mouse</p></li>
+<li><p>CDR3 - Gene (chain): TRA, TRB</p></li>
+<li><p>MHC - Class: MHCI, MHCII</p></li>
+<li><p>Meta - Assay Type: Multimer sorting, Culture-based, Other</p></li>
+<li><p>Meta - Sequencing: Sanger, High-throughput, Single-cell</p></li>
+<li><p>Meta - Spurious CDR3: Include non-canonical, Include unmapped V/J</p></li>
+</ul>
+</li>
+<li><p>Result: All sequences downloaded (120849 of 120849)</p></li>
+</ul>
+</li>
+</ol>
+</section>
+</section>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Results</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="source/notebooks.html">Notebooks</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="source/ablate_model.html">Ablate model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/benchmark_model_performance.html">Benchmark model performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/benchmark_model_performance_against_nettcr.html">Model Size</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/benchmark_model_performance_against_nettcr.html#Bootstrap-ROC-AUC">Bootstrap ROC-AUC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/compairing_sequence_and_structure_data.html">Compairing sequence and structure data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/evaluate_confidence_predictions.html">Evaluating confidence predictor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/evaluate_distance_based_confidence_predictor_performance.html">Evaluate distance based confidence predictor performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/evaluate_model_on_data_splits.html">Evaluate model on data splits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/evaluate_using_structures_vs_sequence.html">Evaluate structures and sequences versus sequences only</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/immrep_2025.html">IMMRep 2025</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/visualise_sequence_data.html">Sequence Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/visualise_structure_data.html">Data Summary</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Command Line Applications</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="source/apps.html">Command Line Applications</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="source/tcr_antigen_prediction.data.apps.annotate_mhc_pseudo_sequences.html">tcr_antigen_prediction.data.apps.annotate_mhc_pseudo_sequences</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/tcr_antigen_prediction.data.apps.annotate_tcr_pmhc_sequences.html">tcr_antigen_prediction.data.apps.annotate_tcr_pmhc_sequences</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/tcr_antigen_prediction.data.apps.collate_sequence_data.html">tcr_antigen_prediction.data.apps.collate_sequence_data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/tcr_antigen_prediction.data.apps.compute_pw_distances.html">tcr_antigen_prediction.data.apps.compute_pw_distances</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/tcr_antigen_prediction.data.apps.create_contact_maps.html">tcr_antigen_prediction.data.apps.create_contact_maps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/tcr_antigen_prediction.data.apps.create_data_splits.html">tcr_antigen_prediction.data.apps.create_data_splits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/tcr_antigen_prediction.data.apps.crop_tcr_pmhc.html">tcr_antigen_prediction.data.apps.crop_tcr_pmhc</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/tcr_antigen_prediction.data.apps.download_stcrdab.html">tcr_antigen_prediction.data.apps.download_stcrdab</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/tcr_antigen_prediction.data.apps.extract_chains_from_structure.html">tcr_antigen_prediction.data.apps.extract_chains_from_structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/tcr_antigen_prediction.data.apps.filter_similar_structures.html">tcr_antigen_prediction.data.apps.filter_similar_structures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/tcr_antigen_prediction.data.apps.get_mhc_pseudo_sequence_imgt_numbers.html">tcr_antigen_prediction.data.apps.get_mhc_pseudo_sequence_imgt_numbers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/tcr_antigen_prediction.data.apps.identify_tcr_pmhc_interactions.html">tcr_antigen_prediction.data.apps.identify_tcr_pmhc_interactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/tcr_antigen_prediction.data.apps.process_contact_maps.html">tcr_antigen_prediction.data.apps.process_contact_maps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/tcr_antigen_prediction.data.apps.process_sequence_data.html">tcr_antigen_prediction.data.apps.process_sequence_data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/tcr_antigen_prediction.data.apps.renumber_tcr_pmhc_structure.html">tcr_antigen_prediction.data.apps.renumber_tcr_pmhc_structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/tcr_antigen_prediction.data.apps.select_stcrdab_tcr_pmhc_structures.html">tcr_antigen_prediction.data.apps.select_stcrdab_tcr_pmhc_structures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/tcr_antigen_prediction.models.apps.train_confidence_predictor.html">tcr_antigen_prediction.models.apps.train_confidence_predictor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/tcr_antigen_prediction.models.apps.train_tcr_en.html">tcr_antigen_prediction.models.apps.train_tcr_en</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/tcr_antigen_prediction.models.apps.train_tcr_struct_map.html">tcr_antigen_prediction.models.apps.train_tcr_struct_map</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/tcr_antigen_prediction.visualisations.apps.visualise_contact_maps.html">tcr_antigen_prediction.visualisations.apps.visualise_contact_maps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="source/tcr_antigen_prediction.visualisations.apps.visualise_model_training.html">tcr_antigen_prediction.visualisations.apps.visualise_model_training</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Python API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="source/modules.html">tcr_antigen_prediction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="source/tcr_antigen_prediction.html">tcr_antigen_prediction package</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<section id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="source/notebooks.html" class="btn btn-neutral float-right" title="Notebooks" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Benjamin McMaster.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

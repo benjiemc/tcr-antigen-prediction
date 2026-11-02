@@ -1,0 +1,29 @@
+tcr_antigen_prediction.data.apps.get_mhc_pseudo_sequence_imgt_numbers
+=====================================================================
+.. code-block:: text
+
+   usage: python -m tcr_antigen_prediction.data.apps.get_mhc_pseudo_sequence_imgt_numbers
+          [-h] [--output OUTPUT] [--probability-filter PROBABILITY_FILTER]
+          [--log-level {debug,info,warning,error}] [--log-file LOG_FILE]
+          contact_map
+   
+   Get the relevant IMGT numbers for to create MHC Pseudo sequences from TCR contact maps.
+   
+   positional arguments:
+     contact_map           Path to the contact map csv.
+   
+   options:
+     -h, --help            show this help message and exit
+     --output OUTPUT, -o OUTPUT
+                           Path to the output json file.
+     --probability-filter PROBABILITY_FILTER
+                           Cutoff to keep positions above this proportion of
+                           contacts (Default: 0.01).
+   
+   Logging:
+     Options for logging
+   
+     --log-level {debug,info,warning,error}
+                           Level to log messages at (Default: 'warning')
+     --log-file LOG_FILE   File to output logs (default is to write to stderr)
+   

@@ -1,0 +1,35 @@
+tcr_antigen_prediction.data.apps.crop_tcr_pmhc
+==============================================
+.. code-block:: text
+
+   usage: python -m tcr_antigen_prediction.data.apps.crop_tcr_pmhc
+          [-h] --output OUTPUT [--tcr-chains [TCR_CHAINS ...]]
+          [--mhc-chains [MHC_CHAINS ...]] [--antigen-chain [ANTIGEN_CHAIN]]
+          [--remove-het-atoms] [--log-level {debug,info,warning,error}]
+          [--log-file LOG_FILE]
+          structure
+   
+   Crop TCR-pMHC to binding interface (TCR Variable domain and MHC antigen binding domain).
+   
+   positional arguments:
+     structure             path to the pdb
+   
+   options:
+     -h, --help            show this help message and exit
+     --output OUTPUT, -o OUTPUT
+                           path to the output pdb
+     --tcr-chains [TCR_CHAINS ...]
+                           pdb chains for the tcr structure
+     --mhc-chains [MHC_CHAINS ...]
+                           pdb chains for the mhc structure
+     --antigen-chain [ANTIGEN_CHAIN]
+                           pdb chain for the antigen
+     --remove-het-atoms    remove hetero atoms from structure
+   
+   Logging:
+     Options for logging
+   
+     --log-level {debug,info,warning,error}
+                           Level to log messages at (Default: 'warning')
+     --log-file LOG_FILE   File to output logs (default is to write to stderr)
+   

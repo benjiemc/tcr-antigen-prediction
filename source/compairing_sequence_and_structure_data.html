@@ -1,0 +1,1361 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Compairing sequence and structure data &mdash; tcr_antigen_prediction  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Evaluating confidence predictor" href="evaluate_confidence_predictions.html" />
+    <link rel="prev" title="Model Size" href="benchmark_model_performance_against_nettcr.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            tcr_antigen_prediction
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Results</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="notebooks.html">Notebooks</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="ablate_model.html">Ablate model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="benchmark_model_performance.html">Benchmark model performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="benchmark_model_performance_against_nettcr.html">Model Size</a></li>
+<li class="toctree-l2"><a class="reference internal" href="benchmark_model_performance_against_nettcr.html#Bootstrap-ROC-AUC">Bootstrap ROC-AUC</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Compairing sequence and structure data</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Species">Species</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#TCRs">TCRs</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#V-Gene-usage">V-Gene usage</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#CDR-lengths">CDR lengths</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Amino-acid-composition">Amino acid composition</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#Peptides">Peptides</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Peptide-lengths">Peptide lengths</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#id1">Amino acid composition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Peptide-Clustering">Peptide Clustering</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#MHCs">MHCs</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Alleles">Alleles</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Pseudo-sequences">Pseudo sequences</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="evaluate_confidence_predictions.html">Evaluating confidence predictor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluate_distance_based_confidence_predictor_performance.html">Evaluate distance based confidence predictor performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluate_model_on_data_splits.html">Evaluate model on data splits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="evaluate_using_structures_vs_sequence.html">Evaluate structures and sequences versus sequences only</a></li>
+<li class="toctree-l2"><a class="reference internal" href="immrep_2025.html">IMMRep 2025</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualise_sequence_data.html">Sequence Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="visualise_structure_data.html">Data Summary</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Line Applications</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="apps.html">Command Line Applications</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Python API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="modules.html">tcr_antigen_prediction</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">tcr_antigen_prediction</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="notebooks.html">Notebooks</a></li>
+      <li class="breadcrumb-item active">Compairing sequence and structure data</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/source/compairing_sequence_and_structure_data.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Compairing-sequence-and-structure-data">
+<h1>Compairing sequence and structure data<a class="headerlink" href="#Compairing-sequence-and-structure-data" title="Link to this heading"></a></h1>
+<p>The following notebook compares the TCR:pMHC data from the collected sequences and structures to understand how representative these are of one another.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logomaker</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">networkx</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nx</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">seaborn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sns</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.colors</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinearSegmentedColormap</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.patches</span><span class="w"> </span><span class="kn">import</span> <span class="n">Patch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyxdameraulevenshtein</span><span class="w"> </span><span class="kn">import</span> <span class="n">damerau_levenshtein_distance</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">sequence_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">'data/interim/sequences.csv'</span><span class="p">)</span>
+<span class="n">sequence_data</span><span class="p">[</span><span class="s1">'type'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'sequence'</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">structure_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">'data/processed/structures_summary.csv'</span><span class="p">)</span>
+<span class="n">structure_data</span><span class="p">[</span><span class="s1">'type'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'structure'</span>
+</pre></div>
+</div>
+</div>
+<p>Select only class I for structures</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">structure_data</span> <span class="o">=</span> <span class="n">structure_data</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">"mhc_type == 'MH1'"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tcr_pmhc_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">sequence_data</span><span class="p">,</span> <span class="n">structure_data</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">tcr_pmhc_data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">'type'</span><span class="p">)</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+type
+sequence     13962
+structure      216
+dtype: int64
+</pre></div></div>
+</div>
+<section id="Species">
+<h2>Species<a class="headerlink" href="#Species" title="Link to this heading"></a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+
+<span class="n">species_proportions</span> <span class="o">=</span> <span class="n">tcr_pmhc_data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">'type'</span><span class="p">)[</span><span class="s1">'species'</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">(</span><span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">ax1</span><span class="o">.</span><span class="n">pie</span><span class="p">(</span><span class="n">species_proportions</span><span class="p">[</span><span class="s1">'sequence'</span><span class="p">],</span> <span class="n">labels</span><span class="o">=</span><span class="n">species_proportions</span><span class="p">[</span><span class="s1">'sequence'</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">autopct</span><span class="o">=</span><span class="s1">'</span><span class="si">%1.1f%%</span><span class="s1">'</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'Sequence'</span><span class="p">)</span>
+
+<span class="n">ax2</span><span class="o">.</span><span class="n">pie</span><span class="p">(</span><span class="n">species_proportions</span><span class="p">[</span><span class="s1">'structure'</span><span class="p">],</span> <span class="n">labels</span><span class="o">=</span><span class="n">species_proportions</span><span class="p">[</span><span class="s1">'structure'</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">autopct</span><span class="o">=</span><span class="s1">'</span><span class="si">%1.1f%%</span><span class="s1">'</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'Structure'</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">'report/figures/dataset_comparison_species.svg'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/source_compairing_sequence_and_structure_data_9_0.png" src="../_images/source_compairing_sequence_and_structure_data_9_0.png" />
+</div>
+</div>
+</section>
+<section id="TCRs">
+<h2>TCRs<a class="headerlink" href="#TCRs" title="Link to this heading"></a></h2>
+<section id="V-Gene-usage">
+<h3>V-Gene usage<a class="headerlink" href="#V-Gene-usage" title="Link to this heading"></a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">v_genes</span> <span class="o">=</span> <span class="n">tcr_pmhc_data</span><span class="p">[[</span><span class="s1">'v_alpha'</span><span class="p">,</span> <span class="s1">'v_beta'</span><span class="p">,</span> <span class="s1">'type'</span><span class="p">]]</span>
+</pre></div>
+</div>
+</div>
+<p>Removing entries with unknown genes</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">v_genes</span> <span class="o">=</span> <span class="n">v_genes</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s1">'Unknown'</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s1">'There are'</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">v_genes</span><span class="p">[</span><span class="n">v_genes</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="s1">'Unknown'</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)]),</span> <span class="s1">'entries without gene information'</span><span class="p">)</span>
+
+<span class="n">v_genes</span> <span class="o">=</span> <span class="n">v_genes</span><span class="p">[</span><span class="o">~</span><span class="n">v_genes</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="s1">'Unknown'</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+There are 2 entries without gene information
+</pre></div></div>
+</div>
+<p>Remove weird gene annotation</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">v_genes</span> <span class="o">=</span> <span class="n">v_genes</span><span class="p">[</span><span class="o">~</span><span class="n">v_genes</span><span class="p">[</span><span class="s1">'v_alpha'</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">'TRB'</span><span class="p">)]</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">gene_group</span> <span class="ow">in</span> <span class="s1">'v_alpha'</span><span class="p">,</span> <span class="s1">'v_beta'</span><span class="p">:</span>
+    <span class="n">v_genes</span><span class="p">[</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">gene_group</span><span class="si">}</span><span class="s1">_crop'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">v_genes</span><span class="p">[</span><span class="n">gene_group</span><span class="p">]</span>
+        <span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">'-'</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">str</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">'*'</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">str</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'[A-Z]$'</span><span class="p">,</span> <span class="s1">''</span><span class="p">,</span> <span class="n">regex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">';'</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">str</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'TRAV|TRBV'</span><span class="p">,</span> <span class="s1">''</span><span class="p">,</span> <span class="n">regex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+
+<span class="n">v_alpha_comparison</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">v_genes</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">'type'</span><span class="p">)[</span><span class="s1">'v_alpha_crop'</span><span class="p">]</span>
+    <span class="o">.</span><span class="n">value_counts</span><span class="p">(</span><span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">'v_alpha_crop'</span><span class="p">:</span> <span class="s1">'TRAV'</span><span class="p">},</span> <span class="n">axis</span><span class="o">=</span><span class="s1">'columns'</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="s1">'TRAV'</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="s1">'type'</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="s1">'proportion'</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="n">v_alpha_comparison</span><span class="p">[</span><span class="s1">'gene_num'</span><span class="p">]</span> <span class="o">=</span> <span class="n">v_alpha_comparison</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+<span class="n">v_alpha_comparison</span> <span class="o">=</span> <span class="n">v_alpha_comparison</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">'gene_num'</span><span class="p">)</span>
+
+
+<span class="n">v_alpha_comparison</span><span class="p">[</span><span class="s1">'change'</span><span class="p">]</span> <span class="o">=</span> <span class="n">v_alpha_comparison</span><span class="p">[</span><span class="s1">'sequence'</span><span class="p">]</span> <span class="o">-</span> <span class="n">v_alpha_comparison</span><span class="p">[</span><span class="s1">'structure'</span><span class="p">]</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">v_alpha_comparison</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">v_alpha_comparison</span><span class="p">[</span><span class="s1">'change'</span><span class="p">])</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'Comparison of the proportion of TRAV Genes</span><span class="se">\n</span><span class="s1"> usage between structures and sequences'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'TRAV'</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">'report/figures/dataset_comparison_trav_genes.svg'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/source_compairing_sequence_and_structure_data_19_0.png" src="../_images/source_compairing_sequence_and_structure_data_19_0.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+
+<span class="n">v_beta_comparison</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">v_genes</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">'type'</span><span class="p">)[</span><span class="s1">'v_beta_crop'</span><span class="p">]</span>
+    <span class="o">.</span><span class="n">value_counts</span><span class="p">(</span><span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">'v_beta_crop'</span><span class="p">:</span> <span class="s1">'TRBV'</span><span class="p">},</span> <span class="n">axis</span><span class="o">=</span><span class="s1">'columns'</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="s1">'TRBV'</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="s1">'type'</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="s1">'proportion'</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="n">v_beta_comparison</span><span class="p">[</span><span class="s1">'gene_num'</span><span class="p">]</span> <span class="o">=</span> <span class="n">v_beta_comparison</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+<span class="n">v_beta_comparison</span> <span class="o">=</span> <span class="n">v_beta_comparison</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">'gene_num'</span><span class="p">)</span>
+
+
+<span class="n">v_beta_comparison</span><span class="p">[</span><span class="s1">'change'</span><span class="p">]</span> <span class="o">=</span> <span class="n">v_beta_comparison</span><span class="p">[</span><span class="s1">'sequence'</span><span class="p">]</span> <span class="o">-</span> <span class="n">v_beta_comparison</span><span class="p">[</span><span class="s1">'structure'</span><span class="p">]</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">v_beta_comparison</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">v_beta_comparison</span><span class="p">[</span><span class="s1">'change'</span><span class="p">])</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'Comparison of the proportion of TRBV Genes</span><span class="se">\n</span><span class="s1"> usage between structures and sequences'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'TRBV'</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">'report/figures/dataset_comparison_trbv_genes.svg'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/source_compairing_sequence_and_structure_data_20_0.png" src="../_images/source_compairing_sequence_and_structure_data_20_0.png" />
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">v_gene_pairings</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">v_genes</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">'v_alpha_crop'</span><span class="p">:</span> <span class="s1">'TRAV'</span><span class="p">,</span> <span class="s1">'v_beta_crop'</span><span class="p">:</span> <span class="s1">'TRBV'</span><span class="p">},</span> <span class="n">axis</span><span class="o">=</span><span class="s1">'columns'</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">'type'</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">value_counts</span><span class="p">([</span><span class="s1">'TRAV'</span><span class="p">,</span> <span class="s1">'TRBV'</span><span class="p">],</span> <span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">travs</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">v_gene_pairings</span><span class="p">[</span><span class="s1">'TRAV'</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+<span class="n">trbvs</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">v_gene_pairings</span><span class="p">[</span><span class="s1">'TRBV'</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+
+<span class="n">v_gene_pairings_sequence</span> <span class="o">=</span> <span class="n">v_gene_pairings</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">"type == 'sequence'"</span><span class="p">)</span><span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span>
+    <span class="n">index</span><span class="o">=</span><span class="s1">'TRAV'</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="s1">'TRBV'</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="s1">'proportion'</span>
+<span class="p">)</span>
+
+<span class="n">v_gene_pairings_sequence</span><span class="p">[[</span><span class="n">label</span> <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">trbvs</span> <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">v_gene_pairings_sequence</span><span class="o">.</span><span class="n">columns</span><span class="p">]]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+<span class="n">missing_table</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
+    <span class="n">index</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">label</span> <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">travs</span> <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">v_gene_pairings_sequence</span><span class="o">.</span><span class="n">index</span><span class="p">],</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">v_gene_pairings_sequence</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">columns</span><span class="o">=</span><span class="n">v_gene_pairings_sequence</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">missing_table</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+    <span class="n">v_gene_pairings_sequence</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">v_gene_pairings_sequence</span><span class="p">,</span> <span class="n">missing_table</span><span class="p">])</span>
+
+
+<span class="n">v_gene_pairings_sequence</span> <span class="o">=</span> <span class="n">v_gene_pairings_sequence</span><span class="p">[</span><span class="nb">sorted</span><span class="p">(</span><span class="n">v_gene_pairings_sequence</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">int</span><span class="p">)]</span>
+<span class="n">v_gene_pairings_sequence</span><span class="p">[</span><span class="s1">'key'</span><span class="p">]</span> <span class="o">=</span> <span class="n">v_gene_pairings_sequence</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+<span class="n">v_gene_pairings_sequence</span> <span class="o">=</span> <span class="n">v_gene_pairings_sequence</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">'key'</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">v_gene_pairings_sequence</span> <span class="o">=</span> <span class="n">v_gene_pairings_sequence</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">'key'</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s1">'columns'</span><span class="p">)</span>
+
+<span class="n">sns</span><span class="o">.</span><span class="n">heatmap</span><span class="p">(</span><span class="n">v_gene_pairings_sequence</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax1</span><span class="p">)</span>
+
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'V-Gene Pairings in Sequences'</span><span class="p">)</span>
+
+<span class="n">v_gene_pairings_structure</span> <span class="o">=</span> <span class="n">v_gene_pairings</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="s2">"type == 'structure'"</span><span class="p">)</span><span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span>
+    <span class="n">index</span><span class="o">=</span><span class="s1">'TRAV'</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="s1">'TRBV'</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="s1">'proportion'</span>
+<span class="p">)</span>
+
+<span class="n">v_gene_pairings_structure</span><span class="p">[[</span><span class="n">label</span> <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">trbvs</span> <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">v_gene_pairings_structure</span><span class="o">.</span><span class="n">columns</span><span class="p">]]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+<span class="n">missing_table</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
+    <span class="n">index</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">label</span> <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">travs</span> <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">v_gene_pairings_structure</span><span class="o">.</span><span class="n">index</span><span class="p">],</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">v_gene_pairings_structure</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">columns</span><span class="o">=</span><span class="n">v_gene_pairings_structure</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">missing_table</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+    <span class="n">v_gene_pairings_structure</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">v_gene_pairings_structure</span><span class="p">,</span> <span class="n">missing_table</span><span class="p">])</span>
+
+<span class="n">v_gene_pairings_structure</span> <span class="o">=</span> <span class="n">v_gene_pairings_structure</span><span class="p">[</span><span class="nb">sorted</span><span class="p">(</span><span class="n">v_gene_pairings_structure</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">int</span><span class="p">)]</span>
+<span class="n">v_gene_pairings_structure</span><span class="p">[</span><span class="s1">'key'</span><span class="p">]</span> <span class="o">=</span> <span class="n">v_gene_pairings_structure</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+<span class="n">v_gene_pairings_structure</span> <span class="o">=</span> <span class="n">v_gene_pairings_structure</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">'key'</span><span class="p">,</span> <span class="n">ascending</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">v_gene_pairings_structure</span> <span class="o">=</span> <span class="n">v_gene_pairings_structure</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s1">'key'</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s1">'columns'</span><span class="p">)</span>
+
+<span class="n">sns</span><span class="o">.</span><span class="n">heatmap</span><span class="p">(</span><span class="n">v_gene_pairings_structure</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax2</span><span class="p">)</span>
+
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'V-Gene Pairings in Structures'</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/source_compairing_sequence_and_structure_data_23_0.png" src="../_images/source_compairing_sequence_and_structure_data_23_0.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+
+<span class="n">cmap</span> <span class="o">=</span> <span class="n">LinearSegmentedColormap</span><span class="o">.</span><span class="n">from_list</span><span class="p">(</span><span class="s1">'french_flag'</span><span class="p">,</span> <span class="p">[</span><span class="s1">'blue'</span><span class="p">,</span> <span class="s1">'white'</span><span class="p">,</span> <span class="s1">'red'</span><span class="p">],</span> <span class="n">N</span><span class="o">=</span><span class="mi">256</span><span class="p">)</span>
+
+<span class="n">sns</span><span class="o">.</span><span class="n">heatmap</span><span class="p">(</span><span class="n">v_gene_pairings_structure</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">-</span> <span class="n">v_gene_pairings_sequence</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">'Comparison of V-gene pairings between structures and sequences'</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/source_compairing_sequence_and_structure_data_24_0.png" src="../_images/source_compairing_sequence_and_structure_data_24_0.png" />
+</div>
+</div>
+</section>
+<section id="CDR-lengths">
+<h3>CDR lengths<a class="headerlink" href="#CDR-lengths" title="Link to this heading"></a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cdr_lengths</span> <span class="o">=</span> <span class="n">tcr_pmhc_data</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">regex</span><span class="o">=</span><span class="s1">'cdr[1-3]_(alpha|beta)'</span><span class="p">)</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="nb">len</span><span class="p">)</span>
+<span class="n">cdr_lengths</span><span class="p">[</span><span class="s1">'type'</span><span class="p">]</span> <span class="o">=</span> <span class="n">tcr_pmhc_data</span><span class="p">[</span><span class="s1">'type'</span><span class="p">]</span>
+
+<span class="n">cdr_lengths</span> <span class="o">=</span> <span class="n">cdr_lengths</span><span class="o">.</span><span class="n">melt</span><span class="p">(</span>
+    <span class="n">id_vars</span><span class="o">=</span><span class="p">[</span><span class="s1">'type'</span><span class="p">],</span>
+    <span class="n">value_vars</span><span class="o">=</span><span class="p">[</span><span class="n">col</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">cdr_lengths</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">col</span> <span class="o">!=</span> <span class="s1">'type'</span><span class="p">],</span>
+    <span class="n">var_name</span><span class="o">=</span><span class="s1">'cdr_type'</span><span class="p">,</span>
+    <span class="n">value_name</span><span class="o">=</span><span class="s1">'length'</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">cdr_lengths</span><span class="p">[[</span><span class="s1">'cdr_num'</span><span class="p">,</span> <span class="s1">'chain_type'</span><span class="p">]]</span> <span class="o">=</span> <span class="n">cdr_lengths</span><span class="p">[</span><span class="s1">'cdr_type'</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'cdr'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">'_'</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)</span>
+<span class="n">cdr_lengths</span><span class="p">[</span><span class="s1">'cdr_num'</span><span class="p">]</span> <span class="o">=</span> <span class="n">cdr_lengths</span><span class="p">[</span><span class="s1">'cdr_num'</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cdr_lengths_percentages</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">cdr_lengths</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">'chain_type'</span><span class="p">,</span> <span class="s1">'cdr_num'</span><span class="p">,</span> <span class="s1">'type'</span><span class="p">])[</span><span class="s1">'length'</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">(</span><span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
+<span class="p">)</span>
+<span class="n">cdr_lengths_percentages</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">'percentage'</span>
+<span class="n">cdr_lengths_percentages</span> <span class="o">=</span> <span class="n">cdr_lengths_percentages</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">grid</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">catplot</span><span class="p">(</span>
+    <span class="n">cdr_lengths_percentages</span><span class="p">,</span>
+    <span class="n">x</span><span class="o">=</span><span class="s1">'length'</span><span class="p">,</span>
+    <span class="n">y</span><span class="o">=</span><span class="s1">'percentage'</span><span class="p">,</span>
+    <span class="n">row</span><span class="o">=</span><span class="s1">'chain_type'</span><span class="p">,</span>
+    <span class="n">col</span><span class="o">=</span><span class="s1">'cdr_num'</span><span class="p">,</span>
+    <span class="n">hue</span><span class="o">=</span><span class="s1">'type'</span><span class="p">,</span>
+    <span class="n">kind</span><span class="o">=</span><span class="s1">'bar'</span><span class="p">,</span>
+    <span class="n">sharex</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">grid</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
+
+<span class="n">titles</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="p">(</span><span class="n">chain_type</span><span class="p">,</span> <span class="n">cdr_num</span><span class="p">):</span> <span class="sa">f</span><span class="s1">'CDR</span><span class="si">{</span><span class="n">cdr_num</span><span class="si">}</span><span class="s1">$</span><span class="se">\\</span><span class="si">{</span><span class="n">chain_type</span><span class="si">}</span><span class="s1">$'</span>
+    <span class="k">for</span> <span class="n">chain_type</span><span class="p">,</span> <span class="n">cdr_num</span> <span class="ow">in</span> <span class="n">cdr_lengths_percentages</span><span class="p">[[</span><span class="s1">'chain_type'</span><span class="p">,</span> <span class="s1">'cdr_num'</span><span class="p">]]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s1">'columns'</span><span class="p">)</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+<span class="p">}</span>
+<span class="k">for</span> <span class="p">(</span><span class="n">chain_type</span><span class="p">,</span> <span class="n">cdr_num</span><span class="p">),</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">grid</span><span class="o">.</span><span class="n">axes_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">'both'</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">titles</span><span class="p">[(</span><span class="n">chain_type</span><span class="p">,</span> <span class="n">cdr_num</span><span class="p">)],</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">22</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">0.95</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">grid</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">flat</span><span class="p">:</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">'both'</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+
+<span class="n">grid</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">''</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">grid</span><span class="o">.</span><span class="n">legend</span><span class="o">.</span><span class="n">texts</span><span class="p">:</span>
+    <span class="n">label</span><span class="o">.</span><span class="n">set_text</span><span class="p">(</span><span class="n">label</span><span class="o">.</span><span class="n">get_text</span><span class="p">()</span><span class="o">.</span><span class="n">title</span><span class="p">())</span>
+    <span class="n">label</span><span class="o">.</span><span class="n">set_fontsize</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
+
+<span class="n">grid</span><span class="o">.</span><span class="n">set_axis_labels</span><span class="p">(</span><span class="s1">''</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span>
+<span class="n">grid</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s1">'Length of CDR'</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">22</span><span class="p">)</span>
+<span class="n">grid</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="o">-</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s1">'Percentage (%)'</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s1">'center'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">22</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">90</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">'report/figures/dataset_comparison_cdr_lengths.svg'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="n">cdr_lengths</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">'chain_type'</span><span class="p">,</span> <span class="s1">'cdr_num'</span><span class="p">,</span> <span class="s1">'type'</span><span class="p">])[</span><span class="s1">'length'</span><span class="p">]</span><span class="o">.</span><span class="n">agg</span><span class="p">([</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="s1">'mean'</span><span class="p">,</span> <span class="s1">'std'</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/source_compairing_sequence_and_structure_data_28_0.png" src="../_images/source_compairing_sequence_and_structure_data_28_0.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th></th>
+      <th>mode</th>
+      <th>mean</th>
+      <th>std</th>
+    </tr>
+    <tr>
+      <th>chain_type</th>
+      <th>cdr_num</th>
+      <th>type</th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="6" valign="top">alpha</th>
+      <th rowspan="2" valign="top">1</th>
+      <th>sequence</th>
+      <td>6</td>
+      <td>6.010887</td>
+      <td>0.669532</td>
+    </tr>
+    <tr>
+      <th>structure</th>
+      <td>6</td>
+      <td>6.050926</td>
+      <td>0.572387</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">2</th>
+      <th>sequence</th>
+      <td>7</td>
+      <td>6.698109</td>
+      <td>1.002844</td>
+    </tr>
+    <tr>
+      <th>structure</th>
+      <td>7</td>
+      <td>6.611111</td>
+      <td>0.953167</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">3</th>
+      <th>sequence</th>
+      <td>11</td>
+      <td>11.418851</td>
+      <td>1.919230</td>
+    </tr>
+    <tr>
+      <th>structure</th>
+      <td>11</td>
+      <td>11.287037</td>
+      <td>1.739024</td>
+    </tr>
+    <tr>
+      <th rowspan="6" valign="top">beta</th>
+      <th rowspan="2" valign="top">1</th>
+      <th>sequence</th>
+      <td>5</td>
+      <td>5.103352</td>
+      <td>0.304429</td>
+    </tr>
+    <tr>
+      <th>structure</th>
+      <td>5</td>
+      <td>5.097222</td>
+      <td>0.296948</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">2</th>
+      <th>sequence</th>
+      <td>6</td>
+      <td>6.058874</td>
+      <td>0.284701</td>
+    </tr>
+    <tr>
+      <th>structure</th>
+      <td>6</td>
+      <td>5.986111</td>
+      <td>0.280849</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">3</th>
+      <th>sequence</th>
+      <td>11</td>
+      <td>12.063458</td>
+      <td>1.855996</td>
+    </tr>
+    <tr>
+      <th>structure</th>
+      <td>12</td>
+      <td>12.004630</td>
+      <td>1.782336</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+</section>
+<section id="Amino-acid-composition">
+<h3>Amino acid composition<a class="headerlink" href="#Amino-acid-composition" title="Link to this heading"></a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cdr_amino_acids</span> <span class="o">=</span> <span class="n">tcr_pmhc_data</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">regex</span><span class="o">=</span><span class="s1">'cdr[1-3]_(alpha|beta)'</span><span class="p">)</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+<span class="n">cdr_amino_acids</span><span class="p">[</span><span class="s1">'type'</span><span class="p">]</span> <span class="o">=</span> <span class="n">tcr_pmhc_data</span><span class="p">[</span><span class="s1">'type'</span><span class="p">]</span>
+
+<span class="n">cdr_amino_acids</span> <span class="o">=</span> <span class="n">cdr_amino_acids</span><span class="o">.</span><span class="n">melt</span><span class="p">(</span>
+    <span class="n">id_vars</span><span class="o">=</span><span class="s1">'type'</span><span class="p">,</span>
+    <span class="n">value_vars</span><span class="o">=</span><span class="p">[</span><span class="n">col_name</span> <span class="k">for</span> <span class="n">col_name</span> <span class="ow">in</span> <span class="n">cdr_amino_acids</span><span class="o">.</span><span class="n">columns</span> <span class="k">if</span> <span class="n">col_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">'cdr'</span><span class="p">)],</span>
+    <span class="n">var_name</span><span class="o">=</span><span class="s1">'cdr_type'</span><span class="p">,</span>
+    <span class="n">value_name</span><span class="o">=</span><span class="s1">'amino_acid'</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">cdr_amino_acids</span><span class="p">[[</span><span class="s1">'cdr_num'</span><span class="p">,</span> <span class="s1">'chain_type'</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">cdr_amino_acids</span><span class="p">[</span><span class="s1">'cdr_type'</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'cdr'</span><span class="p">,</span> <span class="s1">''</span><span class="p">)</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">'_'</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="n">cdr_amino_acids</span><span class="p">[</span><span class="s1">'cdr_num'</span><span class="p">]</span> <span class="o">=</span> <span class="n">cdr_amino_acids</span><span class="p">[</span><span class="s1">'cdr_num'</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+<span class="n">cdr_amino_acids</span> <span class="o">=</span> <span class="n">cdr_amino_acids</span><span class="o">.</span><span class="n">explode</span><span class="p">(</span><span class="s1">'amino_acid'</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[23]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cdr_amino_acids_proportions</span> <span class="o">=</span> <span class="n">cdr_amino_acids</span><span class="o">.</span><span class="n">groupby</span><span class="p">([</span><span class="s1">'type'</span><span class="p">,</span> <span class="s1">'chain_type'</span><span class="p">,</span> <span class="s1">'cdr_num'</span><span class="p">])[</span><span class="s1">'amino_acid'</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">(</span>
+    <span class="n">normalize</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+
+<span class="n">cdr_amino_acids_proportions</span> <span class="o">=</span> <span class="n">cdr_amino_acids_proportions</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">AMINO_ACIDS</span> <span class="o">=</span> <span class="n">cdr_amino_acids_proportions</span><span class="p">[</span><span class="s1">'amino_acid'</span><span class="p">]</span><span class="o">.</span><span class="n">sort_values</span><span class="p">()</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">' '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">AMINO_ACIDS</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+A C D E F G H I K L M N P Q R S T V W Y
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">angles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">AMINO_ACIDS</span><span class="p">),</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+<span class="n">amino_acid_angles</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">AMINO_ACIDS</span><span class="p">,</span> <span class="n">angles</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span>
+    <span class="n">nrows</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">ncols</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span>
+    <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">subplot_kw</span><span class="o">=</span><span class="p">{</span><span class="s1">'projection'</span><span class="p">:</span> <span class="s1">'polar'</span><span class="p">},</span>
+<span class="p">)</span>
+
+<span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">chain_type</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">((</span><span class="s1">'alpha'</span><span class="p">,</span> <span class="s1">'beta'</span><span class="p">)):</span>
+    <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">cdr_num</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">type_</span> <span class="ow">in</span> <span class="s1">'sequence'</span><span class="p">,</span> <span class="s1">'structure'</span><span class="p">:</span>
+            <span class="n">selected_proportions</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">cdr_amino_acids_proportions</span><span class="p">[</span>
+                    <span class="p">(</span><span class="n">cdr_amino_acids_proportions</span><span class="p">[</span><span class="s1">'type'</span><span class="p">]</span> <span class="o">==</span> <span class="n">type_</span><span class="p">)</span>
+                    <span class="o">&amp;</span> <span class="p">(</span><span class="n">cdr_amino_acids_proportions</span><span class="p">[</span><span class="s1">'chain_type'</span><span class="p">]</span> <span class="o">==</span> <span class="n">chain_type</span><span class="p">)</span>
+                    <span class="o">&amp;</span> <span class="p">(</span><span class="n">cdr_amino_acids_proportions</span><span class="p">[</span><span class="s1">'cdr_num'</span><span class="p">]</span> <span class="o">==</span> <span class="n">cdr_num</span><span class="p">)</span>
+                <span class="p">]</span>
+                <span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">'amino_acid'</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">'amino_acid'</span><span class="p">)[</span><span class="s1">'proportion'</span><span class="p">]</span>
+            <span class="p">)</span>
+
+            <span class="n">proportions</span> <span class="o">=</span> <span class="p">[</span><span class="n">selected_proportions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">amino_acid</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">amino_acid</span> <span class="ow">in</span> <span class="n">AMINO_ACIDS</span><span class="p">]</span>
+            <span class="n">label_angles</span> <span class="o">=</span> <span class="p">[</span><span class="n">amino_acid_angles</span><span class="p">[</span><span class="n">amino_acid</span><span class="p">]</span> <span class="k">for</span> <span class="n">amino_acid</span> <span class="ow">in</span> <span class="n">AMINO_ACIDS</span><span class="p">]</span>
+            <span class="c1"># Join ends</span>
+            <span class="n">proportions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">proportions</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">label_angles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label_angles</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+            <span class="p">(</span><span class="n">line</span><span class="p">,)</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">label_angles</span><span class="p">,</span> <span class="n">proportions</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">'o'</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">type_</span><span class="p">)</span>
+            <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">label_angles</span><span class="p">,</span> <span class="n">proportions</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+        <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">angles</span><span class="p">)</span>
+        <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">AMINO_ACIDS</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+        <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">'y'</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+        <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s1">'major'</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s1">'x'</span><span class="p">,</span> <span class="n">visible</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">'CDR</span><span class="si">{</span><span class="n">cdr_num</span><span class="si">}</span><span class="s1">$</span><span class="se">\\</span><span class="si">{</span><span class="n">chain_type</span><span class="si">}</span><span class="s1">$'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">22</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">35</span><span class="p">)</span>
+
+<span class="n">unique_handles_labels</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">get_label</span><span class="p">()</span><span class="o">.</span><span class="n">title</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">unique_handles_labels</span><span class="p">:</span>
+        <span class="n">unique_handles_labels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">line</span>
+
+<span class="n">labels</span><span class="p">,</span> <span class="n">handles</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">unique_handles_labels</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">legend</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">''</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">18</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s1">'Amino acid composition between sequences and structures'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">24</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">'report/figures/dataset_comparison_cdr_aa_composition.svg'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/source_compairing_sequence_and_structure_data_34_0.png" src="../_images/source_compairing_sequence_and_structure_data_34_0.png" />
+</div>
+</div>
+</section>
+</section>
+<section id="Peptides">
+<h2>Peptides<a class="headerlink" href="#Peptides" title="Link to this heading"></a></h2>
+<section id="Peptide-lengths">
+<h3>Peptide lengths<a class="headerlink" href="#Peptide-lengths" title="Link to this heading"></a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">peptide_lengths</span> <span class="o">=</span> <span class="n">tcr_pmhc_data</span><span class="p">[[</span><span class="s1">'peptide'</span><span class="p">]]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="nb">len</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">'peptide'</span><span class="p">:</span> <span class="s1">'length'</span><span class="p">},</span> <span class="n">axis</span><span class="o">=</span><span class="s1">'columns'</span><span class="p">)</span>
+<span class="n">peptide_lengths</span><span class="p">[</span><span class="s1">'type'</span><span class="p">]</span> <span class="o">=</span> <span class="n">tcr_pmhc_data</span><span class="p">[</span><span class="s1">'type'</span><span class="p">]</span>
+
+
+<span class="n">peptide_lengths_percentage</span> <span class="o">=</span> <span class="n">peptide_lengths</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">'type'</span><span class="p">)[</span><span class="s1">'length'</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">(</span><span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
+<span class="n">peptide_lengths_percentage</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">'percentage'</span>
+<span class="n">peptide_lengths_percentage</span> <span class="o">=</span> <span class="n">peptide_lengths_percentage</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[28]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">max_length</span> <span class="o">=</span> <span class="n">peptide_lengths_percentage</span><span class="p">[</span><span class="s1">'length'</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+<span class="n">min_length</span> <span class="o">=</span> <span class="n">peptide_lengths_percentage</span><span class="p">[</span><span class="s1">'length'</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+<span class="n">expected_lengths</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">min_length</span><span class="p">,</span> <span class="n">max_length</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+
+<span class="n">missing_values</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">type_</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">peptide_lengths_percentage</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">'type'</span><span class="p">):</span>
+    <span class="n">missing_lengths</span> <span class="o">=</span> <span class="n">expected_lengths</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">group</span><span class="p">[</span><span class="s1">'length'</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">())</span>
+
+    <span class="n">missing_values</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">missing_values</span><span class="p">,</span>
+            <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s1">'length'</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">missing_lengths</span><span class="p">),</span>
+                    <span class="s1">'type'</span><span class="p">:</span> <span class="p">[</span><span class="n">type_</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">missing_lengths</span><span class="p">],</span>
+                    <span class="s1">'percentage'</span><span class="p">:</span> <span class="p">[</span><span class="mf">0.0</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">missing_lengths</span><span class="p">],</span>
+                <span class="p">},</span>
+            <span class="p">),</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+
+<span class="n">peptide_lengths_percentage</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">peptide_lengths_percentage</span><span class="p">,</span> <span class="n">missing_values</span><span class="p">])</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ax</span> <span class="o">=</span> <span class="n">sns</span><span class="o">.</span><span class="n">barplot</span><span class="p">(</span><span class="n">peptide_lengths_percentage</span><span class="o">.</span><span class="n">sort_values</span><span class="p">([</span><span class="s1">'type'</span><span class="p">,</span> <span class="s1">'length'</span><span class="p">]),</span> <span class="n">x</span><span class="o">=</span><span class="s1">'length'</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="s1">'percentage'</span><span class="p">,</span> <span class="n">hue</span><span class="o">=</span><span class="s1">'type'</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">ylim</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">'both'</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">legend_</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">''</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">ax</span><span class="o">.</span><span class="n">legend_</span><span class="o">.</span><span class="n">texts</span><span class="p">:</span>
+    <span class="n">label</span><span class="o">.</span><span class="n">set_text</span><span class="p">(</span><span class="n">label</span><span class="o">.</span><span class="n">get_text</span><span class="p">()</span><span class="o">.</span><span class="n">title</span><span class="p">())</span>
+    <span class="n">label</span><span class="o">.</span><span class="n">set_fontsize</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">'Peptide Length'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'Percentage (%)'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">'report/figures/dataset_comparison_peptide_lengths.svg'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="n">peptide_lengths</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">'type'</span><span class="p">)[</span><span class="s1">'length'</span><span class="p">]</span><span class="o">.</span><span class="n">agg</span><span class="p">([</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="s1">'mean'</span><span class="p">,</span> <span class="s1">'std'</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/source_compairing_sequence_and_structure_data_39_0.png" src="../_images/source_compairing_sequence_and_structure_data_39_0.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>mode</th>
+      <th>mean</th>
+      <th>std</th>
+    </tr>
+    <tr>
+      <th>type</th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>sequence</th>
+      <td>9</td>
+      <td>9.204340</td>
+      <td>0.616141</td>
+    </tr>
+    <tr>
+      <th>structure</th>
+      <td>9</td>
+      <td>9.342593</td>
+      <td>1.071075</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+</section>
+<section id="id1">
+<h3>Amino acid composition<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">peptide_amino_acids</span> <span class="o">=</span> <span class="n">tcr_pmhc_data</span><span class="p">[[</span><span class="s1">'peptide'</span><span class="p">]]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">'peptide'</span><span class="p">:</span> <span class="s1">'amino_acid'</span><span class="p">},</span> <span class="n">axis</span><span class="o">=</span><span class="s1">'columns'</span><span class="p">)</span>
+<span class="n">peptide_amino_acids</span><span class="p">[</span><span class="s1">'type'</span><span class="p">]</span> <span class="o">=</span> <span class="n">tcr_pmhc_data</span><span class="p">[</span><span class="s1">'type'</span><span class="p">]</span>
+
+<span class="n">peptide_amino_acids</span> <span class="o">=</span> <span class="n">peptide_amino_acids</span><span class="o">.</span><span class="n">explode</span><span class="p">(</span><span class="s1">'amino_acid'</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[31]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">peptide_amino_acids_proportions</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">peptide_amino_acids</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">'type'</span><span class="p">)[</span><span class="s1">'amino_acid'</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">(</span><span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[32]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">subplot_kw</span><span class="o">=</span><span class="p">{</span><span class="s1">'projection'</span><span class="p">:</span> <span class="s1">'polar'</span><span class="p">})</span>
+
+<span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">type_</span> <span class="ow">in</span> <span class="s1">'sequence'</span><span class="p">,</span> <span class="s1">'structure'</span><span class="p">:</span>
+    <span class="n">selected_proportions</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">peptide_amino_acids_proportions</span><span class="p">[</span><span class="n">peptide_amino_acids_proportions</span><span class="p">[</span><span class="s1">'type'</span><span class="p">]</span> <span class="o">==</span> <span class="n">type_</span><span class="p">]</span>
+        <span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s1">'amino_acid'</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">'amino_acid'</span><span class="p">)[</span><span class="s1">'proportion'</span><span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="n">proportions</span> <span class="o">=</span> <span class="p">[</span><span class="n">selected_proportions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">amino_acid</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">amino_acid</span> <span class="ow">in</span> <span class="n">AMINO_ACIDS</span><span class="p">]</span>
+    <span class="n">label_angles</span> <span class="o">=</span> <span class="p">[</span><span class="n">amino_acid_angles</span><span class="p">[</span><span class="n">amino_acid</span><span class="p">]</span> <span class="k">for</span> <span class="n">amino_acid</span> <span class="ow">in</span> <span class="n">AMINO_ACIDS</span><span class="p">]</span>
+
+    <span class="c1"># Join ends</span>
+    <span class="n">proportions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">proportions</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">label_angles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label_angles</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="p">(</span><span class="n">line</span><span class="p">,)</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">label_angles</span><span class="p">,</span> <span class="n">proportions</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">'o'</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">type_</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">label_angles</span><span class="p">,</span> <span class="n">proportions</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+
+    <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">angles</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">AMINO_ACIDS</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">'y'</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s1">'major'</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s1">'x'</span><span class="p">,</span> <span class="n">visible</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">unique_handles_labels</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">get_label</span><span class="p">()</span><span class="o">.</span><span class="n">title</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">unique_handles_labels</span><span class="p">:</span>
+        <span class="n">unique_handles_labels</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">line</span>
+
+<span class="n">labels</span><span class="p">,</span> <span class="n">handles</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">unique_handles_labels</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">legend</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">''</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">'lower right'</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">'Peptide amino acid composition</span><span class="se">\n</span><span class="s1">between sequences and structures'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">'report/figures/dataset_comparison_peptide_aa_composition.svg'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/source_compairing_sequence_and_structure_data_43_0.png" src="../_images/source_compairing_sequence_and_structure_data_43_0.png" />
+</div>
+</div>
+</section>
+<section id="Peptide-Clustering">
+<h3>Peptide Clustering<a class="headerlink" href="#Peptide-Clustering" title="Link to this heading"></a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[33]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">peptide_sequences</span> <span class="o">=</span> <span class="n">tcr_pmhc_data</span><span class="p">[[</span><span class="s1">'peptide'</span><span class="p">,</span> <span class="s1">'type'</span><span class="p">]]</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[34]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">peptide_sequences</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">peptide_sequences</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">'peptide'</span><span class="p">)[</span><span class="s1">'type'</span><span class="p">]</span>
+    <span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="k">lambda</span> <span class="n">types</span><span class="p">:</span> <span class="s1">'both'</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">types</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">types</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[35]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">distance_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">peptide_sequences</span><span class="p">[</span><span class="s1">'peptide'</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">peptide_sequences</span><span class="p">[</span><span class="s1">'peptide'</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">peptide_sequences</span><span class="p">[</span><span class="s1">'peptide'</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">peptide_sequences</span><span class="p">[</span><span class="s1">'peptide'</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="n">distance_matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">damerau_levenshtein_distance</span><span class="p">(</span>
+            <span class="n">peptide_sequences</span><span class="p">[</span><span class="s1">'peptide'</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+            <span class="n">peptide_sequences</span><span class="p">[</span><span class="s1">'peptide'</span><span class="p">]</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">j</span><span class="p">],</span>
+        <span class="p">)</span>
+
+<span class="n">distance_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">distance_matrix</span><span class="p">,</span> <span class="n">distance_matrix</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span>
+    <span class="sa">f</span><span class="s1">'The average levenshtein distance between all peptide sequences is </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">distance_matrix</span><span class="p">)</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1"> edits'</span><span class="p">,</span>
+    <span class="sa">f</span><span class="s1">'with an standard deviation of </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">distance_matrix</span><span class="p">)</span><span class="si">:</span><span class="s1">.2f</span><span class="si">}</span><span class="s1"> edits.'</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+The average levenshtein distance between all peptide sequences is 8.43 edits with an standard deviation of 1.31 edits.
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[36]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">CUTOFF_PERCENT</span> <span class="o">=</span> <span class="mi">70</span>
+
+<span class="n">sequence_lengths</span> <span class="o">=</span> <span class="n">peptide_sequences</span><span class="p">[</span><span class="s1">'peptide'</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">len</span><span class="p">()</span>
+<span class="n">grid1</span><span class="p">,</span> <span class="n">grid2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">sequence_lengths</span><span class="p">,</span> <span class="n">sequence_lengths</span><span class="p">)</span>
+
+<span class="n">max_lengths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">grid1</span><span class="p">,</span> <span class="n">grid2</span><span class="p">)</span>
+<span class="n">sequence_percent_identities</span> <span class="o">=</span> <span class="p">((</span><span class="n">max_lengths</span> <span class="o">-</span> <span class="n">distance_matrix</span><span class="p">)</span> <span class="o">/</span> <span class="n">max_lengths</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
+
+<span class="n">similar_peptides</span> <span class="o">=</span> <span class="n">sequence_percent_identities</span> <span class="o">&gt;</span> <span class="n">CUTOFF_PERCENT</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[37]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">G</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+<span class="n">G</span><span class="o">.</span><span class="n">add_nodes_from</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">peptide_sequences</span><span class="p">[</span><span class="s1">'peptide'</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">peptide_sequences</span><span class="p">)):</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">peptide_sequences</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">similar_peptides</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]:</span>
+            <span class="n">G</span><span class="o">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="n">sequence_percent_identities</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">/</span> <span class="mi">100</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[38]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">colours</span> <span class="o">=</span> <span class="n">peptide_sequences</span><span class="p">[</span><span class="s1">'type'</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">({</span><span class="s1">'sequence'</span><span class="p">:</span> <span class="s1">'tab:blue'</span><span class="p">,</span> <span class="s1">'structure'</span><span class="p">:</span> <span class="s1">'tab:orange'</span><span class="p">,</span> <span class="s1">'both'</span><span class="p">:</span> <span class="s1">'tab:green'</span><span class="p">})</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[39]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">15</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">'Peptides grouped at 70</span><span class="si">% s</span><span class="s1">equence identity'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">24</span><span class="p">)</span>
+
+<span class="n">nx</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span>
+    <span class="n">G</span><span class="p">,</span>
+    <span class="n">node_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">node_color</span><span class="o">=</span><span class="n">colours</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span>
+    <span class="n">pos</span><span class="o">=</span><span class="n">nx</span><span class="o">.</span><span class="n">drawing</span><span class="o">.</span><span class="n">nx_agraph</span><span class="o">.</span><span class="n">graphviz_layout</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">prog</span><span class="o">=</span><span class="s1">'neato'</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">legend_elements</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">Patch</span><span class="p">(</span><span class="n">facecolor</span><span class="o">=</span><span class="s1">'tab:blue'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">'Sequence'</span><span class="p">),</span>
+    <span class="n">Patch</span><span class="p">(</span><span class="n">facecolor</span><span class="o">=</span><span class="s1">'tab:orange'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">'Structure'</span><span class="p">),</span>
+    <span class="n">Patch</span><span class="p">(</span><span class="n">facecolor</span><span class="o">=</span><span class="s1">'tab:green'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">'Both'</span><span class="p">),</span>
+<span class="p">]</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="o">=</span><span class="n">legend_elements</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">'upper right'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">'report/figures/dataset_comparison_peptide_clustering.svg'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/source_compairing_sequence_and_structure_data_51_0.png" src="../_images/source_compairing_sequence_and_structure_data_51_0.png" />
+</div>
+</div>
+</section>
+</section>
+<section id="MHCs">
+<h2>MHCs<a class="headerlink" href="#MHCs" title="Link to this heading"></a></h2>
+<section id="Alleles">
+<h3>Alleles<a class="headerlink" href="#Alleles" title="Link to this heading"></a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[40]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mhc_alleles</span> <span class="o">=</span> <span class="n">tcr_pmhc_data</span><span class="p">[[</span><span class="s1">'mhc1'</span><span class="p">,</span> <span class="s1">'mhc2'</span><span class="p">,</span> <span class="s1">'type'</span><span class="p">]]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[41]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mhc_alleles</span><span class="p">[</span><span class="s1">'mhc1'</span><span class="p">]</span> <span class="o">=</span> <span class="n">mhc_alleles</span><span class="p">[</span><span class="s1">'mhc1'</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s1">'Unknown'</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[42]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mhc_alleles</span><span class="p">[</span><span class="s1">'mhc1'</span><span class="p">]</span> <span class="o">=</span> <span class="n">mhc_alleles</span><span class="p">[</span><span class="s1">'mhc1'</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">';'</span><span class="p">)</span>
+<span class="n">mhc_alleles</span> <span class="o">=</span> <span class="n">mhc_alleles</span><span class="o">.</span><span class="n">explode</span><span class="p">(</span><span class="s1">'mhc1'</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[43]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mhc_alleles</span><span class="p">[</span><span class="s1">'mhc1'</span><span class="p">]</span> <span class="o">=</span> <span class="n">mhc_alleles</span><span class="p">[</span><span class="s1">'mhc1'</span><span class="p">]</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
+    <span class="k">lambda</span> <span class="n">gene</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">'MH2-D1'</span><span class="p">:</span> <span class="s1">'H2-D1'</span><span class="p">,</span>
+        <span class="s1">'H2-Db'</span><span class="p">:</span> <span class="s1">'H2-D1'</span><span class="p">,</span>
+        <span class="s1">'H2-Dd'</span><span class="p">:</span> <span class="s1">'H2-D1'</span><span class="p">,</span>
+    <span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">gene</span><span class="p">,</span> <span class="n">gene</span><span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[44]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mhc1_allele_proportions</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">mhc_alleles</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">'type'</span><span class="p">)[</span><span class="s1">'mhc1'</span><span class="p">]</span>
+    <span class="o">.</span><span class="n">value_counts</span><span class="p">(</span><span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+    <span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">'mhc1'</span><span class="p">:</span> <span class="s1">'Allele'</span><span class="p">},</span> <span class="n">axis</span><span class="o">=</span><span class="s1">'columns'</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">pivot_table</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="s1">'Allele'</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="s1">'proportion'</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="s1">'type'</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="n">mhc1_allele_proportions</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+
+<span class="n">mhc1_allele_proportions</span><span class="p">[</span><span class="s1">'change'</span><span class="p">]</span> <span class="o">=</span> <span class="n">mhc1_allele_proportions</span><span class="p">[</span><span class="s1">'sequence'</span><span class="p">]</span> <span class="o">-</span> <span class="n">mhc1_allele_proportions</span><span class="p">[</span><span class="s1">'structure'</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[45]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mhc1_allele_proportions</span> <span class="o">=</span> <span class="n">mhc1_allele_proportions</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span>
+    <span class="p">[</span><span class="n">idx</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">mhc1_allele_proportions</span><span class="o">.</span><span class="n">index</span> <span class="k">if</span> <span class="n">idx</span> <span class="o">!=</span> <span class="s1">'Unknown'</span><span class="p">]</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[46]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">mhc1_allele_proportions</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">mhc1_allele_proportions</span><span class="p">[</span><span class="s1">'change'</span><span class="p">])</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">rotation</span><span class="o">=</span><span class="mi">90</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">'Proportion of alleles in sequences - structures'</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">'report/figures/dataset_comparison_mhc_genes.svg'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/source_compairing_sequence_and_structure_data_60_0.png" src="../_images/source_compairing_sequence_and_structure_data_60_0.png" />
+</div>
+</div>
+</section>
+<section id="Pseudo-sequences">
+<h3>Pseudo sequences<a class="headerlink" href="#Pseudo-sequences" title="Link to this heading"></a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[47]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">mhc_pseudo_sequences</span> <span class="o">=</span> <span class="n">tcr_pmhc_data</span><span class="p">[[</span><span class="s1">'mhc_pseudo'</span><span class="p">,</span> <span class="s1">'type'</span><span class="p">]]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[48]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax1</span><span class="p">,</span> <span class="n">ax2</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+
+<span class="n">probs</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">type_</span><span class="p">:</span> <span class="n">logomaker</span><span class="o">.</span><span class="n">alignment_to_matrix</span><span class="p">(</span><span class="n">group</span><span class="p">[</span><span class="s1">'mhc_pseudo'</span><span class="p">],</span> <span class="n">to_type</span><span class="o">=</span><span class="s1">'information'</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">type_</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">mhc_pseudo_sequences</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">'type'</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">y_max</span> <span class="o">=</span> <span class="nb">max</span><span class="p">([</span><span class="n">prob</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">'columns'</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="k">for</span> <span class="n">prob</span> <span class="ow">in</span> <span class="n">probs</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
+
+<span class="n">columns</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">({</span><span class="n">col_name</span> <span class="k">for</span> <span class="n">prob</span> <span class="ow">in</span> <span class="n">probs</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">for</span> <span class="n">col_name</span> <span class="ow">in</span> <span class="n">prob</span><span class="o">.</span><span class="n">columns</span><span class="p">})</span>
+
+<span class="k">for</span> <span class="n">prob</span> <span class="ow">in</span> <span class="n">probs</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">col_name</span> <span class="ow">in</span> <span class="n">columns</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">col_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">prob</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">prob</span><span class="p">[</span><span class="n">col_name</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+<span class="n">logomaker</span><span class="o">.</span><span class="n">Logo</span><span class="p">(</span><span class="n">probs</span><span class="p">[</span><span class="s1">'sequence'</span><span class="p">],</span> <span class="n">color_scheme</span><span class="o">=</span><span class="s1">'chemistry'</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax1</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'Sequence'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">24</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">'Bits'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">([])</span>
+<span class="n">ax1</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">y_max</span><span class="p">])</span>
+
+<span class="n">logomaker</span><span class="o">.</span><span class="n">Logo</span><span class="p">(</span><span class="n">probs</span><span class="p">[</span><span class="s1">'structure'</span><span class="p">],</span> <span class="n">color_scheme</span><span class="o">=</span><span class="s1">'chemistry'</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax2</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">'Structure'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">24</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">'Bits'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">([])</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">y_max</span><span class="p">])</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/source_compairing_sequence_and_structure_data_63_0.png" src="../_images/source_compairing_sequence_and_structure_data_63_0.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[49]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">logomaker</span><span class="o">.</span><span class="n">Logo</span><span class="p">(</span><span class="n">probs</span><span class="p">[</span><span class="s1">'sequence'</span><span class="p">]</span> <span class="o">-</span> <span class="n">probs</span><span class="p">[</span><span class="s1">'structure'</span><span class="p">],</span> <span class="n">color_scheme</span><span class="o">=</span><span class="s1">'chemistry'</span><span class="p">,</span> <span class="n">flip_below</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">' Sequence - Structure'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">24</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">'Bits'</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">([])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">((</span><span class="o">-</span><span class="n">y_max</span><span class="p">,</span> <span class="n">y_max</span><span class="p">))</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">'report/figures/dataset_comparison_mhc_pseudo_sequences.svg'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/source_compairing_sequence_and_structure_data_64_0.png" src="../_images/source_compairing_sequence_and_structure_data_64_0.png" />
+</div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="benchmark_model_performance_against_nettcr.html" class="btn btn-neutral float-left" title="Model Size" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="evaluate_confidence_predictions.html" class="btn btn-neutral float-right" title="Evaluating confidence predictor" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Benjamin McMaster.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

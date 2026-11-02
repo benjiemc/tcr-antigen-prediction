@@ -1,0 +1,41 @@
+tcr_antigen_prediction.models.apps.train_tcr_en
+===============================================
+.. code-block:: text
+
+   usage: python -m tcr_antigen_prediction.models.apps.train_tcr_en
+          [-h] [--strategy {regular,leave-one-out}]
+          [--validation-data VALIDATION_DATA [VALIDATION_DATA ...]] --summary-csv
+          SUMMARY_CSV --output OUTPUT [--contact-distance CONTACT_DISTANCE]
+          [--log-level {debug,info,warning,error}] [--log-file LOG_FILE]
+          training_data [training_data ...]
+   
+   Calculate the TCR energy potentials for the TCRen model.
+   
+   The original model was developped in this paper: https://www.nature.com/articles/s43588-024-00653-0.
+   
+   positional arguments:
+     training_data         paths to training data for model
+   
+   options:
+     -h, --help            show this help message and exit
+     --strategy {regular,leave-one-out}
+                           training strategy employed to train the model
+                           (Default: 'regular')
+     --validation-data VALIDATION_DATA [VALIDATION_DATA ...]
+                           path to validation data if validation is desired after
+                           fitting the model in 'regular' mode
+     --summary-csv SUMMARY_CSV
+                           path to summary csv file for the structures
+     --output OUTPUT, -o OUTPUT
+                           path to output csv(s)
+     --contact-distance CONTACT_DISTANCE
+                           threshold for contact distance between heavy atoms
+                           (Default: 5.0 Å)
+   
+   Logging:
+     Options for logging
+   
+     --log-level {debug,info,warning,error}
+                           Level to log messages at (Default: 'warning')
+     --log-file LOG_FILE   File to output logs (default is to write to stderr)
+   

@@ -1,0 +1,7 @@
+tcr\_antigen\_prediction.data.comparisons module
+================================================
+
+.. automodule:: tcr_antigen_prediction.data.comparisons
+   :members:
+   :show-inheritance:
+   :undoc-members:
